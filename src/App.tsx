@@ -9,6 +9,9 @@ import { ColumnDetailPage } from './pages/ColumnDetailPage'
 import { ComparePage } from './pages/ComparePage'
 import { SharePage } from './pages/SharePage'
 import { PublicViewPage } from './pages/PublicViewPage'
+import { loadSharedDashboard } from './lib/shareApi'
+import { saveLocalDashboard, touchLocalDashboard } from './lib/localDb'
+import { isSupabaseConfigured } from './lib/supabase'
 
 type RouteName = 'upload' | 'dashboard' | 'detail' | 'compare' | 'share' | 'public' | 'landing'
 
@@ -25,6 +28,27 @@ export default function App(): JSX.Element {
     setRoute({ name, ...extras })
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
+
+  // Detect /d/<slug> URL on mount and load the shared dashboard from Supabase.
+  useEffect(() => {
+    const match = /^\/d\/([A-Za-z0-9]{12})$/.exec(window.location.pathname)
+    if (!match) return
+    if (!isSupabaseConfigured()) {
+      console.warn('Slug detectado pero Supabase no configurado')
+      return
+    }
+    const slug = match[1]
+    void loadSharedDashboard(slug)
+      .then(async (ds) => {
+        await saveLocalDashboard({ slug, name: ds.label, deleteToken: '', owner: 'visited' })
+        await touchLocalDashboard(slug)
+        setDataset(ds)
+        setRoute({ name: 'public' })
+      })
+      .catch((err) => {
+        console.error(err)
+      })
+  }, [])
 
   // Auto-pick first column for detail if not chosen — mirrors legacy app.jsx behaviour.
   useEffect(() => {
