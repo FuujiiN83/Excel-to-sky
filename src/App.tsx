@@ -16,6 +16,8 @@ import { TermsPage } from './pages/TermsPage'
 import { loadSharedDashboard } from './lib/shareApi'
 import { saveLocalDashboard, touchLocalDashboard } from './lib/localDb'
 import { isSupabaseConfigured } from './lib/supabase'
+import { InsightsWorkbench } from './dev/InsightsWorkbench'
+import { analyzeDataset } from './lib/insights'
 
 type RouteName =
   | 'upload'
@@ -28,6 +30,7 @@ type RouteName =
   | 'faq'
   | 'privacy'
   | 'terms'
+  | 'dev_insights'
 
 interface Route {
   name: RouteName
@@ -57,6 +60,7 @@ export default function App(): JSX.Element {
     else if (path === '/faq') setRoute({ name: 'faq' })
     else if (path === '/privacy') setRoute({ name: 'privacy' })
     else if (path === '/terms') setRoute({ name: 'terms' })
+    else if (path === '/dev/insights') setRoute({ name: 'dev_insights' })
   }, [])
 
   // Detect /d/<slug> URL on mount and load the shared dashboard from Supabase.
@@ -91,13 +95,26 @@ export default function App(): JSX.Element {
     }
   }, [route.name, route.columnKey, dataset])
 
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    if (!hasUploaded) return
+    void analyzeDataset(dataset).then((report) => {
+      // eslint-disable-next-line no-console
+      console.log('[insights]', report)
+    }).catch((e: unknown) => {
+      // eslint-disable-next-line no-console
+      console.error('[insights] failed:', e)
+    })
+  }, [dataset, hasUploaded])
+
   const isUpload = route.name === 'upload'
   const isPublic = route.name === 'public'
   const isStandalone =
     route.name === 'landing' ||
     route.name === 'faq' ||
     route.name === 'privacy' ||
-    route.name === 'terms'
+    route.name === 'terms' ||
+    route.name === 'dev_insights'
 
   if (isStandalone) {
     return (
@@ -106,6 +123,7 @@ export default function App(): JSX.Element {
         {route.name === 'faq' && <FaqPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'privacy' && <PrivacyPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'terms' && <TermsPage onNav={(n) => nav(n as RouteName)} />}
+        {route.name === 'dev_insights' && <InsightsWorkbench />}
       </div>
     )
   }
