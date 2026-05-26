@@ -12,6 +12,7 @@ import { numericCorrelation } from './numericCorrelation'
 import { groupDisparity } from './groupDisparity'
 import { conditionalOutlier } from './conditionalOutlier'
 import { timeByGroup } from './timeByGroup'
+import { qualityScore } from './qualityScore'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -26,4 +27,5 @@ export const HEURISTICS: Heuristic[] = [
   groupDisparity,
   conditionalOutlier,
   timeByGroup,
+  qualityScore,
 ]
