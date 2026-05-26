@@ -1,0 +1,2 @@
+# Supabase config — populate after running `npx supabase link --project-ref <ref>`
+project_id = ""
