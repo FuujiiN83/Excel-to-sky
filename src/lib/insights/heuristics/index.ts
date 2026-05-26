@@ -5,6 +5,7 @@ import { categoryConcentration } from './categoryConcentration'
 import { cardinalityAnomaly } from './cardinalityAnomaly'
 import { missingData } from './missingData'
 import { distributionShape } from './distributionShape'
+import { timeDensityGap } from './timeDensityGap'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -12,4 +13,5 @@ export const HEURISTICS: Heuristic[] = [
   cardinalityAnomaly,
   missingData,
   distributionShape,
+  timeDensityGap,
 ]
