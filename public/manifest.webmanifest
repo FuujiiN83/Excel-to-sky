@@ -1,0 +1,14 @@
+{
+  "name": "Excel to Sky",
+  "short_name": "Excel→Sky",
+  "description": "Convierte tu Excel en un dashboard visual compartible.",
+  "lang": "es",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F6F2",
+  "theme_color": "#2E6BFF",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

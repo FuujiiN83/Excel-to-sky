@@ -9,11 +9,25 @@ import { ColumnDetailPage } from './pages/ColumnDetailPage'
 import { ComparePage } from './pages/ComparePage'
 import { SharePage } from './pages/SharePage'
 import { PublicViewPage } from './pages/PublicViewPage'
+import { LandingPage } from './pages/LandingPage'
+import { FaqPage } from './pages/FaqPage'
+import { PrivacyPage } from './pages/PrivacyPage'
+import { TermsPage } from './pages/TermsPage'
 import { loadSharedDashboard } from './lib/shareApi'
 import { saveLocalDashboard, touchLocalDashboard } from './lib/localDb'
 import { isSupabaseConfigured } from './lib/supabase'
 
-type RouteName = 'upload' | 'dashboard' | 'detail' | 'compare' | 'share' | 'public' | 'landing'
+type RouteName =
+  | 'upload'
+  | 'dashboard'
+  | 'detail'
+  | 'compare'
+  | 'share'
+  | 'public'
+  | 'landing'
+  | 'faq'
+  | 'privacy'
+  | 'terms'
 
 interface Route {
   name: RouteName
@@ -21,13 +35,23 @@ interface Route {
 }
 
 export default function App(): JSX.Element {
-  const [route, setRoute] = useState<Route>({ name: 'upload' })
+  const [route, setRoute] = useState<Route>({ name: 'landing' })
   const [dataset, setDataset] = useState<Dataset>(SAMPLE_DATASETS.personas)
 
   function nav(name: RouteName, extras: Partial<Route> = {}): void {
     setRoute({ name, ...extras })
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
+
+  // Pathname-based initial route (e.g. /app, /faq, /privacy, /terms). /d/<slug>
+  // is handled by the dedicated effect below.
+  useEffect(() => {
+    const path = window.location.pathname
+    if (path === '/app') setRoute({ name: 'upload' })
+    else if (path === '/faq') setRoute({ name: 'faq' })
+    else if (path === '/privacy') setRoute({ name: 'privacy' })
+    else if (path === '/terms') setRoute({ name: 'terms' })
+  }, [])
 
   // Detect /d/<slug> URL on mount and load the shared dashboard from Supabase.
   useEffect(() => {
@@ -62,6 +86,22 @@ export default function App(): JSX.Element {
 
   const isUpload = route.name === 'upload'
   const isPublic = route.name === 'public'
+  const isStandalone =
+    route.name === 'landing' ||
+    route.name === 'faq' ||
+    route.name === 'privacy' ||
+    route.name === 'terms'
+
+  if (isStandalone) {
+    return (
+      <div>
+        {route.name === 'landing' && <LandingPage onNav={(n) => nav(n as RouteName)} />}
+        {route.name === 'faq' && <FaqPage onNav={(n) => nav(n as RouteName)} />}
+        {route.name === 'privacy' && <PrivacyPage onNav={(n) => nav(n as RouteName)} />}
+        {route.name === 'terms' && <TermsPage onNav={(n) => nav(n as RouteName)} />}
+      </div>
+    )
+  }
 
   return (
     <div>
