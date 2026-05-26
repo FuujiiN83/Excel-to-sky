@@ -14,6 +14,7 @@ import { conditionalOutlier } from './conditionalOutlier'
 import { timeByGroup } from './timeByGroup'
 import { qualityScore } from './qualityScore'
 import { schemaSummary } from './schemaSummary'
+import { temporalCoverage } from './temporalCoverage'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -30,4 +31,5 @@ export const HEURISTICS: Heuristic[] = [
   timeByGroup,
   qualityScore,
   schemaSummary,
+  temporalCoverage,
 ]
