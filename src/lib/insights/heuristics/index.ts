@@ -6,6 +6,7 @@ import { cardinalityAnomaly } from './cardinalityAnomaly'
 import { missingData } from './missingData'
 import { distributionShape } from './distributionShape'
 import { timeDensityGap } from './timeDensityGap'
+import { duplicateLookalike } from './duplicateLookalike'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -14,4 +15,5 @@ export const HEURISTICS: Heuristic[] = [
   missingData,
   distributionShape,
   timeDensityGap,
+  duplicateLookalike,
 ]
