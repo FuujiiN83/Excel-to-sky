@@ -15,6 +15,7 @@ import { timeByGroup } from './timeByGroup'
 import { qualityScore } from './qualityScore'
 import { schemaSummary } from './schemaSummary'
 import { temporalCoverage } from './temporalCoverage'
+import { volumeContext } from './volumeContext'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -32,4 +33,5 @@ export const HEURISTICS: Heuristic[] = [
   qualityScore,
   schemaSummary,
   temporalCoverage,
+  volumeContext,
 ]
