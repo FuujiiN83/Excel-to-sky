@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* Palette — light */
+  --bg: #F7F6F2;
+  --surface: #FFFFFF;
+  --surface-2: #FBFAF7;
+  --border: #ECE9E1;
+  --border-strong: #D9D4C7;
+  --ink: #14130F;
+  --ink-2: #3A3833;
+  --muted: #76726A;
+  --muted-2: #A6A39B;
+
+  /* Accents (Notion-y but punchy) */
+  --sky: #2E6BFF;
+  --sky-soft: #E4ECFF;
+  --mint: #14B8A6;
+  --mint-soft: #D7F5F0;
+  --coral: #FF7159;
+  --coral-soft: #FFE3DC;
+  --plum: #8B5CF6;
+  --plum-soft: #ECE3FF;
+  --amber: #F5B100;
+  --amber-soft: #FFF1C2;
+  --rose: #EC4D7B;
+  --rose-soft: #FCDEE7;
+  --lime: #84CC16;
+  --lime-soft: #EAF7CF;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 30px;
+
+  --shadow-sm: 0 1px 0 rgba(20,19,15,0.04), 0 1px 2px rgba(20,19,15,0.04);
+  --shadow: 0 1px 0 rgba(20,19,15,0.04), 0 8px 22px -10px rgba(20,19,15,0.10);
+  --shadow-lg: 0 1px 0 rgba(20,19,15,0.04), 0 28px 60px -28px rgba(20,19,15,0.22);
+
+  --font-display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
+  --font-ui: "Geist", ui-sans-serif, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+}
+
+/* Dark theme overrides */
+.theme-dark {
+  --bg: #0F0F0E;
+  --surface: #181816;
+  --surface-2: #1F1F1C;
+  --border: #2A2A26;
+  --border-strong: #3A3A35;
+  --ink: #F4F2EC;
+  --ink-2: #D6D3CB;
+  --muted: #8E8B82;
+  --muted-2: #5E5C56;
+  --sky-soft: #1B2A55;
+  --mint-soft: #0F302C;
+  --coral-soft: #3A1C16;
+  --plum-soft: #2A1E4A;
+  --amber-soft: #3A2D08;
+  --rose-soft: #3A1422;
+  --lime-soft: #1F2E0A;
+  --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 8px 22px -10px rgba(0,0,0,0.4);
+  --shadow-lg: 0 1px 0 rgba(0,0,0,0.4), 0 28px 60px -28px rgba(0,0,0,0.5);
+}
+
+/* Density */
+.density-compact { --pad: 14px; --pad-lg: 18px; --gap: 10px; }
+.density-cozy    { --pad: 20px; --pad-lg: 28px; --gap: 16px; }
+.density-airy    { --pad: 28px; --pad-lg: 40px; --gap: 22px; }
