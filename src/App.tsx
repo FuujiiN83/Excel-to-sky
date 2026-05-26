@@ -1,25 +1,37 @@
 import { useState } from 'react'
-import './App.css'
+import { TopBar } from './components/TopBar'
+import { FloatingDock } from './components/FloatingDock'
+import { SAMPLE_DATASETS } from './samples'
+import type { Dataset } from './types/dataset'
 
-function App() {
-  const [count, setCount] = useState(0)
+type RouteName = 'upload' | 'dashboard' | 'detail' | 'compare' | 'share' | 'public' | 'landing'
 
-  return (
-    <>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((c) => c + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+interface Route {
+  name: RouteName
+  columnKey?: string
 }
 
-export default App
+export default function App(): JSX.Element {
+  const [route, setRoute] = useState<Route>({ name: 'upload' })
+  const [dataset] = useState<Dataset>(SAMPLE_DATASETS.personas)
+
+  function nav(name: RouteName, extras: Partial<Route> = {}): void {
+    setRoute({ name, ...extras })
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+
+  return (
+    <div>
+      <TopBar
+        current={route.name}
+        onNav={(n) => nav(n as RouteName)}
+        dataset={dataset}
+        onShare={() => nav('share')}
+      />
+      <main className="p-8">
+        Route: {route.name} — Dataset: {dataset.label} ({dataset.rows.length} filas)
+      </main>
+      <FloatingDock route={route} onNav={(n) => nav(n as RouteName)} />
+    </div>
+  )
+}
