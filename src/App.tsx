@@ -50,10 +50,16 @@ export default function App(): JSX.Element {
             hideNav
           />
           <UploadPage
-            onLoad={(id) => {
-              const next = SAMPLE_DATASETS[id]
-              if (next) setDataset(next)
+            onParsed={(ds) => {
+              setDataset(ds)
               nav('dashboard')
+            }}
+            onUseSample={(id) => {
+              const next = SAMPLE_DATASETS[id]
+              if (next) {
+                setDataset(next)
+                nav('dashboard')
+              }
             }}
           />
         </>

@@ -1,29 +1,13 @@
-import { useState } from 'react'
 import { SAMPLE_DATASETS } from '../samples'
+import type { Dataset } from '../types/dataset'
+import { UploadDropzone } from '../components/UploadDropzone'
 
 interface UploadPageProps {
-  onLoad: (datasetId: string) => void
+  onParsed: (dataset: Dataset) => void
+  onUseSample: (sampleId: string) => void
 }
 
-export function UploadPage({ onLoad }: UploadPageProps): JSX.Element {
-  const [drag, setDrag] = useState(false)
-  const [loading, setLoading] = useState<string | null>(null)
-  const [progress, setProgress] = useState(0)
-
-  function simulateLoad(id: string): void {
-    setLoading(id)
-    setProgress(0)
-    let p = 0
-    const itv = setInterval(() => {
-      p += 6 + Math.random() * 14
-      setProgress(Math.min(p, 100))
-      if (p >= 100) {
-        clearInterval(itv)
-        setTimeout(() => onLoad(id), 220)
-      }
-    }, 60)
-  }
-
+export function UploadPage({ onParsed, onUseSample }: UploadPageProps): JSX.Element {
   return (
     <div
       className="grid"
@@ -120,131 +104,7 @@ export function UploadPage({ onLoad }: UploadPageProps): JSX.Element {
         className="flex flex-col justify-center"
         style={{ padding: '60px 64px 60px 0', gap: 18 }}
       >
-        <div
-          onDragOver={(e) => {
-            e.preventDefault()
-            setDrag(true)
-          }}
-          onDragLeave={() => setDrag(false)}
-          onDrop={(e) => {
-            e.preventDefault()
-            setDrag(false)
-            simulateLoad('personas')
-          }}
-          style={{
-            position: 'relative',
-            border: `2px dashed ${drag ? 'var(--sky)' : 'var(--border-strong)'}`,
-            background: drag ? 'var(--sky-soft)' : 'var(--surface)',
-            borderRadius: 28,
-            padding: '54px 36px',
-            textAlign: 'center',
-            transition: 'all .2s ease',
-            boxShadow: drag
-              ? '0 22px 60px -28px rgba(46,107,255,0.45)'
-              : 'var(--shadow)',
-          }}
-        >
-          <div
-            className="inline-flex"
-            style={{ position: 'relative', marginBottom: 18 }}
-          >
-            <div
-              className="bg-surface-2 border border-border"
-              style={{
-                width: 64,
-                height: 80,
-                borderRadius: 10,
-                transform: 'rotate(-6deg) translateX(8px)',
-              }}
-            />
-            <div
-              className="bg-surface border border-border-strong grid place-items-center font-mono"
-              style={{
-                width: 64,
-                height: 80,
-                borderRadius: 10,
-                position: 'absolute',
-                left: 14,
-                top: 6,
-                fontWeight: 700,
-                color: 'var(--mint)',
-                boxShadow: 'var(--shadow)',
-              }}
-            >
-              <span
-                style={{
-                  background: 'var(--mint-soft)',
-                  padding: '3px 6px',
-                  borderRadius: 4,
-                  fontSize: 11,
-                }}
-              >
-                .xlsx
-              </span>
-            </div>
-          </div>
-          <div
-            className="font-display text-ink"
-            style={{
-              fontSize: 26,
-              fontWeight: 600,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Arrastra tu Excel aquí
-          </div>
-          <div className="text-muted" style={{ fontSize: 14, marginTop: 6 }}>
-            o{' '}
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault()
-                simulateLoad('personas')
-              }}
-              style={{ color: 'var(--sky)', fontWeight: 500 }}
-            >
-              busca un archivo
-            </a>{' '}
-            en tu equipo · .xlsx, .csv, .ods · hasta 25 MB
-          </div>
-          {loading && (
-            <div
-              style={{
-                marginTop: 24,
-                maxWidth: 400,
-                marginLeft: 'auto',
-                marginRight: 'auto',
-                textAlign: 'left',
-              }}
-            >
-              <div
-                className="flex justify-between text-muted"
-                style={{ fontSize: 12, marginBottom: 6 }}
-              >
-                <span>Analizando columnas…</span>
-                <span className="font-mono">{Math.round(progress)}%</span>
-              </div>
-              <div
-                style={{
-                  height: 6,
-                  background: 'var(--border)',
-                  borderRadius: 999,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    height: '100%',
-                    width: `${progress}%`,
-                    background: 'var(--sky)',
-                    borderRadius: 999,
-                    transition: 'width .12s linear',
-                  }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
+        <UploadDropzone onParsed={onParsed} />
 
         <div
           className="flex items-center text-muted"
@@ -262,7 +122,7 @@ export function UploadPage({ onLoad }: UploadPageProps): JSX.Element {
           {Object.values(SAMPLE_DATASETS).map((ds) => (
             <button
               key={ds.id}
-              onClick={() => simulateLoad(ds.id)}
+              onClick={() => onUseSample(ds.id)}
               className="bg-surface border border-border flex flex-col text-left"
               style={{
                 borderRadius: 16,
