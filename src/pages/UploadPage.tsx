@@ -41,7 +41,7 @@ export function UploadPage({
           onClick={onReturnToDashboard}
           className="bg-surface border border-border text-ink"
           style={{
-            borderRadius: 999,
+            borderRadius: 0,
             padding: '8px 16px',
             fontSize: 13,
             fontWeight: 500,
@@ -73,7 +73,7 @@ export function UploadPage({
             alignSelf: 'flex-start',
             gap: 8,
             padding: '5px 12px 5px 5px',
-            borderRadius: 999,
+            borderRadius: 0,
             background: 'rgba(255,255,255,0.025)',
             boxShadow: '0 0 0 1px var(--border)',
             fontSize: 11,
@@ -88,7 +88,7 @@ export function UploadPage({
             style={{
               width: 18,
               height: 18,
-              borderRadius: '50%',
+              borderRadius: 0,
               background: 'var(--mint-soft)',
               color: 'var(--mint)',
               display: 'grid',
@@ -156,7 +156,7 @@ export function UploadPage({
                   fontSize: 11,
                   fontWeight: 600,
                   padding: '3px 8px',
-                  borderRadius: 6,
+                  borderRadius: 0,
                 }}
               >
                 {k}
@@ -193,7 +193,7 @@ export function UploadPage({
               onClick={() => onUseSample(ds.id)}
               className="bg-surface border border-border flex flex-col text-left"
               style={{
-                borderRadius: 16,
+                borderRadius: 0,
                 padding: 16,
                 gap: 6,
                 transition: 'all .15s ease',
@@ -257,7 +257,7 @@ export function UploadPage({
                     style={{
                       width: '100%',
                       textAlign: 'left',
-                      borderRadius: 8,
+                      borderRadius: 0,
                       border: '1px solid var(--border)',
                       padding: 12,
                       background: 'transparent',
@@ -305,7 +305,7 @@ export function UploadPage({
                     style={{
                       width: '100%',
                       textAlign: 'left',
-                      borderRadius: 8,
+                      borderRadius: 0,
                       border: '1px solid var(--border)',
                       padding: 12,
                       background: 'transparent',

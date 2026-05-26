@@ -15,9 +15,9 @@ interface DashboardPageProps {
 const ACCENT_BY_TYPE: Record<string, Accent> = {
   number: 'mint',
   currency: 'mint',
-  category: 'coral',
-  text: 'coral',
-  date: 'amber',
+  category: 'plum',
+  text: 'sky',
+  date: 'sky',
   geo: 'sky',
   boolean: 'plum',
 }
@@ -83,7 +83,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
                   fontWeight: 600,
                   fontSize: 10,
                   padding: '2px 8px',
-                  borderRadius: 999,
+                  borderRadius: 0,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
                 }}
@@ -114,7 +114,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
           <div className="flex" style={{ gap: 10 }}>
             <button
               onClick={onCompare}
-              className="bg-surface border border-border rounded-full"
+              className="bg-surface border border-border"
               style={{
                 color: 'var(--ink-2)',
                 padding: '10px 20px',
@@ -126,7 +126,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
             </button>
             <button
               onClick={onShare}
-              className="rounded-full"
+              
               style={{
                 background: 'var(--ink)',
                 color: 'var(--bg)',
@@ -147,8 +147,8 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
         className="grid"
         style={{
           gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 'var(--gap)',
-          marginBottom: 28,
+          gap: 20,
+          marginBottom: 40,
         }}
       >
         <StatCard
@@ -172,7 +172,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
         <StatCard
           label="Última carga"
           value="hoy"
-          accent="amber"
+          accent="sky"
           caption={new Date(dataset.createdAt).toLocaleDateString('es-ES')}
         />
       </div>
@@ -200,7 +200,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
 
       <div
         className="grid"
-        style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--gap)' }}
+        style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}
       >
         {analyses.map(({ col, analysis }) => {
           const accent = pickAccent(col)
@@ -266,14 +266,25 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
             <button
               key={col.key}
               onClick={() => onColumnClick(col)}
-              className="bg-surface border border-border flex flex-col text-left"
+              className="bg-surface flex flex-col text-left"
               style={{
-                borderRadius: 'var(--radius-lg)',
-                padding: 'var(--pad)',
-                gap: 14,
-                transition: 'all .2s ease',
+                border: 'none',
+                boxShadow: '0 0 0 1px var(--border)',
+                borderRadius: 0,
+                padding: 22,
+                gap: 18,
+                minHeight: 200,
+                transition: 'box-shadow .2s ease, background .2s ease',
                 position: 'relative',
                 overflow: 'hidden',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = '0 0 0 1px var(--border-strong)'
+                e.currentTarget.style.background = 'rgba(255,255,255,0.025)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = '0 0 0 1px var(--border)'
+                e.currentTarget.style.background = 'var(--surface)'
               }}
             >
               <div className="flex items-center justify-between">
@@ -283,7 +294,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
                     style={{
                       width: 26,
                       height: 26,
-                      borderRadius: 7,
+                      borderRadius: 0,
                       background: `var(--${accent}-soft)`,
                       color: `var(--${accent})`,
                       fontWeight: 700,
@@ -325,7 +336,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
             marginTop: 28,
             background: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
+            borderRadius: 0,
             padding: 'var(--pad-lg)',
           }}
         >
@@ -365,7 +376,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
               style={{
                 background: 'transparent',
                 border: '1px solid var(--border)',
-                borderRadius: 999,
+                borderRadius: 0,
                 padding: '6px 14px',
                 fontSize: 12,
                 color: 'var(--ink-2)',

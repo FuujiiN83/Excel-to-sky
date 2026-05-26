@@ -29,7 +29,7 @@ function Logo({ size = 26 }: { size?: number }): JSX.Element {
           width: size,
           height: size,
           background: 'linear-gradient(135deg, var(--sky), var(--plum))',
-          borderRadius: 8,
+          borderRadius: 0,
           boxShadow: '0 0 0 1px var(--border), 0 6px 18px -8px rgba(77,158,250,0.5)',
         }}
       >
@@ -78,7 +78,7 @@ export function TopBar(props: TopBarProps): JSX.Element {
         <Logo />
         {!hideNav && (
           <nav
-            className="flex bg-surface border border-border rounded-full"
+            className="flex bg-surface border border-border"
             style={{ gap: 2, marginLeft: 8, padding: 4 }}
           >
             {NAV_ITEMS.map((it) => {
@@ -87,7 +87,7 @@ export function TopBar(props: TopBarProps): JSX.Element {
                 <button
                   key={it.id}
                   onClick={() => onNav(it.id)}
-                  className="rounded-full border-none transition-all"
+                  className="border-none transition-all"
                   style={{
                     padding: '6px 14px',
                     background: active ? 'var(--ink)' : 'transparent',
@@ -107,11 +107,11 @@ export function TopBar(props: TopBarProps): JSX.Element {
       <div className="flex items-center" style={{ gap: 12 }}>
         {dataset && (
           <div
-            className="flex items-center bg-surface border border-border rounded-full"
+            className="flex items-center bg-surface border border-border"
             style={{ gap: 10, padding: '6px 12px 6px 6px', fontSize: 13 }}
           >
             <div
-              className="grid place-items-center rounded-md"
+              className="grid place-items-center"
               style={{
                 width: 22,
                 height: 22,
@@ -135,7 +135,7 @@ export function TopBar(props: TopBarProps): JSX.Element {
         {!hideNav && onShare && (
           <button
             onClick={onShare}
-            className="inline-flex items-center border-none rounded-full"
+            className="inline-flex items-center border-none"
             style={{
               background: 'var(--ink)',
               color: 'var(--bg)',

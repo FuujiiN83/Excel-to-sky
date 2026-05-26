@@ -54,7 +54,7 @@ export function LegalLayout({ title, onNav, children }: LegalLayoutProps): JSX.E
               background: '#2E6BFF',
               color: '#fff',
               padding: '6px 14px',
-              borderRadius: 8,
+              borderRadius: 0,
               fontWeight: 600,
             }}
           >

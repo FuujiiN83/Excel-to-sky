@@ -37,7 +37,7 @@ export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
             <span
               className="bg-surface border border-border text-muted"
               style={{
-                borderRadius: 999,
+                borderRadius: 0,
                 padding: '4px 10px',
                 fontSize: 11,
                 fontWeight: 600,
@@ -49,7 +49,7 @@ export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
           <div className="flex" style={{ gap: 10 }}>
             <button
               onClick={onExit}
-              className="bg-surface border border-border rounded-full"
+              className="bg-surface border border-border"
               style={{
                 color: 'var(--ink-2)',
                 padding: '10px 20px',
@@ -60,7 +60,7 @@ export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
               ← Volver al editor
             </button>
             <button
-              className="rounded-full"
+              
               style={{
                 background: 'var(--ink)',
                 color: 'var(--bg)',

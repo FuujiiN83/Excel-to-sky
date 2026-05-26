@@ -70,7 +70,7 @@ export function ChartMap({
         width: '100%',
         aspectRatio: mode === 'world' ? '2 / 1' : '1 / 1',
         background: 'var(--surface-2)',
-        borderRadius: 18,
+        borderRadius: 0,
         overflow: 'hidden',
         border: '1px solid var(--border)',
       }}
@@ -121,7 +121,7 @@ export function ChartMap({
               style={{
                 width: sz,
                 height: sz,
-                borderRadius: '50%',
+                borderRadius: 0,
                 background: `radial-gradient(circle at 30% 30%, color-mix(in oklab, ${stroke} 80%, white), ${stroke})`,
                 boxShadow: `0 0 0 4px color-mix(in oklab, ${stroke} 25%, transparent), 0 6px 16px -4px ${stroke}`,
                 opacity: 0.9,
@@ -131,7 +131,7 @@ export function ChartMap({
               style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
-                borderRadius: 999,
+                borderRadius: 0,
                 padding: '3px 8px',
                 fontSize: 11,
                 fontWeight: 600,

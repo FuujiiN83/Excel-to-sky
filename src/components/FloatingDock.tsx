@@ -25,7 +25,7 @@ export function FloatingDock({ route, onNav }: FloatingDockProps): JSX.Element {
         left: '50%',
         transform: 'translateX(-50%)',
         padding: 5,
-        borderRadius: 999,
+        borderRadius: 0,
         background: 'rgba(14, 16, 21, 0.72)',
         backdropFilter: 'blur(24px) saturate(160%)',
         WebkitBackdropFilter: 'blur(24px) saturate(160%)',
@@ -44,7 +44,7 @@ export function FloatingDock({ route, onNav }: FloatingDockProps): JSX.Element {
             onClick={() => onNav(it.id)}
             style={{
               padding: '8px 16px',
-              borderRadius: 999,
+              borderRadius: 0,
               border: 'none',
               background: active
                 ? 'linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04))'

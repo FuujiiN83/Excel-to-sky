@@ -75,7 +75,7 @@ export function FaqPage({ onNav }: FaqPageProps): JSX.Element {
           </section>
         ))}
       </div>
-      <div style={{ marginTop: 40, padding: 20, borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div style={{ marginTop: 40, padding: 20, borderRadius: 0, background: 'var(--surface)', border: '1px solid var(--border)' }}>
         <strong>¿Listo para empezar?</strong>{' '}
         <button
           onClick={() => onNav('upload')}
@@ -83,7 +83,7 @@ export function FaqPage({ onNav }: FaqPageProps): JSX.Element {
             background: '#2E6BFF',
             color: '#fff',
             border: 'none',
-            borderRadius: 8,
+            borderRadius: 0,
             padding: '8px 16px',
             fontSize: 14,
             fontWeight: 600,

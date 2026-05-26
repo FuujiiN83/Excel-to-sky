@@ -76,7 +76,7 @@ export function ChartBar({
                   width: '100%',
                   height: `${Math.max(2, (b.value / max) * 100)}%`,
                   background: `linear-gradient(180deg, ${stroke}, color-mix(in oklab, ${stroke} 70%, white))`,
-                  borderRadius: '6px 6px 2px 2px',
+                  borderRadius: 0,
                   transition: 'height .4s cubic-bezier(.2,.8,.2,1)',
                 }}
               />
@@ -134,7 +134,7 @@ export function ChartBar({
               position: 'relative',
               height: 22,
               background: 'var(--surface-2)',
-              borderRadius: 6,
+              borderRadius: 0,
               overflow: 'hidden',
             }}
           >
@@ -144,7 +144,7 @@ export function ChartBar({
                 inset: 0,
                 width: `${(b.value / mx) * 100}%`,
                 background: `linear-gradient(90deg, ${stroke}, color-mix(in oklab, ${stroke} 50%, white))`,
-                borderRadius: 6,
+                borderRadius: 0,
                 transition: 'width .5s cubic-bezier(.2,.8,.2,1)',
               }}
             />

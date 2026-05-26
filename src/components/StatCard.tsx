@@ -33,7 +33,7 @@ export function StatCard({
     <div
       style={{
         padding: 6,
-        borderRadius: 'var(--radius-lg)',
+        borderRadius: 0,
         background: highlight
           ? `linear-gradient(135deg, var(--${accent}-soft), transparent 70%)`
           : 'rgba(255,255,255,0.025)',
@@ -45,7 +45,7 @@ export function StatCard({
       <div
         style={{
           background: 'var(--surface)',
-          borderRadius: 'calc(var(--radius-lg) - 6px)',
+          borderRadius: 0,
           padding: 'var(--pad)',
           display: 'flex',
           flexDirection: 'column',
@@ -61,7 +61,7 @@ export function StatCard({
               style={{
                 width: 20,
                 height: 20,
-                borderRadius: 6,
+                borderRadius: 0,
                 background: `var(--${accent}-soft)`,
                 color: `var(--${accent})`,
                 display: 'grid',
@@ -128,7 +128,7 @@ export function MiniBars({ values, accent = 'sky', height = 36 }: MiniBarsProps)
             flex: 1,
             height: `${Math.max(8, (v / max) * 100)}%`,
             background: `var(--${accent})`,
-            borderRadius: 3,
+            borderRadius: 0,
             opacity: 0.35 + 0.65 * (v / max),
           }}
         />

@@ -72,7 +72,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
         className="border border-border text-muted"
         style={{
           background: 'transparent',
-          borderRadius: 8,
+          borderRadius: 0,
           padding: '6px 10px',
           fontSize: 12,
           marginBottom: 22,
@@ -112,7 +112,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
         className="flex flex-wrap items-center bg-surface border border-border"
         style={{
           gap: 10,
-          borderRadius: 999,
+          borderRadius: 0,
           padding: 8,
           marginBottom: 24,
           width: 'fit-content',
@@ -124,7 +124,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
         <select
           value={groupKey}
           onChange={(e) => setGroupKey(e.target.value)}
-          className="bg-surface-2 border border-border rounded-full"
+          className="bg-surface-2 border border-border"
           style={{
             padding: '7px 12px',
             fontSize: 13,
@@ -144,7 +144,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
         <select
           value={agg}
           onChange={(e) => setAgg(e.target.value as Aggregation)}
-          className="bg-surface-2 border border-border rounded-full"
+          className="bg-surface-2 border border-border"
           style={{
             padding: '7px 12px',
             fontSize: 13,
@@ -164,7 +164,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
         <select
           value={metricKey}
           onChange={(e) => setMetricKey(e.target.value)}
-          className="bg-surface-2 border border-border rounded-full"
+          className="bg-surface-2 border border-border"
           style={{
             padding: '7px 12px',
             fontSize: 13,
@@ -227,7 +227,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
               ? `${Math.round(((winner[agg] as number) / Math.max(1, loser[agg] as number)) * 10) / 10}×`
               : '—'
           }
-          accent="amber"
+          accent="plum"
           caption="diferencia entre top y bottom"
         />
       </div>
@@ -318,7 +318,7 @@ function Card({ title, sub, children }: CardProps): JSX.Element {
       style={{
         background: 'var(--surface)',
         border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-lg)',
+        borderRadius: 0,
         padding: 'var(--pad-lg)',
       }}
     >

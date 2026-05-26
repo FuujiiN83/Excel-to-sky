@@ -7,390 +7,995 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
     <div
       style={{
         minHeight: '100vh',
-        background: 'var(--canvas)',
+        background: 'var(--bg)',
+        backgroundImage: 'var(--bg-mesh)',
+        backgroundAttachment: 'fixed',
         color: 'var(--ink)',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
+      {/* Top bar */}
       <header
         style={{
-          padding: '20px 32px',
+          padding: '20px 40px',
           borderBottom: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          background: 'color-mix(in oklab, var(--bg) 60%, transparent)',
+          backdropFilter: 'blur(20px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
         }}
       >
         <div
           className="font-display"
           style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: 'var(--ink)',
+            fontSize: 16,
+            fontWeight: 600,
             letterSpacing: '-0.02em',
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 4,
           }}
         >
-          Excel<span style={{ color: '#2E6BFF' }}>→</span>Sky
+          EXCEL<span style={{ color: 'var(--sky)' }}>—</span>SKY
         </div>
-        <nav style={{ display: 'flex', gap: 18, fontSize: 13 }}>
-          <button onClick={() => onNav('faq')} style={navBtn}>FAQ</button>
-          <button onClick={() => onNav('privacy')} style={navBtn}>Privacidad</button>
-          <button onClick={() => onNav('terms')} style={navBtn}>Términos</button>
+        <nav style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          {[
+            ['Producto', 'faq'],
+            ['Privacidad', 'privacy'],
+            ['Términos', 'terms'],
+          ].map(([label, route]) => (
+            <button
+              key={route}
+              onClick={() => onNav(route)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--ink-2)',
+                fontSize: 12,
+                fontWeight: 500,
+                letterSpacing: '0.02em',
+                padding: '8px 14px',
+                cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          ))}
           <button
             onClick={() => onNav('upload')}
             style={{
-              ...navBtn,
-              background: '#2E6BFF',
-              color: '#fff',
-              padding: '6px 14px',
-              borderRadius: 8,
+              background: 'var(--ink)',
+              color: 'var(--bg)',
+              border: 'none',
+              padding: '10px 18px',
+              fontSize: 12,
               fontWeight: 600,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              marginLeft: 12,
             }}
           >
-            Abrir app
+            Abrir app →
           </button>
         </nav>
       </header>
 
-      {/* HERO */}
+      {/* HERO — editorial split */}
       <section
         style={{
-          padding: '80px 24px 60px',
-          textAlign: 'center',
-          maxWidth: 880,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 0,
+          borderBottom: '1px solid var(--border)',
+          minHeight: 'calc(100vh - 70px)',
+        }}
+      >
+        {/* LEFT — copy */}
+        <div
+          style={{
+            padding: '80px 64px 60px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            borderRight: '1px solid var(--border)',
+            position: 'relative',
+          }}
+        >
+          <CornerTicks position="tl" />
+          <CornerTicks position="bl" />
+
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              marginBottom: 28,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <span
+              style={{
+                width: 24,
+                height: 1,
+                background: 'var(--sky)',
+                display: 'inline-block',
+              }}
+            />
+            Beta abierta · sin registro
+          </div>
+          <h1
+            className="font-display"
+            style={{
+              fontSize: 'clamp(56px, 6vw, 92px)',
+              fontWeight: 700,
+              lineHeight: 0.92,
+              letterSpacing: '-0.045em',
+              margin: 0,
+            }}
+          >
+            Tus hojas
+            <br />
+            de cálculo,
+            <br />
+            <span style={{ color: 'var(--sky)', fontStyle: 'italic', fontWeight: 500 }}>
+              en otra liga.
+            </span>
+          </h1>
+          <p
+            style={{
+              fontSize: 17,
+              color: 'var(--ink-2)',
+              lineHeight: 1.55,
+              marginTop: 32,
+              maxWidth: 480,
+            }}
+          >
+            Sube un Excel. Te devolvemos un dashboard navegable con stats,
+            gráficos y un link para compartir. Cero instalación. Cero cuenta.
+          </p>
+
+          <div style={{ display: 'flex', gap: 0, marginTop: 40, alignItems: 'stretch' }}>
+            <button
+              onClick={() => onNav('upload')}
+              style={{
+                background: 'var(--ink)',
+                color: 'var(--bg)',
+                border: 'none',
+                padding: '18px 32px',
+                fontSize: 14,
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              Subir mi primer Excel
+              <span
+                style={{
+                  display: 'inline-flex',
+                  width: 20,
+                  height: 20,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'var(--bg)',
+                  color: 'var(--ink)',
+                  fontSize: 12,
+                }}
+              >
+                →
+              </span>
+            </button>
+            <button
+              onClick={() => onNav('faq')}
+              style={{
+                background: 'transparent',
+                color: 'var(--ink-2)',
+                border: '1px solid var(--border-strong)',
+                borderLeft: 'none',
+                padding: '18px 28px',
+                fontSize: 14,
+                fontWeight: 500,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              Cómo funciona
+            </button>
+          </div>
+
+          <div style={{ marginTop: 64, display: 'flex', gap: 48 }}>
+            <Stat label="Procesado" value="Local" caption="en tu navegador" />
+            <Stat label="Tamaño máx" value="10 MB" caption=".xlsx · .csv · .ods" />
+            <Stat label="Cuentas" value="0" caption="ninguna requerida" />
+          </div>
+        </div>
+
+        {/* RIGHT — visual mockup */}
+        <div
+          style={{
+            position: 'relative',
+            padding: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(255,255,255,0.012)',
+            overflow: 'hidden',
+          }}
+        >
+          <BackgroundGrid />
+          <DashboardMockup />
+          <CornerTicks position="tr" />
+          <CornerTicks position="br" />
+        </div>
+      </section>
+
+      {/* MANIFESTO */}
+      <section
+        style={{
+          padding: '120px 64px',
+          maxWidth: 1280,
           margin: '0 auto',
+          width: '100%',
+          display: 'grid',
+          gridTemplateColumns: '1fr 2fr',
+          gap: 80,
+          borderBottom: '1px solid var(--border)',
         }}
       >
         <div
           style={{
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: '0.08em',
+            fontSize: 11,
+            letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: 'var(--ink-2)',
-            marginBottom: 18,
+            color: 'var(--muted)',
+            paddingTop: 12,
           }}
         >
-          Sin registro · Tus datos en tu navegador
+          [01] Manifiesto
         </div>
-        <h1
-          className="font-display"
-          style={{
-            fontSize: 'clamp(40px, 6vw, 80px)',
-            fontWeight: 700,
-            letterSpacing: '-0.04em',
-            lineHeight: 1,
-            margin: 0,
-          }}
-        >
-          Convierte tu Excel{' '}
-          <span
-            style={{
-              background:
-                'linear-gradient(120deg, #2E6BFF 0%, #8B5CF6 50%, #FF7159 100%)',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              color: 'transparent',
-            }}
-          >
-            en un dashboard
-          </span>
-        </h1>
         <p
-          style={{
-            fontSize: 18,
-            color: 'var(--ink-2)',
-            lineHeight: 1.55,
-            maxWidth: 620,
-            margin: '24px auto 32px',
-          }}
-        >
-          Sube una hoja de cálculo y obtén estadísticas, gráficos y una página
-          compartible en segundos. Sin instalar nada. Sin crear cuenta.
-        </p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <button
-            onClick={() => onNav('upload')}
-            style={{
-              background: '#2E6BFF',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 12,
-              padding: '14px 28px',
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 8px 24px -8px rgba(46,107,255,0.45)',
-            }}
-          >
-            Empezar gratis
-          </button>
-          <button
-            onClick={() => onNav('faq')}
-            style={{
-              background: 'transparent',
-              color: 'var(--ink)',
-              border: '1px solid var(--border-strong)',
-              borderRadius: 12,
-              padding: '14px 28px',
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            Cómo funciona
-          </button>
-        </div>
-      </section>
-
-      {/* FEATURE CARDS */}
-      <section
-        style={{
-          maxWidth: 1080,
-          margin: '0 auto',
-          padding: '40px 24px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: 20,
-        }}
-      >
-        {[
-          {
-            num: '01',
-            title: 'Sube tu Excel',
-            desc: 'Arrastra un .xlsx o .csv. Lo procesamos en tu navegador, sin enviarlo a ningún servidor.',
-          },
-          {
-            num: '02',
-            title: 'Genera tu dashboard',
-            desc: 'Detectamos tipos de columna, calculamos estadísticas y elegimos el gráfico adecuado.',
-          },
-          {
-            num: '03',
-            title: 'Compártelo',
-            desc: 'Un enlace público para enviar por email o redes. Sin pedir registro a quien lo abra.',
-          },
-        ].map((card) => (
-          <div
-            key={card.num}
-            style={{
-              padding: 24,
-              border: '1px solid var(--border)',
-              borderRadius: 16,
-              background: 'var(--surface)',
-            }}
-          >
-            <div
-              className="font-mono"
-              style={{
-                fontSize: 11,
-                color: '#2E6BFF',
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                marginBottom: 10,
-              }}
-            >
-              {card.num}
-            </div>
-            <h3
-              className="font-display"
-              style={{
-                fontSize: 22,
-                fontWeight: 700,
-                margin: '0 0 8px',
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {card.title}
-            </h3>
-            <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5, margin: 0 }}>
-              {card.desc}
-            </p>
-          </div>
-        ))}
-      </section>
-
-      {/* SCREENSHOTS */}
-      <section
-        style={{
-          maxWidth: 1080,
-          margin: '40px auto',
-          padding: '0 24px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: 20,
-        }}
-      >
-        {[
-          { label: 'Vista general', emoji: '📊', sub: 'Tarjetas con MAX, MIN, MEDIA y MODA' },
-          { label: 'Detalle de columna', emoji: '📈', sub: 'Histograma, outliers y top valores' },
-          { label: 'Comparador', emoji: '🔀', sub: 'Cruza dos columnas en un scatter o barras' },
-        ].map((shot) => (
-          <div
-            key={shot.label}
-            style={{
-              aspectRatio: '4/3',
-              borderRadius: 16,
-              background:
-                'linear-gradient(135deg, rgba(46,107,255,0.08) 0%, rgba(139,92,246,0.08) 100%)',
-              border: '1px solid var(--border)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              padding: 20,
-            }}
-          >
-            <div style={{ fontSize: 56, marginBottom: 12 }}>{shot.emoji}</div>
-            <div
-              className="font-display"
-              style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)' }}
-            >
-              {shot.label}
-            </div>
-            <div
-              style={{
-                fontSize: 13,
-                color: 'var(--ink-2)',
-                marginTop: 6,
-                maxWidth: 220,
-              }}
-            >
-              {shot.sub}
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* FAQ TEASER */}
-      <section
-        style={{
-          maxWidth: 760,
-          margin: '40px auto',
-          padding: '40px 24px',
-        }}
-      >
-        <h2
           className="font-display"
           style={{
-            fontSize: 32,
-            fontWeight: 700,
-            letterSpacing: '-0.03em',
-            margin: '0 0 18px',
+            fontSize: 'clamp(28px, 3vw, 44px)',
+            fontWeight: 500,
+            lineHeight: 1.15,
+            letterSpacing: '-0.025em',
+            margin: 0,
+            color: 'var(--ink)',
           }}
         >
-          Preguntas frecuentes
-        </h2>
-        <ul
+          Los datos no deberían vivir en pestañas con 70 columnas.
+          Deberían contarte algo en cuanto los abres.
+          <span style={{ color: 'var(--muted)' }}>
+            {' '}
+            Por eso construimos esto: un puente entre tu hoja y la respuesta
+            que ya tenía dentro.
+          </span>
+        </p>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+          padding: '120px 64px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
           style={{
-            listStyle: 'none',
-            padding: 0,
-            margin: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 14,
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: 80,
+            marginBottom: 64,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              paddingTop: 12,
+            }}
+          >
+            [02] Cómo
+          </div>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: '-0.035em',
+              margin: 0,
+            }}
+          >
+            Tres pasos.
+            <br />
+            <span style={{ color: 'var(--muted)' }}>Cero fricción.</span>
+          </h2>
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            borderTop: '1px solid var(--border)',
           }}
         >
           {[
-            ['¿Tengo que registrarme?', 'No. Puedes usar la app sin crear ninguna cuenta.'],
-            ['¿Mis datos son privados?', 'El procesado es local. Sólo se sube a la nube si pulsas “Compartir”.'],
-            ['¿Cuánto cuesta?', 'Es gratis. Mostramos publicidad para mantener el servicio.'],
+            {
+              num: '01',
+              title: 'Suelta',
+              body: 'Arrastra tu .xlsx, .csv o .ods. SheetJS lo parsea en un worker — el archivo nunca sale de tu navegador hasta que tú lo decidas.',
+            },
+            {
+              num: '02',
+              title: 'Lee',
+              body: 'Detectamos cada columna (número, fecha, categoría, geo, texto), calculamos estadísticas y montamos las gráficas que mejor cuentan cada serie.',
+            },
+            {
+              num: '03',
+              title: 'Comparte',
+              body: 'Un click genera un link público corto. Quien lo abra ve el mismo dashboard en modo solo lectura, sin pedirle nada.',
+            },
+          ].map((step, i) => (
+            <div
+              key={step.num}
+              style={{
+                padding: '48px 32px',
+                borderRight: i < 2 ? '1px solid var(--border)' : 'none',
+                borderBottom: '1px solid var(--border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 24,
+              }}
+            >
+              <div
+                className="font-mono"
+                style={{
+                  fontSize: 11,
+                  letterSpacing: '0.18em',
+                  color: 'var(--sky)',
+                  fontWeight: 600,
+                }}
+              >
+                {step.num} —
+              </div>
+              <h3
+                className="font-display"
+                style={{
+                  fontSize: 36,
+                  fontWeight: 500,
+                  letterSpacing: '-0.03em',
+                  margin: 0,
+                  lineHeight: 1,
+                }}
+              >
+                {step.title}
+              </h3>
+              <p
+                style={{
+                  fontSize: 14,
+                  color: 'var(--ink-2)',
+                  lineHeight: 1.6,
+                  margin: 0,
+                }}
+              >
+                {step.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+          padding: '120px 64px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: 80,
+            marginBottom: 48,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              paddingTop: 12,
+            }}
+          >
+            [03] Preguntas
+          </div>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: '-0.035em',
+              margin: 0,
+            }}
+          >
+            Lo esencial.
+          </h2>
+        </div>
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+          {[
+            ['¿Tengo que registrarme?', 'No. Cero cuentas, cero emails. Empiezas a usarlo en el segundo siguiente al click.'],
+            ['¿Mis datos son privados?', 'El parseo es local en tu navegador. Sólo se sube si tú pulsas "Compartir". Caducan a los 90 días si nadie los abre.'],
+            ['¿Cuánto cuesta?', 'Es gratis. La app se sostiene con publicidad mostrada solo en la portada y el dashboard, no en la vista compartida.'],
+            ['¿Qué archivos acepta?', '.xlsx, .xls, .csv y .ods, hasta 10 MB. Para archivos mayores conviene exportar a CSV.'],
           ].map(([q, a]) => (
             <li
               key={q}
               style={{
-                padding: 18,
-                borderRadius: 12,
-                border: '1px solid var(--border)',
-                background: 'var(--surface)',
+                borderTop: '1px solid var(--border)',
+                padding: '28px 0',
+                display: 'grid',
+                gridTemplateColumns: '1fr 2fr',
+                gap: 80,
+                alignItems: 'baseline',
               }}
             >
-              <div style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>{q}</div>
-              <div style={{ fontSize: 14, color: 'var(--ink-2)' }}>{a}</div>
+              <div
+                className="font-display"
+                style={{
+                  fontSize: 22,
+                  fontWeight: 500,
+                  letterSpacing: '-0.02em',
+                  color: 'var(--ink)',
+                }}
+              >
+                {q}
+              </div>
+              <div
+                style={{
+                  fontSize: 15,
+                  color: 'var(--ink-2)',
+                  lineHeight: 1.6,
+                }}
+              >
+                {a}
+              </div>
             </li>
           ))}
-        </ul>
-        <div style={{ textAlign: 'center', marginTop: 24 }}>
-          <button
-            onClick={() => onNav('faq')}
+          <li
             style={{
-              background: 'transparent',
-              border: '1px solid var(--border-strong)',
-              borderRadius: 10,
-              padding: '10px 20px',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: 'pointer',
-              color: 'var(--ink)',
+              borderTop: '1px solid var(--border)',
+              borderBottom: '1px solid var(--border)',
+              padding: '28px 0',
+              display: 'grid',
+              gridTemplateColumns: '1fr 2fr',
+              gap: 80,
+              alignItems: 'center',
             }}
           >
-            Ver todas las preguntas →
-          </button>
-        </div>
+            <div />
+            <button
+              onClick={() => onNav('faq')}
+              style={{
+                background: 'transparent',
+                color: 'var(--sky)',
+                border: 'none',
+                padding: 0,
+                fontSize: 13,
+                fontWeight: 500,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                textAlign: 'left',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              Ver todas las preguntas <span>→</span>
+            </button>
+          </li>
+        </ul>
       </section>
 
       {/* FINAL CTA */}
-      <section style={{ textAlign: 'center', padding: '40px 24px 80px' }}>
-        <button
-          onClick={() => onNav('upload')}
+      <section
+        style={{
+          padding: '160px 64px',
+          textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <BackgroundGrid faint />
+        <div
           style={{
-            background: '#2E6BFF',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 12,
-            padding: '16px 36px',
-            fontSize: 17,
-            fontWeight: 600,
-            cursor: 'pointer',
-            boxShadow: '0 10px 30px -10px rgba(46,107,255,0.55)',
+            fontSize: 11,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--muted)',
+            marginBottom: 24,
           }}
         >
-          Subir mi primer Excel
-        </button>
+          [04] Empezar
+        </div>
+        <h2
+          className="font-display"
+          style={{
+            fontSize: 'clamp(48px, 7vw, 120px)',
+            fontWeight: 700,
+            lineHeight: 0.92,
+            letterSpacing: '-0.05em',
+            margin: 0,
+            maxWidth: 1100,
+            marginInline: 'auto',
+          }}
+        >
+          Treinta segundos.
+          <br />
+          <span style={{ color: 'var(--muted)' }}>Un dashboard.</span>
+        </h2>
+        <div style={{ marginTop: 56, position: 'relative', zIndex: 1 }}>
+          <button
+            onClick={() => onNav('upload')}
+            style={{
+              background: 'var(--ink)',
+              color: 'var(--bg)',
+              border: 'none',
+              padding: '22px 44px',
+              fontSize: 14,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 14,
+            }}
+          >
+            Subir un Excel
+            <span
+              style={{
+                display: 'inline-flex',
+                width: 24,
+                height: 24,
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--bg)',
+                color: 'var(--ink)',
+                fontSize: 14,
+              }}
+            >
+              →
+            </span>
+          </button>
+        </div>
       </section>
 
       {/* FOOTER */}
       <footer
         style={{
-          padding: '24px 32px',
+          padding: '40px 64px',
           borderTop: '1px solid var(--border)',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr 1fr',
+          gap: 40,
           fontSize: 12,
-          display: 'flex',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 12,
-          color: 'var(--ink-2)',
+          color: 'var(--muted)',
         }}
       >
-        <div>© {new Date().getFullYear()} Excel to Sky</div>
-        <div style={{ display: 'flex', gap: 16 }}>
-          <button onClick={() => onNav('faq')} style={footerBtn}>FAQ</button>
-          <button onClick={() => onNav('privacy')} style={footerBtn}>Privacidad</button>
-          <button onClick={() => onNav('terms')} style={footerBtn}>Términos</button>
-          <button onClick={() => onNav('upload')} style={footerBtn}>App</button>
+        <div>
+          <div
+            className="font-display"
+            style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 600, letterSpacing: '-0.02em' }}
+          >
+            EXCEL—SKY
+          </div>
+          <div style={{ marginTop: 12, fontSize: 11 }}>v0.5 · beta</div>
+        </div>
+        <FooterCol title="Producto">
+          <FooterLink onClick={() => onNav('upload')}>App</FooterLink>
+          <FooterLink onClick={() => onNav('faq')}>FAQ</FooterLink>
+        </FooterCol>
+        <FooterCol title="Legal">
+          <FooterLink onClick={() => onNav('privacy')}>Privacidad</FooterLink>
+          <FooterLink onClick={() => onNav('terms')}>Términos</FooterLink>
+        </FooterCol>
+        <div style={{ textAlign: 'right' }}>
+          © {new Date().getFullYear()} · Hecho en España
         </div>
       </footer>
     </div>
   )
 }
 
-const navBtn = {
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-  color: 'inherit',
-  fontSize: 13,
-  padding: 0,
-} as const
+// ---------- Subcomponents ----------
 
-const footerBtn = {
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-  color: 'inherit',
-  fontSize: 12,
-  padding: 0,
-  textDecoration: 'underline',
-} as const
+function Stat({ label, value, caption }: { label: string; value: string; caption: string }): JSX.Element {
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 10,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--muted)',
+        }}
+      >
+        {label}
+      </div>
+      <div
+        className="font-display"
+        style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.025em', marginTop: 6, color: 'var(--ink)' }}
+      >
+        {value}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>{caption}</div>
+    </div>
+  )
+}
+
+function CornerTicks({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }): JSX.Element {
+  const v = position[0] === 't' ? { top: 12 } : { bottom: 12 }
+  const h = position[1] === 'l' ? { left: 12 } : { right: 12 }
+  const isLeft = position[1] === 'l'
+  const isTop = position[0] === 't'
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        width: 14,
+        height: 14,
+        borderColor: 'var(--border-strong)',
+        borderStyle: 'solid',
+        borderWidth: 0,
+        ...(isTop ? { borderTopWidth: 1 } : { borderBottomWidth: 1 }),
+        ...(isLeft ? { borderLeftWidth: 1 } : { borderRightWidth: 1 }),
+        ...v,
+        ...h,
+        pointerEvents: 'none',
+      }}
+    />
+  )
+}
+
+function BackgroundGrid({ faint = false }: { faint?: boolean }): JSX.Element {
+  const stroke = faint ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.05)'
+  return (
+    <svg
+      aria-hidden
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+      }}
+    >
+      <defs>
+        <pattern id="ee-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+          <path d="M 48 0 L 0 0 0 48" fill="none" stroke={stroke} strokeWidth="1" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#ee-grid)" />
+    </svg>
+  )
+}
+
+function FooterCol({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 10,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--muted)',
+          marginBottom: 12,
+        }}
+      >
+        {title}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{children}</div>
+    </div>
+  )
+}
+
+function FooterLink({ onClick, children }: { onClick: () => void; children: React.ReactNode }): JSX.Element {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: 'transparent',
+        border: 'none',
+        color: 'var(--ink-2)',
+        fontSize: 12,
+        padding: 0,
+        textAlign: 'left',
+        cursor: 'pointer',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+// ---------- Hero visual: SVG dashboard mockup ----------
+
+function DashboardMockup(): JSX.Element {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: 560,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        zIndex: 1,
+      }}
+    >
+      {/* "Window" header */}
+      <div
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          boxShadow: '0 0 0 1px var(--border)',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 11,
+          color: 'var(--muted)',
+          letterSpacing: '0.06em',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 8, height: 8, background: 'var(--muted-2)' }} />
+          <span style={{ width: 8, height: 8, background: 'var(--muted-2)' }} />
+          <span style={{ width: 8, height: 8, background: 'var(--muted-2)' }} />
+        </div>
+        <div>VENTAS_2026_Q1.XLSX</div>
+        <div>· · ·</div>
+      </div>
+
+      {/* 4 stat cards row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        <MockStat label="MEDIA" value="€1.2K" accent="sky" />
+        <MockStat label="MÁXIMO" value="€8.4K" accent="plum" />
+        <MockStat label="MÍNIMO" value="€42" accent="mint" />
+        <MockStat label="FILAS" value="1.024" accent="sky" />
+      </div>
+
+      {/* Large chart */}
+      <div
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          boxShadow: '0 0 0 1px var(--border)',
+          padding: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 180,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--muted)',
+          }}
+        >
+          Tendencia Q1
+        </div>
+        <div
+          className="font-display"
+          style={{
+            fontSize: 18,
+            fontWeight: 500,
+            color: 'var(--ink)',
+            letterSpacing: '-0.02em',
+            marginTop: 4,
+            marginBottom: 12,
+          }}
+        >
+          Ingresos por semana
+        </div>
+        <svg viewBox="0 0 320 140" style={{ width: '100%', height: 120 }} preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="ee-area" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="var(--sky)" stopOpacity="0.35" />
+              <stop offset="1" stopColor="var(--sky)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[28, 56, 84, 112].map((y) => (
+            <line key={y} x1="0" x2="320" y1={y} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          ))}
+          <path
+            d="M 0 100 L 32 86 L 64 92 L 96 70 L 128 78 L 160 58 L 192 64 L 224 40 L 256 48 L 288 28 L 320 36 L 320 140 L 0 140 Z"
+            fill="url(#ee-area)"
+          />
+          <path
+            d="M 0 100 L 32 86 L 64 92 L 96 70 L 128 78 L 160 58 L 192 64 L 224 40 L 256 48 L 288 28 L 320 36"
+            fill="none"
+            stroke="var(--sky)"
+            strokeWidth="1.8"
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+          />
+        </svg>
+      </div>
+
+      {/* Bars + spark */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+        <div
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            boxShadow: '0 0 0 1px var(--border)',
+            padding: 14,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              marginBottom: 12,
+            }}
+          >
+            Top categorías
+          </div>
+          {([
+            ['Madrid', 92, 'sky'],
+            ['Barcelona', 74, 'plum'],
+            ['Valencia', 51, 'mint'],
+            ['Sevilla', 36, 'sky'],
+          ] as const).map(([name, pct, accent]) => (
+            <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <div style={{ fontSize: 10, color: 'var(--ink-2)', width: 64 }}>{name}</div>
+              <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.04)' }}>
+                <div
+                  style={{
+                    width: `${pct}%`,
+                    height: '100%',
+                    background: `var(--${accent})`,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            boxShadow: '0 0 0 1px var(--border)',
+            padding: 14,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: 8,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+            }}
+          >
+            Spread
+          </div>
+          <div
+            className="font-display"
+            style={{ fontSize: 32, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.035em', lineHeight: 1 }}
+          >
+            32.4×
+          </div>
+          <svg viewBox="0 0 80 24" preserveAspectRatio="none" style={{ width: '100%', height: 24 }}>
+            <polyline
+              points="0,18 10,14 20,16 30,10 40,12 50,8 60,4 70,6 80,2"
+              stroke="var(--mint)"
+              strokeWidth="1.4"
+              fill="none"
+              strokeLinejoin="miter"
+              strokeLinecap="square"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* Floating callouts */}
+      <div
+        style={{
+          position: 'absolute',
+          top: -16,
+          right: -28,
+          background: 'var(--surface)',
+          boxShadow: '0 0 0 1px var(--border-strong), 0 18px 40px -16px rgba(0,0,0,0.6)',
+          padding: '8px 12px',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          letterSpacing: '0.1em',
+          color: 'var(--sky)',
+          transform: 'rotate(2deg)',
+        }}
+      >
+        AUTO-DETECTADO · 12 COL
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 32,
+          left: -36,
+          background: 'var(--surface)',
+          boxShadow: '0 0 0 1px var(--border-strong), 0 18px 40px -16px rgba(0,0,0,0.6)',
+          padding: '8px 12px',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          letterSpacing: '0.1em',
+          color: 'var(--mint)',
+          transform: 'rotate(-2deg)',
+        }}
+      >
+        LINK PÚBLICO LISTO
+      </div>
+    </div>
+  )
+}
+
+function MockStat({ label, value, accent }: { label: string; value: string; accent: string }): JSX.Element {
+  return (
+    <div
+      style={{
+        background: 'rgba(255,255,255,0.04)',
+        boxShadow: '0 0 0 1px var(--border)',
+        padding: 10,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 9,
+          letterSpacing: '0.16em',
+          color: `var(--${accent})`,
+          fontFamily: 'var(--font-mono)',
+        }}
+      >
+        {label}
+      </div>
+      <div
+        className="font-display"
+        style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.025em', marginTop: 4 }}
+      >
+        {value}
+      </div>
+    </div>
+  )
+}

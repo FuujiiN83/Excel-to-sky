@@ -41,7 +41,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
       onClick={() => inputRef.current?.click()}
       style={{
         padding: 6,
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 0,
         background: hover
           ? 'linear-gradient(135deg, var(--sky-soft), var(--plum-soft))'
           : 'rgba(255,255,255,0.025)',
@@ -53,7 +53,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
       <div
         style={{
           background: 'var(--surface)',
-          borderRadius: 'calc(var(--radius-xl) - 6px)',
+          borderRadius: 0,
           padding: '52px 32px',
           textAlign: 'center',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
@@ -75,7 +75,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
             width: 48,
             height: 48,
             margin: '0 auto 18px',
-            borderRadius: 14,
+            borderRadius: 0,
             background: 'linear-gradient(135deg, var(--sky-soft), var(--plum-soft))',
             display: 'grid',
             placeItems: 'center',

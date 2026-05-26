@@ -42,7 +42,7 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
           className="inline-flex items-center border border-border text-muted"
           style={{
             background: 'transparent',
-            borderRadius: 8,
+            borderRadius: 0,
             padding: '6px 10px',
             fontSize: 12,
             gap: 6,
@@ -62,7 +62,7 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
                 background: active ? 'var(--surface)' : 'transparent',
                 border: '1px solid',
                 borderColor: active ? 'var(--border-strong)' : 'transparent',
-                borderRadius: 8,
+                borderRadius: 0,
                 padding: '6px 12px',
                 fontSize: 13,
                 fontWeight: 500,
@@ -74,7 +74,7 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
                 style={{
                   width: 8,
                   height: 8,
-                  borderRadius: '50%',
+                  borderRadius: 0,
                   background: `var(--${cAccent})`,
                 }}
               />
@@ -91,7 +91,7 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
           style={{
             width: 40,
             height: 40,
-            borderRadius: 10,
+            borderRadius: 0,
             background: `var(--${accent}-soft)`,
             color: `var(--${accent})`,
             fontWeight: 700,
@@ -363,7 +363,7 @@ function Card({ title, sub, children }: CardProps): JSX.Element {
       style={{
         background: 'var(--surface)',
         border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-lg)',
+        borderRadius: 0,
         padding: 'var(--pad-lg)',
       }}
     >

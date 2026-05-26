@@ -21,8 +21,8 @@
   --sky-soft: rgba(77, 158, 250, 0.12);
   --mint: #5EE2C0;
   --mint-soft: rgba(94, 226, 192, 0.12);
-  --coral: #FF8C66;
-  --coral-soft: rgba(255, 140, 102, 0.12);
+  --coral: #F87171;
+  --coral-soft: rgba(248, 113, 113, 0.12);
   --plum: #A78BFA;
   --plum-soft: rgba(167, 139, 250, 0.14);
   --amber: #FBBF24;
@@ -32,10 +32,10 @@
   --lime: #A3E635;
   --lime-soft: rgba(163, 230, 53, 0.12);
 
-  --radius-sm: 8px;
-  --radius: 12px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  --radius-sm: 0;
+  --radius: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 
   --shadow-sm: 0 1px 0 rgba(255,255,255,0.04) inset;
   --shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 24px -12px rgba(0,0,0,0.6);
