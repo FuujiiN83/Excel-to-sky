@@ -13,6 +13,7 @@ import { groupDisparity } from './groupDisparity'
 import { conditionalOutlier } from './conditionalOutlier'
 import { timeByGroup } from './timeByGroup'
 import { qualityScore } from './qualityScore'
+import { schemaSummary } from './schemaSummary'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -28,4 +29,5 @@ export const HEURISTICS: Heuristic[] = [
   conditionalOutlier,
   timeByGroup,
   qualityScore,
+  schemaSummary,
 ]
