@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { Accent, Column, Dataset } from '../types/dataset'
 import { analyzeColumn, fmtNumber, fmtUnit } from '../lib/stats'
-import { StatCard, MiniBars, MiniSpark } from '../components/StatCard'
+import { StatCard, MiniSpark } from '../components/StatCard'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
 
 interface DashboardPageProps {
@@ -215,51 +215,67 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
           let preview: JSX.Element | null = null
           let primary: JSX.Element | null = null
 
-          if (isNum && analysis.histogram) {
-            preview = (
-              <MiniBars
-                values={analysis.histogram.map((b) => b.count)}
-                accent={accent}
-                height={48}
-              />
-            )
+          if (isNum) {
             primary = (
               <div style={{ display: 'flex', gap: 18 }}>
-                <MiniStat label="media" value={fmtUnit(Math.round(analysis.mean || 0), col.unit)} />
+                <MiniStat
+                  label="media"
+                  value={fmtUnit(Math.round((analysis.mean || 0) * 10) / 10, col.unit)}
+                />
                 <MiniStat
                   label="rango"
                   value={`${fmtNumber(analysis.min)}–${fmtNumber(analysis.max)}`}
                 />
               </div>
             )
-          } else if (isCat && analysis.top) {
-            preview = (
-              <MiniBars
-                values={analysis.top.map((t) => t.count)}
+            preview = analysis.histogram && analysis.histogram.length > 0 ? (
+              <LabeledBars
+                items={analysis.histogram.slice(0, 4).map((b) => ({
+                  label: `${fmtNumber(b.lo)}–${fmtNumber(b.hi)}`,
+                  count: b.count,
+                }))}
                 accent={accent}
-                height={48}
+                totalForPercent={analysis.count}
               />
-            )
+            ) : null
+          } else if (isCat) {
+            const top = analysis.top ?? []
+            const allUnique = analysis.distinct != null && analysis.distinct === analysis.count
             primary = (
               <div style={{ display: 'flex', gap: 18 }}>
-                <MiniStat label="distinct" value={String(analysis.distinct ?? 0)} />
-                <MiniStat label="moda" value={String(analysis.mode ?? '—')} truncate />
+                <MiniStat label="únicos" value={String(analysis.distinct ?? 0)} />
+                <MiniStat
+                  label="moda"
+                  value={allUnique ? '—' : String(analysis.mode ?? '—')}
+                  truncate
+                />
               </div>
             )
-          } else if (isDate && analysis.timeline) {
-            preview = (
-              <MiniSpark
-                values={analysis.timeline.map((t) => t.count)}
+            preview = allUnique ? (
+              <EmptyPreview text={`Todos los ${analysis.count} valores son distintos`} />
+            ) : top.length > 0 ? (
+              <LabeledBars
+                items={top.slice(0, 3).map((t) => ({ label: String(t.key), count: t.count }))}
                 accent={accent}
-                height={48}
+                totalForPercent={analysis.count}
               />
+            ) : (
+              <EmptyPreview text="Sin datos" />
             )
+          } else if (isDate) {
             primary = (
               <div style={{ display: 'flex', gap: 18 }}>
                 <MiniStat label="desde" value={String(analysis.earliest ?? '—')} />
                 <MiniStat label="hasta" value={String(analysis.latest ?? '—')} />
               </div>
             )
+            preview = analysis.timeline && analysis.timeline.length > 0 ? (
+              <MiniSpark
+                values={analysis.timeline.map((t) => t.count)}
+                accent={accent}
+                height={44}
+              />
+            ) : null
           }
 
           return (
@@ -324,6 +340,23 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
               </div>
               {primary}
               {preview}
+              <div
+                aria-hidden
+                style={{
+                  marginTop: 'auto',
+                  paddingTop: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: 10,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: 'var(--muted)',
+                }}
+              >
+                <span>Ver detalle</span>
+                <span style={{ color: `var(--${accent})`, fontSize: 14 }}>→</span>
+              </div>
             </button>
           )
         })}
@@ -432,6 +465,90 @@ function MiniStat({ label, value, truncate }: MiniStatProps): JSX.Element {
       >
         {value}
       </div>
+    </div>
+  )
+}
+
+interface LabeledBarsProps {
+  items: { label: string; count: number }[]
+  accent: Accent
+  totalForPercent: number
+}
+
+function LabeledBars({ items, accent, totalForPercent }: LabeledBarsProps): JSX.Element {
+  const max = Math.max(...items.map((i) => i.count), 1)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {items.map((it, i) => {
+        const pct = Math.max(2, (it.count / max) * 100)
+        const share = totalForPercent > 0 ? Math.round((it.count / totalForPercent) * 100) : 0
+        return (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11 }}>
+            <div
+              style={{
+                flex: '0 0 90px',
+                color: 'var(--ink-2)',
+                fontWeight: 500,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+              title={it.label}
+            >
+              {it.label}
+            </div>
+            <div
+              style={{
+                flex: 1,
+                height: 6,
+                background: 'rgba(255,255,255,0.04)',
+                position: 'relative',
+              }}
+            >
+              <div
+                style={{
+                  width: `${pct}%`,
+                  height: '100%',
+                  background: `var(--${accent})`,
+                  opacity: 0.55 + 0.45 * (it.count / max),
+                }}
+              />
+            </div>
+            <div
+              className="font-mono"
+              style={{ flex: '0 0 auto', color: 'var(--ink-2)', fontWeight: 500, fontSize: 11, minWidth: 30, textAlign: 'right' }}
+            >
+              {it.count}
+            </div>
+            <div
+              style={{
+                flex: '0 0 36px',
+                color: 'var(--muted)',
+                fontSize: 10,
+                textAlign: 'right',
+              }}
+            >
+              {share}%
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function EmptyPreview({ text }: { text: string }): JSX.Element {
+  return (
+    <div
+      style={{
+        padding: '12px 0',
+        fontSize: 11,
+        color: 'var(--muted)',
+        fontStyle: 'italic',
+        letterSpacing: '0.02em',
+      }}
+    >
+      {text}
     </div>
   )
 }
