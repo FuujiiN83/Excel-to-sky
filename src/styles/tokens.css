@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
 
 :root {
+  color-scheme: dark;
   /* ETHEREAL GLASS — dark OLED, near-vantablack surfaces, hairline rings, cool accents */
   --bg: #07080B;
   --bg-mesh: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(77, 158, 250, 0.08), transparent 60%),
