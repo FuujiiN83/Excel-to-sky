@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { SAMPLE_DATASETS } from '../samples'
 import type { Dataset } from '../types/dataset'
 import { UploadDropzone } from '../components/UploadDropzone'
+import { listLocalDashboards, type LocalDashboard } from '../lib/localDb'
 
 interface UploadPageProps {
   onParsed: (dataset: Dataset) => void
@@ -8,7 +10,17 @@ interface UploadPageProps {
 }
 
 export function UploadPage({ onParsed, onUseSample }: UploadPageProps): JSX.Element {
+  const [mine, setMine] = useState<LocalDashboard[]>([])
+
+  useEffect(() => {
+    void listLocalDashboards().then(setMine)
+  }, [])
+
+  const created = mine.filter((d) => d.owner === 'created')
+  const visited = mine.filter((d) => d.owner === 'visited')
+
   return (
+    <>
     <div
       className="grid"
       style={{
@@ -157,5 +169,110 @@ export function UploadPage({ onParsed, onUseSample }: UploadPageProps): JSX.Elem
         </div>
       </div>
     </div>
+
+    {(created.length > 0 || visited.length > 0) && (
+      <section className="mt-12" style={{ maxWidth: 1024, margin: '48px auto', padding: '0 64px' }}>
+        <h2 className="font-display text-xl mb-4" style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
+          Mis dashboards
+        </h2>
+        {created.length > 0 && (
+          <>
+            <p className="text-muted text-sm mb-2" style={{ fontSize: 13, marginBottom: 8 }}>
+              Creados por ti
+            </p>
+            <ul
+              className="grid grid-cols-2 gap-2 mb-6"
+              style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: '0 0 24px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 8,
+              }}
+            >
+              {created.map((d) => (
+                <li key={d.slug}>
+                  <button
+                    onClick={() => {
+                      window.location.pathname = `/d/${d.slug}`
+                    }}
+                    className="w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      borderRadius: 8,
+                      border: '1px solid var(--border)',
+                      padding: 12,
+                      background: 'transparent',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <p className="font-medium" style={{ fontWeight: 500, margin: 0 }}>
+                      {d.name}
+                    </p>
+                    <p
+                      className="text-muted text-xs font-mono"
+                      style={{ fontSize: 11, color: 'var(--ink-2)', margin: 0 }}
+                    >
+                      {d.slug}
+                    </p>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {visited.length > 0 && (
+          <>
+            <p className="text-muted text-sm mb-2" style={{ fontSize: 13, marginBottom: 8 }}>
+              Vistos recientemente
+            </p>
+            <ul
+              className="grid grid-cols-2 gap-2"
+              style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 8,
+              }}
+            >
+              {visited.map((d) => (
+                <li key={d.slug}>
+                  <button
+                    onClick={() => {
+                      window.location.pathname = `/d/${d.slug}`
+                    }}
+                    className="w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      borderRadius: 8,
+                      border: '1px solid var(--border)',
+                      padding: 12,
+                      background: 'transparent',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <p className="font-medium" style={{ fontWeight: 500, margin: 0 }}>
+                      {d.name}
+                    </p>
+                    <p
+                      className="text-muted text-xs font-mono"
+                      style={{ fontSize: 11, color: 'var(--ink-2)', margin: 0 }}
+                    >
+                      {d.slug}
+                    </p>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+    )}
+    </>
   )
 }
