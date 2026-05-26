@@ -10,6 +10,7 @@ import { duplicateLookalike } from './duplicateLookalike'
 import { textOutlier } from './textOutlier'
 import { numericCorrelation } from './numericCorrelation'
 import { groupDisparity } from './groupDisparity'
+import { conditionalOutlier } from './conditionalOutlier'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -22,4 +23,5 @@ export const HEURISTICS: Heuristic[] = [
   textOutlier,
   numericCorrelation,
   groupDisparity,
+  conditionalOutlier,
 ]
