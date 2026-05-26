@@ -7,6 +7,7 @@ import { missingData } from './missingData'
 import { distributionShape } from './distributionShape'
 import { timeDensityGap } from './timeDensityGap'
 import { duplicateLookalike } from './duplicateLookalike'
+import { textOutlier } from './textOutlier'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -16,4 +17,5 @@ export const HEURISTICS: Heuristic[] = [
   distributionShape,
   timeDensityGap,
   duplicateLookalike,
+  textOutlier,
 ]
