@@ -35,3 +35,4 @@ vite.config.js
 
 # Test coverage
 coverage/
+.mcp.json
