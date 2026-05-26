@@ -28,31 +28,32 @@ function Logo({ size = 26 }: { size?: number }): JSX.Element {
         style={{
           width: size,
           height: size,
-          background: 'var(--ink)',
+          background: 'linear-gradient(135deg, var(--sky), var(--plum))',
           borderRadius: 8,
+          boxShadow: '0 0 0 1px var(--border), 0 6px 18px -8px rgba(77,158,250,0.5)',
         }}
       >
         <svg viewBox="0 0 24 24" className="absolute inset-0 w-full h-full">
           <path
             d="M7 17 L 11 13 L 14 16 L 18 8"
-            stroke="var(--bg)"
-            strokeWidth="2.2"
+            stroke="rgba(255,255,255,0.95)"
+            strokeWidth="2"
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <circle cx="18" cy="8" r="1.4" fill="var(--mint)" />
+          <circle cx="18" cy="8" r="1.5" fill="rgba(255,255,255,0.95)" />
         </svg>
       </div>
       <div className="flex flex-col leading-none">
         <span
           className="font-display text-ink"
-          style={{ fontSize: 18, fontWeight: 400, letterSpacing: '-0.015em', fontStyle: 'italic' }}
+          style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.02em' }}
         >
           Excel to Sky
         </span>
-        <span className="text-muted" style={{ fontSize: 10, marginTop: 3, letterSpacing: '0.04em' }}>
-          tus datos, en calma
+        <span className="text-muted" style={{ fontSize: 10, marginTop: 3, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          v0.5 · beta
         </span>
       </div>
     </div>
@@ -64,11 +65,13 @@ export function TopBar(props: TopBarProps): JSX.Element {
 
   return (
     <header
-      className="flex items-center justify-between border-b border-border sticky top-0 z-10"
+      className="flex items-center justify-between sticky top-0 z-10"
       style={{
         padding: '14px 28px',
-        background: 'color-mix(in oklab, var(--bg) 88%, transparent)',
-        backdropFilter: 'blur(8px)',
+        background: 'color-mix(in oklab, var(--bg) 70%, transparent)',
+        backdropFilter: 'blur(20px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+        borderBottom: '1px solid var(--border)',
       }}
     >
       <div className="flex items-center" style={{ gap: 22 }}>

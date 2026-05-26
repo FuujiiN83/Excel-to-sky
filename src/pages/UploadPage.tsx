@@ -68,40 +68,62 @@ export function UploadPage({
         style={{ padding: '80px 64px 60px', maxWidth: 640 }}
       >
         <div
-          className="text-muted"
+          className="inline-flex items-center"
           style={{
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: '0.08em',
+            alignSelf: 'flex-start',
+            gap: 8,
+            padding: '5px 12px 5px 5px',
+            borderRadius: 999,
+            background: 'rgba(255,255,255,0.025)',
+            boxShadow: '0 0 0 1px var(--border)',
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: '0.06em',
             textTransform: 'uppercase',
-            marginBottom: 18,
+            color: 'var(--ink-2)',
+            marginBottom: 28,
           }}
         >
-          Beta abierta · ningún dato sale de tu navegador
+          <span
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: '50%',
+              background: 'var(--mint-soft)',
+              color: 'var(--mint)',
+              display: 'grid',
+              placeItems: 'center',
+              fontSize: 9,
+              fontWeight: 700,
+            }}
+          >
+            ●
+          </span>
+          Beta abierta
         </div>
         <h1
           className="font-display text-ink"
           style={{
-            fontSize: 'clamp(40px, 4.4vw, 60px)',
-            fontWeight: 400,
-            letterSpacing: '-0.02em',
-            lineHeight: 1.02,
+            fontSize: 'clamp(44px, 5vw, 68px)',
+            fontWeight: 600,
+            letterSpacing: '-0.035em',
+            lineHeight: 1,
             margin: 0,
-            fontVariationSettings: '"opsz" 96, "SOFT" 50',
           }}
         >
           Tu Excel,
           <br />
-          <em
+          <span
             style={{
-              fontStyle: 'italic',
-              fontWeight: 400,
-              color: 'var(--mint)',
-              fontVariationSettings: '"opsz" 96, "SOFT" 100',
+              background: 'linear-gradient(120deg, var(--sky) 0%, var(--plum) 50%, var(--mint) 100%)',
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              color: 'transparent',
+              fontWeight: 600,
             }}
           >
-            al cielo.
-          </em>
+            con sentido.
+          </span>
         </h1>
         <p
           style={{

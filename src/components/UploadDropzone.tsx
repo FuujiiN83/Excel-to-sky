@@ -8,6 +8,7 @@ interface UploadDropzoneProps {
 
 export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
   const [busy, setBusy] = useState(false)
+  const [hover, setHover] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -26,30 +27,94 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
 
   return (
     <div
-      onDragOver={(e) => e.preventDefault()}
+      onDragOver={(e) => {
+        e.preventDefault()
+        setHover(true)
+      }}
+      onDragLeave={() => setHover(false)}
       onDrop={(e) => {
         e.preventDefault()
+        setHover(false)
         const f = e.dataTransfer.files[0]
         if (f) void handleFile(f)
       }}
-      className="rounded-lg border-2 border-dashed border-border p-12 text-center cursor-pointer hover:border-ink transition-colors"
       onClick={() => inputRef.current?.click()}
+      style={{
+        padding: 6,
+        borderRadius: 'var(--radius-xl)',
+        background: hover
+          ? 'linear-gradient(135deg, var(--sky-soft), var(--plum-soft))'
+          : 'rgba(255,255,255,0.025)',
+        boxShadow: `0 0 0 1px ${hover ? 'var(--border-strong)' : 'var(--border)'}`,
+        cursor: 'pointer',
+        transition: 'background 320ms cubic-bezier(0.32,0.72,0,1), box-shadow 320ms cubic-bezier(0.32,0.72,0,1)',
+      }}
     >
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".xlsx,.xls,.csv,.ods"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0]
-          if (f) void handleFile(f)
+      <div
+        style={{
+          background: 'var(--surface)',
+          borderRadius: 'calc(var(--radius-xl) - 6px)',
+          padding: '52px 32px',
+          textAlign: 'center',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
         }}
-      />
-      <p className="font-display text-2xl">
-        {busy ? 'Procesando…' : 'Arrastra un Excel aquí o haz click'}
-      </p>
-      <p className="text-muted text-sm mt-2">.xlsx · .xls · .csv · .ods · máx 10 MB</p>
-      {error && <p className="mt-4 text-coral">{error}</p>}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".xlsx,.xls,.csv,.ods"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) void handleFile(f)
+          }}
+        />
+        <div
+          aria-hidden
+          style={{
+            width: 48,
+            height: 48,
+            margin: '0 auto 18px',
+            borderRadius: 14,
+            background: 'linear-gradient(135deg, var(--sky-soft), var(--plum-soft))',
+            display: 'grid',
+            placeItems: 'center',
+            color: 'var(--sky)',
+            boxShadow: 'inset 0 0 0 1px var(--border)',
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+        </div>
+        <p
+          className="font-display"
+          style={{
+            fontSize: 20,
+            fontWeight: 500,
+            color: 'var(--ink)',
+            letterSpacing: '-0.015em',
+            margin: 0,
+          }}
+        >
+          {busy ? 'Procesando…' : 'Arrastra tu Excel o haz click'}
+        </p>
+        <p
+          style={{
+            color: 'var(--muted)',
+            fontSize: 12,
+            marginTop: 8,
+            letterSpacing: '0.04em',
+          }}
+        >
+          .xlsx · .xls · .csv · .ods · hasta 10 MB
+        </p>
+        {error && (
+          <p style={{ color: 'var(--coral)', fontSize: 13, marginTop: 16 }}>{error}</p>
+        )}
+      </div>
     </div>
   )
 }

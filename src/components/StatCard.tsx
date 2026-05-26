@@ -32,66 +32,79 @@ export function StatCard({
   return (
     <div
       style={{
-        background: highlight ? `var(--${accent}-soft)` : 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        padding: 'var(--pad)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
+        padding: 6,
+        borderRadius: 'var(--radius-lg)',
+        background: highlight
+          ? `linear-gradient(135deg, var(--${accent}-soft), transparent 70%)`
+          : 'rgba(255,255,255,0.025)',
+        boxShadow: '0 0 0 1px var(--border)',
         position: 'relative',
         overflow: 'hidden',
-        minHeight: 96,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {icon && (
-          <div
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 6,
-              background: `var(--${accent})`,
-              display: 'grid',
-              placeItems: 'center',
-              color: 'white',
-              fontSize: 12,
-              fontWeight: 700,
-            }}
-          >
-            {icon}
-          </div>
-        )}
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: 'var(--muted)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-          }}
-        >
-          {label}
-        </div>
-      </div>
       <div
         style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: valueFontSize(value),
-          fontWeight: 700,
-          lineHeight: 1.05,
-          letterSpacing: '-0.03em',
-          color: 'var(--ink)',
-          marginTop: 'auto',
-          wordBreak: 'break-word',
-          overflowWrap: 'anywhere',
+          background: 'var(--surface)',
+          borderRadius: 'calc(var(--radius-lg) - 6px)',
+          padding: 'var(--pad)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+          minHeight: 96,
+          position: 'relative',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
         }}
       >
-        {value}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {icon && (
+            <div
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 6,
+                background: `var(--${accent}-soft)`,
+                color: `var(--${accent})`,
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 11,
+                fontWeight: 600,
+                boxShadow: `inset 0 0 0 1px var(--border)`,
+              }}
+            >
+              {icon}
+            </div>
+          )}
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 500,
+              color: 'var(--muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.14em',
+            }}
+          >
+            {label}
+          </div>
+        </div>
+        <div
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: valueFontSize(value),
+            fontWeight: 500,
+            lineHeight: 1.08,
+            letterSpacing: '-0.025em',
+            color: 'var(--ink)',
+            marginTop: 'auto',
+            wordBreak: 'break-word',
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {value}
+        </div>
+        {caption && (
+          <div style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.01em' }}>{caption}</div>
+        )}
       </div>
-      {caption && (
-        <div style={{ fontSize: 12, color: 'var(--muted)' }}>{caption}</div>
-      )}
     </div>
   )
 }

@@ -14,7 +14,6 @@ const DOCK_ITEMS: readonly DockItem[] = [
   { id: 'detail', label: 'Detalle' },
   { id: 'compare', label: 'Comparar' },
   { id: 'share', label: 'Compartir' },
-  { id: 'public', label: 'Pública' },
 ]
 
 export function FloatingDock({ route, onNav }: FloatingDockProps): JSX.Element {
@@ -22,33 +21,21 @@ export function FloatingDock({ route, onNav }: FloatingDockProps): JSX.Element {
     <div
       style={{
         position: 'fixed',
-        bottom: 18,
+        bottom: 22,
         left: '50%',
         transform: 'translateX(-50%)',
-        background: 'color-mix(in oklab, var(--ink) 96%, transparent)',
-        color: 'var(--bg)',
-        borderRadius: 999,
         padding: 5,
+        borderRadius: 999,
+        background: 'rgba(14, 16, 21, 0.72)',
+        backdropFilter: 'blur(24px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+        boxShadow:
+          '0 0 0 1px rgba(255,255,255,0.08), 0 20px 50px -16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)',
         display: 'inline-flex',
         gap: 2,
         zIndex: 50,
-        boxShadow: '0 18px 50px -18px rgba(0,0,0,.4)',
-        backdropFilter: 'blur(10px)',
       }}
     >
-      <span
-        style={{
-          padding: '6px 10px 6px 12px',
-          fontSize: 10,
-          fontWeight: 600,
-          color: 'color-mix(in oklab, var(--bg) 60%, transparent)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          alignSelf: 'center',
-        }}
-      >
-        Prototipo
-      </span>
       {DOCK_ITEMS.map((it) => {
         const active = route.name === it.id
         return (
@@ -56,14 +43,24 @@ export function FloatingDock({ route, onNav }: FloatingDockProps): JSX.Element {
             key={it.id}
             onClick={() => onNav(it.id)}
             style={{
-              padding: '7px 12px',
+              padding: '8px 16px',
               borderRadius: 999,
               border: 'none',
-              background: active ? 'var(--bg)' : 'transparent',
-              color: active ? 'var(--ink)' : 'color-mix(in oklab, var(--bg) 80%, transparent)',
+              background: active
+                ? 'linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04))'
+                : 'transparent',
+              boxShadow: active ? 'inset 0 0 0 1px rgba(255,255,255,0.08)' : 'none',
+              color: active ? 'var(--ink)' : 'var(--muted)',
               fontSize: 12,
               fontWeight: 500,
-              transition: 'all .15s ease',
+              letterSpacing: '-0.005em',
+              transition: 'color 220ms cubic-bezier(0.32, 0.72, 0, 1), background 220ms cubic-bezier(0.32, 0.72, 0, 1)',
+            }}
+            onMouseEnter={(e) => {
+              if (!active) e.currentTarget.style.color = 'var(--ink)'
+            }}
+            onMouseLeave={(e) => {
+              if (!active) e.currentTarget.style.color = 'var(--muted)'
             }}
           >
             {it.label}

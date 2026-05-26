@@ -1,68 +1,64 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* Palette — Editorial Sereno (warm ivory + deep slate + muted earthy accents) */
-  --bg: #FAF8F2;
-  --surface: #FFFFFF;
-  --surface-2: #F4F1E8;
-  --border: #EAE4D3;
-  --border-strong: #CFC6B0;
-  --ink: #1F2933;
-  --ink-2: #3E4C59;
-  --muted: #7B8794;
-  --muted-2: #9AA5B1;
+  /* ETHEREAL GLASS — dark OLED, near-vantablack surfaces, hairline rings, cool accents */
+  --bg: #07080B;
+  --bg-mesh: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(77, 158, 250, 0.08), transparent 60%),
+             radial-gradient(ellipse 70% 50% at 90% 100%, rgba(124, 142, 250, 0.06), transparent 55%),
+             radial-gradient(ellipse 60% 40% at 50% 50%, rgba(94, 226, 192, 0.03), transparent 70%);
+  --surface: #0E1015;
+  --surface-2: #14171E;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --ink: #F5F5F7;
+  --ink-2: #C8C8D0;
+  --muted: #82828D;
+  --muted-2: #55555F;
 
-  /* Accents — muted, calm, low-saturation */
-  --sky: #6B92BF;
-  --sky-soft: #E0E8F1;
-  --mint: #7AA89C;
-  --mint-soft: #DFEAE5;
-  --coral: #C2876A;
-  --coral-soft: #F1E2D5;
-  --plum: #9183B5;
-  --plum-soft: #E7E2EE;
-  --amber: #C99D63;
-  --amber-soft: #F0E4CC;
-  --rose: #C28196;
-  --rose-soft: #EFDFE5;
-  --lime: #A5B47A;
-  --lime-soft: #E4E9D2;
+  /* Accents — cool, modern, low-luma highlights */
+  --sky: #4D9EFA;
+  --sky-soft: rgba(77, 158, 250, 0.12);
+  --mint: #5EE2C0;
+  --mint-soft: rgba(94, 226, 192, 0.12);
+  --coral: #FF8C66;
+  --coral-soft: rgba(255, 140, 102, 0.12);
+  --plum: #A78BFA;
+  --plum-soft: rgba(167, 139, 250, 0.14);
+  --amber: #FBBF24;
+  --amber-soft: rgba(251, 191, 36, 0.12);
+  --rose: #F472B6;
+  --rose-soft: rgba(244, 114, 182, 0.12);
+  --lime: #A3E635;
+  --lime-soft: rgba(163, 230, 53, 0.12);
 
-  --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
 
-  --shadow-sm: 0 1px 0 rgba(31, 41, 51, 0.03);
-  --shadow: 0 1px 0 rgba(31, 41, 51, 0.03), 0 4px 14px -6px rgba(31, 41, 51, 0.07);
-  --shadow-lg: 0 1px 0 rgba(31, 41, 51, 0.03), 0 20px 40px -20px rgba(31, 41, 51, 0.14);
+  --shadow-sm: 0 1px 0 rgba(255,255,255,0.04) inset;
+  --shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 24px -12px rgba(0,0,0,0.6);
+  --shadow-lg: 0 1px 0 rgba(255,255,255,0.06) inset, 0 30px 60px -24px rgba(0,0,0,0.7);
 
-  --font-display: "Fraunces", "Iowan Old Style", ui-serif, Georgia, serif;
-  --font-ui: "Geist", ui-sans-serif, sans-serif;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-ui: "Geist", "Plus Jakarta Sans", ui-sans-serif, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
 }
 
-.theme-dark {
-  --bg: #14181F;
-  --surface: #1B2028;
-  --surface-2: #232934;
-  --border: #2C3441;
-  --border-strong: #3E4757;
-  --ink: #F0EDE5;
-  --ink-2: #D7D2C5;
-  --muted: #8A9099;
-  --muted-2: #5C636E;
-  --sky-soft: #1C2A3B;
-  --mint-soft: #1B2E2A;
-  --coral-soft: #33231B;
-  --plum-soft: #251F35;
-  --amber-soft: #2F2616;
-  --rose-soft: #2F1C24;
-  --lime-soft: #1F2616;
-  --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 4px 14px -6px rgba(0,0,0,0.45);
-  --shadow-lg: 0 1px 0 rgba(0,0,0,0.4), 0 20px 40px -20px rgba(0,0,0,0.6);
+/* Light-mode override (optional toggle for the future) */
+.theme-light {
+  --bg: #FAFAFB;
+  --bg-mesh: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(77, 158, 250, 0.05), transparent 60%);
+  --surface: #FFFFFF;
+  --surface-2: #F4F4F6;
+  --border: rgba(15, 17, 21, 0.07);
+  --border-strong: rgba(15, 17, 21, 0.16);
+  --ink: #0F1115;
+  --ink-2: #2C2F36;
+  --muted: #6B6E76;
+  --muted-2: #A0A3AB;
 }
 
-.density-compact { --pad: 12px; --pad-lg: 16px; --gap: 8px; }
-.density-cozy    { --pad: 16px; --pad-lg: 22px; --gap: 12px; }
-.density-airy    { --pad: 22px; --pad-lg: 32px; --gap: 18px; }
+.density-compact { --pad: 14px; --pad-lg: 18px; --gap: 10px; }
+.density-cozy    { --pad: 18px; --pad-lg: 24px; --gap: 14px; }
+.density-airy    { --pad: 24px; --pad-lg: 34px; --gap: 20px; }
