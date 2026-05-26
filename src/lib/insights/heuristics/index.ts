@@ -9,6 +9,7 @@ import { timeDensityGap } from './timeDensityGap'
 import { duplicateLookalike } from './duplicateLookalike'
 import { textOutlier } from './textOutlier'
 import { numericCorrelation } from './numericCorrelation'
+import { groupDisparity } from './groupDisparity'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -20,4 +21,5 @@ export const HEURISTICS: Heuristic[] = [
   duplicateLookalike,
   textOutlier,
   numericCorrelation,
+  groupDisparity,
 ]
