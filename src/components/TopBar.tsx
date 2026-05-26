@@ -24,35 +24,35 @@ function Logo({ size = 26 }: { size?: number }): JSX.Element {
   return (
     <div className="flex items-center gap-2.5">
       <div
-        className="relative overflow-hidden rounded-lg"
+        className="relative overflow-hidden"
         style={{
           width: size,
           height: size,
-          background: 'linear-gradient(155deg, #2E6BFF 0%, #8B5CF6 60%, #FF7159 100%)',
-          boxShadow: '0 4px 12px -4px rgba(46,107,255,0.45)',
+          background: 'var(--ink)',
+          borderRadius: 8,
         }}
       >
         <svg viewBox="0 0 24 24" className="absolute inset-0 w-full h-full">
           <path
             d="M7 17 L 11 13 L 14 16 L 18 8"
-            stroke="white"
-            strokeWidth="2.4"
+            stroke="var(--bg)"
+            strokeWidth="2.2"
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <circle cx="18" cy="8" r="1.6" fill="white" />
+          <circle cx="18" cy="8" r="1.4" fill="var(--mint)" />
         </svg>
       </div>
       <div className="flex flex-col leading-none">
         <span
-          className="font-display font-bold text-ink"
-          style={{ fontSize: 16, letterSpacing: '-0.02em' }}
+          className="font-display text-ink"
+          style={{ fontSize: 18, fontWeight: 400, letterSpacing: '-0.015em', fontStyle: 'italic' }}
         >
           Excel to Sky
         </span>
-        <span className="text-muted" style={{ fontSize: 10, marginTop: 2 }}>
-          Tus datos, visibles · v0.4
+        <span className="text-muted" style={{ fontSize: 10, marginTop: 3, letterSpacing: '0.04em' }}>
+          tus datos, en calma
         </span>
       </div>
     </div>

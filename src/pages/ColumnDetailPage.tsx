@@ -89,13 +89,13 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
         <div
           className="grid place-items-center font-display"
           style={{
-            width: 56,
-            height: 56,
-            borderRadius: 14,
+            width: 40,
+            height: 40,
+            borderRadius: 10,
             background: `var(--${accent}-soft)`,
             color: `var(--${accent})`,
             fontWeight: 700,
-            fontSize: 24,
+            fontSize: 18,
           }}
         >
           {isNum ? '#' : isDate ? '⌛' : 'Aa'}
@@ -116,7 +116,7 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
           <h1
             className="font-display"
             style={{
-              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontSize: 'clamp(26px, 2.8vw, 38px)',
               fontWeight: 700,
               letterSpacing: '-0.03em',
               margin: '4px 0 0',

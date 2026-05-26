@@ -82,34 +82,34 @@ export function UploadPage({
         <h1
           className="font-display text-ink"
           style={{
-            fontSize: 'clamp(48px, 5.4vw, 80px)',
-            fontWeight: 700,
-            letterSpacing: '-0.04em',
-            lineHeight: 0.96,
+            fontSize: 'clamp(40px, 4.4vw, 60px)',
+            fontWeight: 400,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.02,
             margin: 0,
+            fontVariationSettings: '"opsz" 96, "SOFT" 50',
           }}
         >
           Tu Excel,
           <br />
-          <span
+          <em
             style={{
-              background:
-                'linear-gradient(120deg, #2E6BFF 0%, #8B5CF6 50%, #FF7159 100%)',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              color: 'transparent',
+              fontStyle: 'italic',
+              fontWeight: 400,
+              color: 'var(--mint)',
+              fontVariationSettings: '"opsz" 96, "SOFT" 100',
             }}
           >
             al cielo.
-          </span>
+          </em>
         </h1>
         <p
           style={{
-            fontSize: 18,
+            fontSize: 15,
             color: 'var(--ink-2)',
-            lineHeight: 1.5,
-            marginTop: 22,
-            maxWidth: 480,
+            lineHeight: 1.6,
+            marginTop: 18,
+            maxWidth: 460,
           }}
         >
           Suelta una hoja de cálculo y conviértela en un dashboard navegable.

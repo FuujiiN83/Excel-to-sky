@@ -97,7 +97,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
         <h1
           className="font-display"
           style={{
-            fontSize: 'clamp(36px, 4vw, 56px)',
+            fontSize: 'clamp(26px, 2.8vw, 38px)',
             fontWeight: 700,
             letterSpacing: '-0.03em',
             margin: 0,
