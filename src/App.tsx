@@ -37,10 +37,16 @@ interface Route {
 export default function App(): JSX.Element {
   const [route, setRoute] = useState<Route>({ name: 'landing' })
   const [dataset, setDataset] = useState<Dataset>(SAMPLE_DATASETS.personas)
+  const [hasUploaded, setHasUploaded] = useState(false)
 
   function nav(name: RouteName, extras: Partial<Route> = {}): void {
     setRoute({ name, ...extras })
     window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+
+  function loadDataset(ds: Dataset): void {
+    setDataset(ds)
+    setHasUploaded(true)
   }
 
   // Pathname-based initial route (e.g. /app, /faq, /privacy, /terms). /d/<slug>
@@ -67,6 +73,7 @@ export default function App(): JSX.Element {
         await saveLocalDashboard({ slug, name: ds.label, deleteToken: '', owner: 'visited' })
         await touchLocalDashboard(slug)
         setDataset(ds)
+        setHasUploaded(true)
         setRoute({ name: 'public' })
       })
       .catch((err) => {
@@ -115,16 +122,18 @@ export default function App(): JSX.Element {
           />
           <UploadPage
             onParsed={(ds) => {
-              setDataset(ds)
+              loadDataset(ds)
               nav('dashboard')
             }}
             onUseSample={(id) => {
               const next = SAMPLE_DATASETS[id]
               if (next) {
-                setDataset(next)
+                loadDataset(next)
                 nav('dashboard')
               }
             }}
+            hasActiveDashboard={hasUploaded}
+            onReturnToDashboard={() => nav('dashboard')}
           />
         </>
       ) : isPublic ? (
@@ -170,7 +179,7 @@ export default function App(): JSX.Element {
         </>
       )}
 
-      {!isUpload && (
+      {(!isUpload || hasUploaded) && (
         <FloatingDock route={route} onNav={(n) => nav(n as RouteName)} />
       )}
     </div>

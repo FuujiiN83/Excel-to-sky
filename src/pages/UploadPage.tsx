@@ -7,9 +7,16 @@ import { listLocalDashboards, type LocalDashboard } from '../lib/localDb'
 interface UploadPageProps {
   onParsed: (dataset: Dataset) => void
   onUseSample: (sampleId: string) => void
+  hasActiveDashboard?: boolean
+  onReturnToDashboard?: () => void
 }
 
-export function UploadPage({ onParsed, onUseSample }: UploadPageProps): JSX.Element {
+export function UploadPage({
+  onParsed,
+  onUseSample,
+  hasActiveDashboard,
+  onReturnToDashboard,
+}: UploadPageProps): JSX.Element {
   const [mine, setMine] = useState<LocalDashboard[]>([])
 
   useEffect(() => {
@@ -21,6 +28,33 @@ export function UploadPage({ onParsed, onUseSample }: UploadPageProps): JSX.Elem
 
   return (
     <>
+    {hasActiveDashboard && onReturnToDashboard && (
+      <div
+        style={{
+          padding: '16px 64px 0',
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+        }}
+      >
+        <button
+          onClick={onReturnToDashboard}
+          className="bg-surface border border-border text-ink"
+          style={{
+            borderRadius: 999,
+            padding: '8px 16px',
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          ← Volver al dashboard actual
+        </button>
+      </div>
+    )}
     <div
       className="grid"
       style={{

@@ -1,5 +1,15 @@
 import type { Accent } from '../types/dataset'
 
+// Scale value font-size down for long string values so they don't overflow the card.
+function valueFontSize(value: string | number): string {
+  const len = String(value).length
+  if (len <= 4) return 'clamp(40px, 4.4vw, 64px)'
+  if (len <= 8) return 'clamp(30px, 3vw, 44px)'
+  if (len <= 14) return 'clamp(22px, 2vw, 30px)'
+  if (len <= 24) return 'clamp(16px, 1.4vw, 22px)'
+  return 'clamp(13px, 1.1vw, 17px)'
+}
+
 interface StatCardProps {
   label: string
   value: string | number
@@ -67,13 +77,14 @@ export function StatCard({
       <div
         style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(40px, 4.4vw, 64px)',
+          fontSize: valueFontSize(value),
           fontWeight: 700,
-          lineHeight: 1,
+          lineHeight: 1.05,
           letterSpacing: '-0.03em',
           color: 'var(--ink)',
           marginTop: 'auto',
           wordBreak: 'break-word',
+          overflowWrap: 'anywhere',
         }}
       >
         {value}
