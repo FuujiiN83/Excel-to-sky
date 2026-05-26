@@ -7,12 +7,18 @@ export type ColumnType =
   | 'category'
   | 'text'
 
+export type Accent = 'sky' | 'mint' | 'coral' | 'plum' | 'amber' | 'rose' | 'lime'
+
 export interface Column {
   key: string
   label: string
   type: ColumnType
   /** Original sheet header before normalization */
   originalLabel?: string
+  /** Accent palette name. Defaults to 'sky' in chart components. */
+  color?: Accent
+  /** Display unit (e.g., "€", "kg", "%"). */
+  unit?: string
 }
 
 export type CellValue = string | number | boolean | null

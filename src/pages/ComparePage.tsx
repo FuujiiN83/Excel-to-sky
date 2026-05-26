@@ -1,5 +1,9 @@
-import { useState } from 'react'
-import type { Dataset } from '../types/dataset'
+import { useMemo, useState } from 'react'
+import type { Accent, Column, Dataset } from '../types/dataset'
+import { coercePairs, fmtUnit, groupAggregate } from '../lib/stats'
+import { StatCard } from '../components/StatCard'
+import { ChartBar } from '../components/ChartBar'
+import { ChartScatter } from '../components/ChartScatter'
 
 interface ComparePageProps {
   dataset: Dataset
@@ -16,6 +20,14 @@ const AGG_OPTIONS: { value: Aggregation; label: string }[] = [
   { value: 'min', label: 'mínimo' },
 ]
 
+function aggLabel(a: Aggregation): string {
+  return AGG_OPTIONS.find((o) => o.value === a)?.label || a
+}
+
+function pickAccent(col: Column): Accent {
+  return col.color || 'sky'
+}
+
 export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element {
   const numCols = dataset.columns.filter((c) => c.type === 'number' || c.type === 'currency')
   const catCols = dataset.columns.filter((c) => c.type === 'category' || c.type === 'text')
@@ -23,13 +35,35 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
 
   const defaultGroup = catCols[0] || dataset.columns[0]
   const defaultMetric = numCols[0] || dataset.columns[1] || dataset.columns[0]
+  const defaultScatterY = numCols[1] || numCols[0] || dataset.columns[0]
 
   const [groupKey, setGroupKey] = useState(defaultGroup.key)
   const [metricKey, setMetricKey] = useState(defaultMetric.key)
   const [agg, setAgg] = useState<Aggregation>('avg')
+  const [scatterX, setScatterX] = useState(defaultMetric.key)
+  const [scatterY, setScatterY] = useState(defaultScatterY.key)
 
   const groupCol = dataset.columns.find((c) => c.key === groupKey) || defaultGroup
   const metricCol = dataset.columns.find((c) => c.key === metricKey) || defaultMetric
+  const xCol = dataset.columns.find((c) => c.key === scatterX) || defaultMetric
+  const yCol = dataset.columns.find((c) => c.key === scatterY) || defaultScatterY
+
+  const grouped = useMemo(() => {
+    const aggregates = groupAggregate(dataset, groupKey, metricKey)
+    return [...aggregates].sort((a, b) => (b[agg] as number) - (a[agg] as number))
+  }, [dataset, groupKey, metricKey, agg])
+
+  const top = grouped.slice(0, 12)
+  const winner = grouped[0]
+  const loser = grouped[grouped.length - 1]
+
+  const scatterPoints = useMemo(
+    () => coercePairs(dataset, scatterX, scatterY),
+    [dataset, scatterX, scatterY]
+  )
+
+  const metricAccent = pickAccent(metricCol)
+  const groupAccent = pickAccent(groupCol)
 
   return (
     <div style={{ padding: '32px 28px 60px', maxWidth: 1400, margin: '0 auto' }}>
@@ -73,7 +107,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
         </h1>
       </div>
 
-      {/* Controls */}
+      {/* Controls — group / agg / metric */}
       <div
         className="flex flex-wrap items-center bg-surface border border-border"
         style={{
@@ -84,10 +118,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
           width: 'fit-content',
         }}
       >
-        <span
-          className="text-muted"
-          style={{ padding: '6px 10px', fontSize: 12 }}
-        >
+        <span className="text-muted" style={{ padding: '6px 10px', fontSize: 12 }}>
           Agrupar por
         </span>
         <select
@@ -107,10 +138,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
             </option>
           ))}
         </select>
-        <span
-          className="text-muted"
-          style={{ padding: '6px 10px', fontSize: 12 }}
-        >
+        <span className="text-muted" style={{ padding: '6px 10px', fontSize: 12 }}>
           Mostrar
         </span>
         <select
@@ -130,10 +158,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
             </option>
           ))}
         </select>
-        <span
-          className="text-muted"
-          style={{ padding: '6px 10px', fontSize: 12 }}
-        >
+        <span className="text-muted" style={{ padding: '6px 10px', fontSize: 12 }}>
           de
         </span>
         <select
@@ -155,7 +180,7 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
         </select>
       </div>
 
-      {/* Headline — placeholders for Task 7 */}
+      {/* Headline */}
       <div
         className="grid"
         style={{
@@ -164,20 +189,62 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
           marginBottom: 22,
         }}
       >
-        <div className="rounded border border-border p-4">
-          Stat placeholder: ganador ({metricCol.label} por {groupCol.label})
-        </div>
-        <div className="rounded border border-border p-4">
-          Stat placeholder: menor
-        </div>
-        <div className="rounded border border-border p-4">
-          Stat placeholder: spread
-        </div>
+        <StatCard
+          label={`${
+            agg === 'count'
+              ? 'Mayor recuento'
+              : agg === 'sum'
+                ? 'Mayor suma'
+                : agg === 'min'
+                  ? 'Menor valor'
+                  : agg === 'max'
+                    ? 'Mayor valor'
+                    : 'Mayor media'
+          } de ${metricCol.label.toLowerCase()}`}
+          value={winner ? winner.key : '—'}
+          accent={metricAccent}
+          highlight
+          caption={
+            winner
+              ? `${fmtUnit(Math.round((winner[agg] as number) * 10) / 10, metricCol.unit)} · ${winner.count} filas`
+              : undefined
+          }
+        />
+        <StatCard
+          label="Menor"
+          value={loser ? loser.key : '—'}
+          accent={groupAccent}
+          caption={
+            loser
+              ? `${fmtUnit(Math.round((loser[agg] as number) * 10) / 10, metricCol.unit)}`
+              : undefined
+          }
+        />
+        <StatCard
+          label="Spread"
+          value={
+            winner && loser
+              ? `${Math.round(((winner[agg] as number) / Math.max(1, loser[agg] as number)) * 10) / 10}×`
+              : '—'
+          }
+          accent="amber"
+          caption="diferencia entre top y bottom"
+        />
       </div>
 
-      <div className="rounded border border-border p-4">
-        Chart placeholder: horizontal bars — {agg} de {metricCol.label} por {groupCol.label}
-      </div>
+      <Card
+        title={`${aggLabel(agg)} de ${metricCol.label.toLowerCase()} por ${groupCol.label.toLowerCase()}`}
+        sub={`${top.length} grupos`}
+      >
+        <ChartBar
+          bars={top.map((g) => ({
+            label: g.key,
+            value: Math.round((g[agg] as number) * 10) / 10,
+          }))}
+          accent={metricAccent}
+          orientation="horizontal"
+        />
+      </Card>
 
       <div
         className="grid"
@@ -187,13 +254,101 @@ export function ComparePage({ dataset, onBack }: ComparePageProps): JSX.Element 
           gap: 'var(--gap)',
         }}
       >
-        <div className="rounded border border-border p-4">
-          Chart placeholder: volumen por grupo
-        </div>
-        <div className="rounded border border-border p-4">
-          Insight placeholder: lo que destaca
+        <Card title="Volumen por grupo" sub="cuántas filas tiene cada uno">
+          <ChartBar
+            bars={top.map((g) => ({ label: g.key, value: g.count }))}
+            accent={groupAccent}
+            orientation="horizontal"
+          />
+        </Card>
+        <Card title="Dispersión" sub="cruzar dos métricas numéricas">
+          {/* Scatter controls */}
+          <div
+            className="flex flex-wrap items-center"
+            style={{ gap: 8, marginBottom: 12, fontSize: 12, color: 'var(--muted)' }}
+          >
+            <span>X</span>
+            <select
+              value={scatterX}
+              onChange={(e) => setScatterX(e.target.value)}
+              className="bg-surface-2 border border-border rounded"
+              style={{ padding: '4px 8px', fontSize: 12, color: 'var(--ink)' }}
+            >
+              {numCols.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <span>Y</span>
+            <select
+              value={scatterY}
+              onChange={(e) => setScatterY(e.target.value)}
+              className="bg-surface-2 border border-border rounded"
+              style={{ padding: '4px 8px', fontSize: 12, color: 'var(--ink)' }}
+            >
+              {numCols.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <ChartScatter
+            points={scatterPoints}
+            accent={pickAccent(yCol)}
+            xLabel={xCol.label}
+            yLabel={yCol.label}
+          />
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+interface CardProps {
+  title: string
+  sub?: string
+  children: React.ReactNode
+}
+
+function Card({ title, sub, children }: CardProps): JSX.Element {
+  return (
+    <div
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: 'var(--pad-lg)',
+      }}
+    >
+      <div style={{ marginBottom: 18 }}>
+        {sub && (
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: 'var(--muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+            }}
+          >
+            {sub}
+          </div>
+        )}
+        <div
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 600,
+            fontSize: 22,
+            marginTop: 4,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          {title}
         </div>
       </div>
+      {children}
     </div>
   )
 }
