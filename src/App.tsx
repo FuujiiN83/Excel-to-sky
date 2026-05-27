@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { TopBar } from './components/TopBar'
 import { FloatingDock } from './components/FloatingDock'
 import { CookieBanner } from './components/CookieBanner'
+import { NetworkErrorBanner } from './components/NetworkErrorBanner'
 import { SAMPLE_DATASETS } from './samples'
 import type { Dataset } from './types/dataset'
 import { UploadPage } from './pages/UploadPage'
@@ -99,12 +100,14 @@ export default function App(): JSX.Element {
   useEffect(() => {
     if (!import.meta.env.DEV) return
     if (!hasUploaded) return
-    void analyzeDataset(dataset).then((report) => {
-      // eslint-disable-next-line no-console
-      console.log('[insights]', report)
-    }).catch((e: unknown) => {
-      console.error('[insights] failed:', e)
-    })
+    void analyzeDataset(dataset)
+      .then((report) => {
+        // eslint-disable-next-line no-console
+        console.log('[insights]', report)
+      })
+      .catch((e: unknown) => {
+        console.error('[insights] failed:', e)
+      })
   }, [dataset, hasUploaded])
 
   const isUpload = route.name === 'upload'
@@ -125,6 +128,7 @@ export default function App(): JSX.Element {
         {route.name === 'terms' && <TermsPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'dev_insights' && <InsightsWorkbench />}
         <CookieBanner onLearnMore={() => nav('privacy')} />
+        <NetworkErrorBanner />
       </div>
     )
   }
@@ -133,12 +137,7 @@ export default function App(): JSX.Element {
     <div>
       {isUpload ? (
         <>
-          <TopBar
-            current={null}
-            onNav={() => {}}
-            dataset={null}
-            hideNav
-          />
+          <TopBar current={null} onNav={() => {}} dataset={null} hideNav />
           <UploadPage
             onParsed={(ds) => {
               loadDataset(ds)
@@ -202,6 +201,7 @@ export default function App(): JSX.Element {
         <FloatingDock route={route} onNav={(n) => nav(n as RouteName)} />
       )}
       <CookieBanner onLearnMore={() => nav('privacy')} />
+      <NetworkErrorBanner />
     </div>
   )
 }
