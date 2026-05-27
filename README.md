@@ -19,6 +19,26 @@ Most BI tools force you to set up databases, write SQL, or upload sensitive data
 - **No LLM.** The insights engine is pure statistical heuristics. Zero API costs, zero latency, deterministic output.
 - **Narrative-first.** The roadmap is to compose insights into a readable story, not just throw charts at the user.
 
+## How it works
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Browser
+    participant ParserW as parser.worker
+    participant InsightsW as insights.worker
+
+    User->>Browser: drops VENTAS_2026_Q1.xlsx
+    Browser->>ParserW: parse(file)
+    ParserW-->>Browser: typed Dataset (cols + rows)
+    Browser->>InsightsW: analyzeDataset(dataset)
+    InsightsW-->>Browser: InsightReport (ranked findings)
+    Browser->>User: dashboard + ranked insights
+```
+
+Steps 1–5 never reach the network. Sharing is a separate, explicit user action that copies a snapshot to Supabase (UE) in exchange for a public short URL. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the module diagram, the Share-flow sequence, and the rationale for using Web Workers and skipping LLMs.
+
 ## Tech stack
 
 - TypeScript 5, React 18, Vite 5
