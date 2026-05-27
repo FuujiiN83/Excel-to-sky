@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { Accent, Column, ColumnType, Dataset } from '../types/dataset'
 import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import type { ColumnAnalysis } from '../lib/stats'
@@ -6,6 +6,9 @@ import { StatCard } from '../components/StatCard'
 import { ChartBar } from '../components/ChartBar'
 import { ChartLine } from '../components/ChartLine'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
+import { ChartExportButton } from '../components/ChartExportButton'
+import { useSettings } from '../lib/SettingsContext'
+import { accentForPalette } from '../lib/palette'
 import { pushToast } from '../lib/toast'
 
 interface ColumnDetailPageProps {
@@ -27,14 +30,20 @@ const OVERRIDABLE_TYPES: ReadonlyArray<{ value: ColumnType; label: string }> = [
   { value: 'boolean', label: 'Booleano' },
 ]
 
-function pickAccent(col: Column): Accent {
+function naturalAccent(col: Column): Accent {
   return col.color || 'sky'
 }
 
 export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
   const { dataset, columnKey, onPickColumn, onBack, onUpdateColumn } = props
+  const { settings } = useSettings()
+  const pickAccent = (col: Column): Accent => accentForPalette(settings.palette, naturalAccent(col))
   const col = dataset.columns.find((c) => c.key === columnKey) || dataset.columns[0]
-  const analysis = useMemo(() => analyzeColumn(dataset, col.key), [dataset, col.key])
+  const [bins, setBins] = useState<number>(10)
+  const analysis = useMemo(
+    () => analyzeColumn(dataset, col.key, { bins }),
+    [dataset, col.key, bins],
+  )
 
   function applyOverride(newType: ColumnType): void {
     if (!onUpdateColumn || newType === col.type) return
@@ -189,7 +198,15 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
         )}
       </div>
 
-      {isNum && <NumberDetail analysis={analysis} col={col} accent={accent} />}
+      {isNum && (
+        <NumberDetail
+          analysis={analysis}
+          col={col}
+          accent={accent}
+          bins={bins}
+          onBinsChange={setBins}
+        />
+      )}
       {isCat && <CategoryDetail analysis={analysis} col={col} accent={accent} isGeo={isGeo} />}
       {isDate && <DateDetail analysis={analysis} col={col} accent={accent} />}
     </div>
@@ -204,7 +221,18 @@ interface DetailViewProps {
   accent: Accent
 }
 
-function NumberDetail({ analysis, col, accent }: DetailViewProps): JSX.Element {
+interface NumberDetailProps extends DetailViewProps {
+  bins: number
+  onBinsChange: (n: number) => void
+}
+
+function NumberDetail({
+  analysis,
+  col,
+  accent,
+  bins,
+  onBinsChange,
+}: NumberDetailProps): JSX.Element {
   const histogram = analysis.histogram || []
   const histogramBars = histogram.map((b) => ({
     label: String(Math.round(b.lo)),
@@ -260,6 +288,32 @@ function NumberDetail({ analysis, col, accent }: DetailViewProps): JSX.Element {
           title="Distribución"
           sub={`${histogram.length} intervalos · ${fmtNumber(analysis.count)} valores`}
         >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 12,
+              fontSize: 11,
+              fontFamily: 'var(--font-mono, monospace)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+            }}
+          >
+            <label htmlFor={`hist-bins-${col.key}`}>Intervalos</label>
+            <input
+              id={`hist-bins-${col.key}`}
+              type="range"
+              min={5}
+              max={50}
+              step={5}
+              value={bins}
+              onChange={(e) => onBinsChange(Number(e.target.value))}
+              style={{ flex: 1, accentColor: 'var(--sky)' }}
+            />
+            <span style={{ color: 'var(--ink)', minWidth: 28, textAlign: 'right' }}>{bins}</span>
+          </div>
           <ChartBar
             bars={histogramBars}
             accent={accent}
@@ -370,6 +424,7 @@ function CategoryDetail({ analysis, accent, isGeo }: CategoryDetailProps): JSX.E
               bars={top.map((t) => ({ label: t.key, value: t.count }))}
               accent={accent}
               orientation="horizontal"
+              showSort
             />
           )}
         </Card>
@@ -385,7 +440,7 @@ function CategoryDetail({ analysis, accent, isGeo }: CategoryDetailProps): JSX.E
   )
 }
 
-function DateDetail({ analysis, accent }: DetailViewProps): JSX.Element {
+function DateDetail({ analysis, col, accent }: DetailViewProps): JSX.Element {
   const timeline = analysis.timeline || []
   return (
     <>
@@ -408,7 +463,9 @@ function DateDetail({ analysis, accent }: DetailViewProps): JSX.Element {
         />
       </div>
       <Card title="Línea temporal" sub="conteo por mes">
-        <ChartLine points={timeline.map((p) => ({ x: p.key, y: p.count }))} accent={accent} />
+        <ChartExportButton baseName={`${col.label}-linea-temporal`}>
+          <ChartLine points={timeline.map((p) => ({ x: p.key, y: p.count }))} accent={accent} />
+        </ChartExportButton>
       </Card>
     </>
   )

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Accent } from '../types/dataset'
 import { fmtNumber } from '../lib/stats'
 
@@ -7,6 +8,7 @@ export interface Bar {
 }
 
 type Orientation = 'vertical' | 'horizontal'
+export type BarSort = 'incoming' | 'value-desc' | 'value-asc' | 'label-asc'
 
 interface ChartBarProps {
   bars: Bar[]
@@ -22,6 +24,30 @@ interface ChartBarProps {
   height?: number
   /** Accessible description. If omitted, one is derived from the data. */
   ariaLabel?: string
+  /** Render a small toolbar with a sort selector. Defaults to false to keep
+   *  cards quiet; the column-detail page opts in. */
+  showSort?: boolean
+}
+
+const SORT_OPTIONS: ReadonlyArray<{ value: BarSort; label: string }> = [
+  { value: 'incoming', label: 'Orden original' },
+  { value: 'value-desc', label: 'Valor ↓' },
+  { value: 'value-asc', label: 'Valor ↑' },
+  { value: 'label-asc', label: 'Etiqueta A→Z' },
+]
+
+function applySort(bars: Bar[], sort: BarSort): Bar[] {
+  switch (sort) {
+    case 'value-desc':
+      return [...bars].sort((a, b) => b.value - a.value)
+    case 'value-asc':
+      return [...bars].sort((a, b) => a.value - b.value)
+    case 'label-asc':
+      return [...bars].sort((a, b) => a.label.localeCompare(b.label))
+    case 'incoming':
+    default:
+      return bars
+  }
 }
 
 function defaultBarAria(bars: Bar[]): string {
@@ -45,15 +71,21 @@ export function ChartBar({
   limit,
   height = 220,
   ariaLabel,
+  showSort = false,
 }: ChartBarProps): JSX.Element {
-  const visible = limit ? bars.slice(0, limit) : bars
+  const [sort, setSort] = useState<BarSort>('incoming')
+  const sorted = applySort(bars, sort)
+  const visible = limit ? sorted.slice(0, limit) : sorted
   const stroke = `var(--${accent})`
   const label = ariaLabel ?? defaultBarAria(visible)
+
+  const toolbar = showSort ? <SortToolbar sort={sort} onChange={setSort} /> : null
 
   if (orientation === 'vertical') {
     const max = Math.max(...visible.map((b) => b.value), 1)
     return (
       <div role="img" aria-label={label}>
+        {toolbar}
         <div
           style={{
             display: 'flex',
@@ -119,11 +151,8 @@ export function ChartBar({
   // Horizontal
   const mx = Math.max(...visible.map((b) => b.value), 1)
   return (
-    <div
-      role="img"
-      aria-label={label}
-      style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-    >
+    <div role="img" aria-label={label} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {toolbar}
       {visible.map((b, i) => (
         <div
           key={i}
@@ -179,6 +208,53 @@ export function ChartBar({
           )}
         </div>
       ))}
+    </div>
+  )
+}
+
+interface SortToolbarProps {
+  sort: BarSort
+  onChange: (s: BarSort) => void
+}
+
+function SortToolbar({ sort, onChange }: SortToolbarProps): JSX.Element {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 10,
+        fontSize: 10,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        color: 'var(--muted)',
+        fontFamily: 'var(--font-mono, monospace)',
+      }}
+    >
+      <span>Ordenar</span>
+      <select
+        value={sort}
+        onChange={(e) => onChange(e.target.value as BarSort)}
+        aria-label="Ordenar barras"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border-strong)',
+          color: 'var(--ink)',
+          padding: '3px 8px',
+          fontSize: 11,
+          fontFamily: 'inherit',
+          letterSpacing: 'normal',
+          textTransform: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        {SORT_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }

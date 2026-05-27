@@ -140,7 +140,16 @@ function parseDate(value: string): { t: number; d: number; m: number; y: number 
   return { d, m, y, t: new Date(y, m - 1, d).getTime() }
 }
 
-export function analyzeColumn(dataset: Dataset, columnKey: string): ColumnAnalysis {
+export interface AnalyzeColumnOptions {
+  /** Number of histogram buckets for numeric/currency columns. Defaults to 10. */
+  bins?: number
+}
+
+export function analyzeColumn(
+  dataset: Dataset,
+  columnKey: string,
+  options: AnalyzeColumnOptions = {},
+): ColumnAnalysis {
   const col = dataset.columns.find((c) => c.key === columnKey)
   if (!col) {
     return { type: 'text', count: 0, nullCount: dataset.rows.length }
@@ -176,7 +185,9 @@ export function analyzeColumn(dataset: Dataset, columnKey: string): ColumnAnalys
     const mode = modeEntry ? Number(modeEntry[0]) : undefined
 
     // Histogram: 10 buckets
-    const bins = 10
+    // Histogram bin count is configurable per call (#61). Defaults preserve
+    // the legacy 10-bin behaviour; the column-detail page exposes a slider.
+    const bins = Math.max(2, Math.min(100, options.bins ?? 10))
     const step = (max - min) / bins || 1
     const histogram: HistogramBucket[] = Array.from({ length: bins }, (_, i) => {
       const lo = min + i * step
