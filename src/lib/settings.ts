@@ -14,6 +14,7 @@ export interface Settings {
   numberLocale: NumberLocale
   dateFormat: DateFormat
   autoAnalyze: boolean
+  largeText: boolean
   defaultChartType: Record<ChartableType, ChartShape>
 }
 
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: Settings = {
   numberLocale: 'es-ES',
   dateFormat: 'dd/mm/yyyy',
   autoAnalyze: true,
+  largeText: false,
   defaultChartType: {
     number: 'auto',
     currency: 'auto',
@@ -64,6 +66,7 @@ function mergeDefaults(stored: unknown): Settings {
     numberLocale: validLocale(s.numberLocale) ?? DEFAULT_SETTINGS.numberLocale,
     dateFormat: validDateFormat(s.dateFormat) ?? DEFAULT_SETTINGS.dateFormat,
     autoAnalyze: typeof s.autoAnalyze === 'boolean' ? s.autoAnalyze : DEFAULT_SETTINGS.autoAnalyze,
+    largeText: typeof s.largeText === 'boolean' ? s.largeText : DEFAULT_SETTINGS.largeText,
     defaultChartType: {
       ...DEFAULT_SETTINGS.defaultChartType,
       ...(s.defaultChartType ?? {}),

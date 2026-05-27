@@ -117,6 +117,17 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
           </SettingsRow>
 
           <SettingsRow
+            label="Texto grande"
+            description="Aumenta el tamaño general de la interfaz a aproximadamente 18 px. Útil para pantallas grandes o personas con baja visión."
+          >
+            <ToggleControl
+              checked={settings.largeText}
+              onChange={(v) => update('largeText', v)}
+              label={settings.largeText ? 'Activado' : 'Desactivado'}
+            />
+          </SettingsRow>
+
+          <SettingsRow
             label="Gráfico por defecto"
             description="Forma de gráfico preferida para cada tipo de columna. 'Auto' deja que la app elija la más apropiada según la forma de los datos."
           >

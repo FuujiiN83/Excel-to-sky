@@ -27,6 +27,14 @@ button {
   cursor: pointer;
 }
 
+/* Large-text mode (#172). Scales the whole viewport up via `zoom`, which is
+ * the simplest cross-browser way to bump font sizes without auditing every
+ * px-based inline style in the app. Supported in evergreen Chrome/Edge/Safari
+ * and Firefox 126+. Quietly no-ops elsewhere. */
+html.large-text {
+  zoom: 1.125;
+}
+
 /* Skip-to-content link — visually hidden until focused via Tab, lands on the
  * #main-content target so keyboard and screen-reader users can bypass the nav. */
 .ets-skip-link {

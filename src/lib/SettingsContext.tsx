@@ -62,6 +62,12 @@ export function SettingsProvider({ children }: ProviderProps): JSX.Element {
     setDateFormat(settings.dateFormat)
   }, [settings.dateFormat])
 
+  // Apply the large-text class on <html>. The actual scaling lives in index.css.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    document.documentElement.classList.toggle('large-text', settings.largeText)
+  }, [settings.largeText])
+
   const value = useMemo<SettingsContextValue>(
     () => ({
       settings,
