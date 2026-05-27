@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
-import { parseExcelFile } from '../lib/parser'
+import { parseExcelFile, fileSizeTier, WARN_FILE_BYTES } from '../lib/parser'
 import { friendlifyError, type FriendlyError } from '../lib/friendlyError'
+import { pushToast } from '../lib/toast'
 import type { Dataset } from '../types/dataset'
 
 interface UploadDropzoneProps {
@@ -16,6 +17,13 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
   async function handleFile(file: File): Promise<void> {
     setBusy(true)
     setError(null)
+    if (fileSizeTier(file.size) === 'warn') {
+      pushToast(
+        `Archivo grande (${(file.size / 1024 / 1024).toFixed(1)} MB > ${Math.round(WARN_FILE_BYTES / 1024 / 1024)} MB). El parseo puede tardar unos segundos.`,
+        'info',
+        6000,
+      )
+    }
     try {
       const ds = await parseExcelFile(file)
       onParsed(ds)
@@ -130,7 +138,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
             letterSpacing: '0.04em',
           }}
         >
-          .xlsx · .xls · .csv · .ods · hasta 10 MB
+          .xlsx · .xls · .csv · .ods · hasta 20 MB
         </p>
         {error && (
           <div

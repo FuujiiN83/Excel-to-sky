@@ -2,7 +2,16 @@ import type { Dataset } from '../types/dataset'
 import type { ParsePhase, ParseResponse } from '../workers/parser.worker'
 import { logError } from './errorLog'
 
-export const MAX_FILE_BYTES = 10 * 1024 * 1024
+/** Hard limit — files above this are rejected upfront. */
+export const MAX_FILE_BYTES = 20 * 1024 * 1024
+/** Soft warning — files between this and MAX_FILE_BYTES parse but the UI warns. */
+export const WARN_FILE_BYTES = 10 * 1024 * 1024
+
+export function fileSizeTier(sizeBytes: number): 'ok' | 'warn' | 'reject' {
+  if (sizeBytes > MAX_FILE_BYTES) return 'reject'
+  if (sizeBytes > WARN_FILE_BYTES) return 'warn'
+  return 'ok'
+}
 
 export interface ParseErrorContext {
   row?: number
@@ -81,7 +90,7 @@ function runParseWorker(buffer: ArrayBuffer, fileName: string): Promise<Dataset>
 export async function parseExcelFile(file: File): Promise<Dataset> {
   if (file.size > MAX_FILE_BYTES) {
     const e = new ParseError(
-      `El archivo supera 10 MB (${(file.size / 1024 / 1024).toFixed(1)} MB). Reduce filas o conviértelo a CSV.`,
+      `El archivo supera ${Math.round(MAX_FILE_BYTES / 1024 / 1024)} MB (${(file.size / 1024 / 1024).toFixed(1)} MB). Reduce filas o conviértelo a CSV.`,
       { phase: 'read' },
     )
     void logError({
