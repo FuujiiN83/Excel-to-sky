@@ -6,7 +6,7 @@ import { NetworkErrorBanner } from './components/NetworkErrorBanner'
 import { ShortcutCheatsheet } from './components/ShortcutCheatsheet'
 import { ChangelogModal } from './components/ChangelogModal'
 import { Toaster } from './components/Toaster'
-import { ConfirmModalHost } from './components/ConfirmModal'
+import { confirm, ConfirmModalHost } from './components/ConfirmModal'
 import { Skeleton } from './components/Skeleton'
 import { PrivacyBadge } from './components/PrivacyBadge'
 import { NetworkAuditPanel } from './components/NetworkAuditPanel'
@@ -274,16 +274,36 @@ export default function App(): JSX.Element {
           <main id="main-content">
             <Suspense fallback={<RouteFallback />}>
               <UploadPage
-                onParsed={(ds) => {
+                onParsed={async (ds) => {
+                  // Re-upload guard (#20). If the user already has a dashboard
+                  // loaded, confirm before replacing it so they don't lose the
+                  // current state to a fat-fingered drop.
+                  if (hasUploaded && dataset.id !== 'uploaded-empty') {
+                    const ok = await confirm({
+                      title: '¿Reemplazar dashboard actual?',
+                      body: `Vas a sustituir "${dataset.label}" por "${ds.label}". Los filtros y la vista actual se perderán; el link compartido (si lo creaste) se mantiene.`,
+                      confirmLabel: 'Reemplazar',
+                      cancelLabel: 'Mantener actual',
+                    })
+                    if (!ok) return
+                  }
                   loadDataset(ds)
                   nav('dashboard')
                 }}
-                onUseSample={(id) => {
+                onUseSample={async (id) => {
                   const next = SAMPLE_DATASETS[id]
-                  if (next) {
-                    loadDataset(next)
-                    nav('dashboard')
+                  if (!next) return
+                  if (hasUploaded && dataset.id !== 'uploaded-empty') {
+                    const ok = await confirm({
+                      title: '¿Reemplazar dashboard actual?',
+                      body: `Vas a sustituir "${dataset.label}" por el ejemplo "${next.label}".`,
+                      confirmLabel: 'Reemplazar',
+                      cancelLabel: 'Mantener actual',
+                    })
+                    if (!ok) return
                   }
+                  loadDataset(next)
+                  nav('dashboard')
                 }}
                 hasActiveDashboard={hasUploaded}
                 onReturnToDashboard={() => nav('dashboard')}
