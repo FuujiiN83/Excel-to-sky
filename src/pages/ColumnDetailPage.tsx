@@ -325,7 +325,7 @@ function CategoryDetail({ analysis, accent, isGeo }: CategoryDetailProps): JSX.E
   )
 }
 
-function DateDetail({ analysis, accent }: DetailViewProps): JSX.Element {
+function DateDetail({ analysis, col, accent }: DetailViewProps): JSX.Element {
   const timeline = analysis.timeline || []
   return (
     <>
