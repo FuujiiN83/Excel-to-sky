@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
-import { parseExcelFile, ParseError } from '../lib/parser'
+import { parseExcelFile } from '../lib/parser'
+import { friendlifyError, type FriendlyError } from '../lib/friendlyError'
 import type { Dataset } from '../types/dataset'
 
 interface UploadDropzoneProps {
@@ -9,7 +10,7 @@ interface UploadDropzoneProps {
 export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
   const [busy, setBusy] = useState(false)
   const [hover, setHover] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<FriendlyError | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   async function handleFile(file: File): Promise<void> {
@@ -19,7 +20,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
       const ds = await parseExcelFile(file)
       onParsed(ds)
     } catch (err) {
-      setError(err instanceof ParseError ? err.message : 'Error desconocido')
+      setError(friendlifyError(err))
     } finally {
       setBusy(false)
     }
@@ -131,7 +132,44 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
         >
           .xlsx · .xls · .csv · .ods · hasta 10 MB
         </p>
-        {error && <p style={{ color: 'var(--coral)', fontSize: 13, marginTop: 16 }}>{error}</p>}
+        {error && (
+          <div
+            role="alert"
+            style={{
+              marginTop: 18,
+              padding: '12px 14px',
+              border: '1px solid var(--coral)',
+              borderLeftWidth: 3,
+              background: 'rgba(248, 113, 113, 0.06)',
+              textAlign: 'left',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p
+              style={{
+                color: 'var(--coral)',
+                fontSize: 13,
+                fontWeight: 600,
+                margin: 0,
+                lineHeight: 1.4,
+              }}
+            >
+              {error.title}
+            </p>
+            {error.hint && (
+              <p
+                style={{
+                  color: 'var(--ink-2)',
+                  fontSize: 12,
+                  margin: '6px 0 0',
+                  lineHeight: 1.55,
+                }}
+              >
+                {error.hint}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
