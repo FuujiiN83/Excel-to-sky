@@ -8,21 +8,6 @@
  */
 export type IdleHandle = { cancel: () => void }
 
-interface IdleCallbackDeadline {
-  didTimeout: boolean
-  timeRemaining: () => number
-}
-
-declare global {
-  interface Window {
-    requestIdleCallback?: (
-      cb: (deadline: IdleCallbackDeadline) => void,
-      opts?: { timeout?: number },
-    ) => number
-    cancelIdleCallback?: (handle: number) => void
-  }
-}
-
 export function runWhenIdle(fn: () => void, timeoutMs = 2000): IdleHandle {
   if (typeof window === 'undefined') {
     // Worker / server context. Run synchronously — there's no event loop to
@@ -30,6 +15,7 @@ export function runWhenIdle(fn: () => void, timeoutMs = 2000): IdleHandle {
     fn()
     return { cancel: () => {} }
   }
+  // requestIdleCallback is on Window in modern browsers; the type is built in.
   if (typeof window.requestIdleCallback === 'function') {
     const id = window.requestIdleCallback(() => fn(), { timeout: timeoutMs })
     return {
