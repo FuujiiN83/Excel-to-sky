@@ -108,6 +108,37 @@ function foldAccents(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
 
+/**
+ * Sequential-ID detector (#35). Returns true when the *full* column reads as
+ * strictly ascending integers, allowing a tiny tolerance for gaps (sorted
+ * filtering / deleted rows). Operates on the raw column (not the sample) so
+ * we don't falsely flag a sorted subset that happens to look like an ID.
+ */
+function isSequentialIdColumn(rawValues: (string | null | undefined)[]): boolean {
+  const filtered = rawValues.filter((v): v is string => v != null && v !== '')
+  // Need a meaningful sequence — three rows isn't enough to call it.
+  if (filtered.length < 20) return false
+  const ints: number[] = []
+  for (const v of filtered) {
+    const n = detectNumber(v)
+    if (n === null || !Number.isInteger(n)) return false
+    ints.push(n)
+  }
+  // Must be strictly ascending.
+  for (let i = 1; i < ints.length; i++) {
+    if (ints[i] <= ints[i - 1]) return false
+  }
+  // ≥95% of consecutive diffs should be exactly 1; the rest are filtered-out
+  // gaps. Any diff above 100 is a hard reject (probably a real measurement).
+  let ones = 0
+  for (let i = 1; i < ints.length; i++) {
+    const d = ints[i] - ints[i - 1]
+    if (d > 100) return false
+    if (d === 1) ones++
+  }
+  return ones / (ints.length - 1) >= 0.95
+}
+
 function headerSuggestsCurrency(label: string | undefined): boolean {
   if (!label) return false
   if (MONETARY_HEADER_GLYPHS.some((g) => label.includes(g))) return true
@@ -234,11 +265,20 @@ export function inferColumnTypeDetailed(
     type = 'date'
     confidence = ratios.date
   } else if (ratios.number >= THRESHOLD) {
-    // Header-based currency bias (#36): a column of numbers whose label
-    // suggests money ('Precio', 'Total', '€', 'Cost'…) is reclassified as
-    // 'currency' so downstream stats render it with currency formatting.
-    type = headerSuggestsCurrency(headerLabel) ? 'currency' : 'number'
-    confidence = ratios.number
+    // Sequential-ID detection (#35): a column of strictly ascending integers
+    // is an identifier, not a measurement. Demote to 'category' so the
+    // dashboard skips the histogram + mean / median stats that would
+    // otherwise pollute the page with meaningless aggregates.
+    if (isSequentialIdColumn(rawValues)) {
+      type = 'category'
+      confidence = ratios.number
+    } else {
+      // Header-based currency bias (#36): a column of numbers whose label
+      // suggests money ('Precio', 'Total', '€', 'Cost'…) is reclassified as
+      // 'currency' so downstream stats render it with currency formatting.
+      type = headerSuggestsCurrency(headerLabel) ? 'currency' : 'number'
+      confidence = ratios.number
+    }
   } else {
     const unique = new Set(sampled).size
     if (total >= CATEGORY_MIN_ROWS && unique / total < CATEGORY_MAX_RATIO) {
