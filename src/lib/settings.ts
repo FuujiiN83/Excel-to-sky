@@ -4,6 +4,7 @@ import type { ColumnType } from '../types/dataset'
 export type Theme = 'dark' | 'light' | 'high-contrast'
 export type NumberLocale = 'es-ES' | 'en-US' | 'de-DE' | 'fr-FR' | 'pt-PT'
 export type DateFormat = 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd'
+export type UiLocale = 'es' | 'en'
 
 /** Subset of ColumnType that the dashboard makes a chart for. */
 export type ChartableType = Extract<ColumnType, 'number' | 'currency' | 'category' | 'date' | 'geo'>
@@ -11,6 +12,7 @@ export type ChartShape = 'histogram' | 'bar' | 'line' | 'map' | 'auto'
 
 export interface Settings {
   theme: Theme
+  uiLocale: UiLocale
   numberLocale: NumberLocale
   dateFormat: DateFormat
   autoAnalyze: boolean
@@ -20,6 +22,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
+  uiLocale: 'es',
   numberLocale: 'es-ES',
   dateFormat: 'dd/mm/yyyy',
   autoAnalyze: true,
@@ -63,6 +66,7 @@ function mergeDefaults(stored: unknown): Settings {
   const s = stored as Partial<Settings>
   return {
     theme: validTheme(s.theme) ?? DEFAULT_SETTINGS.theme,
+    uiLocale: validUiLocale(s.uiLocale) ?? DEFAULT_SETTINGS.uiLocale,
     numberLocale: validLocale(s.numberLocale) ?? DEFAULT_SETTINGS.numberLocale,
     dateFormat: validDateFormat(s.dateFormat) ?? DEFAULT_SETTINGS.dateFormat,
     autoAnalyze: typeof s.autoAnalyze === 'boolean' ? s.autoAnalyze : DEFAULT_SETTINGS.autoAnalyze,
@@ -76,6 +80,9 @@ function mergeDefaults(stored: unknown): Settings {
 
 function validTheme(v: unknown): Theme | undefined {
   return v === 'dark' || v === 'light' || v === 'high-contrast' ? v : undefined
+}
+function validUiLocale(v: unknown): UiLocale | undefined {
+  return v === 'es' || v === 'en' ? v : undefined
 }
 function validLocale(v: unknown): NumberLocale | undefined {
   return v === 'es-ES' || v === 'en-US' || v === 'de-DE' || v === 'fr-FR' || v === 'pt-PT'
