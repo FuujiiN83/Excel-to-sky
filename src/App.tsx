@@ -4,6 +4,7 @@ import { FloatingDock } from './components/FloatingDock'
 import { CookieBanner } from './components/CookieBanner'
 import { NetworkErrorBanner } from './components/NetworkErrorBanner'
 import { ShortcutCheatsheet } from './components/ShortcutCheatsheet'
+import { ChangelogModal } from './components/ChangelogModal'
 import { SAMPLE_DATASETS } from './samples'
 import type { Dataset } from './types/dataset'
 import { UploadPage } from './pages/UploadPage'
@@ -160,6 +161,7 @@ export default function App(): JSX.Element {
         <CookieBanner onLearnMore={() => nav('privacy')} />
         <NetworkErrorBanner />
         <ShortcutCheatsheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+        <ChangelogModal />
       </div>
     )
   }
@@ -234,6 +236,7 @@ export default function App(): JSX.Element {
       <CookieBanner onLearnMore={() => nav('privacy')} />
       <NetworkErrorBanner />
       <ShortcutCheatsheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <ChangelogModal />
     </div>
   )
 }
