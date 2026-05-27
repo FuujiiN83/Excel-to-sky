@@ -6,6 +6,7 @@ import { StatCard } from '../components/StatCard'
 import { ChartBar } from '../components/ChartBar'
 import { ChartLine } from '../components/ChartLine'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
+import { ChartExportButton } from '../components/ChartExportButton'
 
 interface ColumnDetailPageProps {
   dataset: Dataset
@@ -347,7 +348,9 @@ function DateDetail({ analysis, accent }: DetailViewProps): JSX.Element {
         />
       </div>
       <Card title="Línea temporal" sub="conteo por mes">
-        <ChartLine points={timeline.map((p) => ({ x: p.key, y: p.count }))} accent={accent} />
+        <ChartExportButton baseName={`${col.label}-linea-temporal`}>
+          <ChartLine points={timeline.map((p) => ({ x: p.key, y: p.count }))} accent={accent} />
+        </ChartExportButton>
       </Card>
     </>
   )
