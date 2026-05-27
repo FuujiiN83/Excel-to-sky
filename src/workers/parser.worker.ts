@@ -69,6 +69,30 @@ function post(response: ParseResponse): void {
   ;(self as unknown as DedicatedWorkerGlobalScope).postMessage(response)
 }
 
+/**
+ * Copy the top-left value of every merge range into the other cells of the
+ * range (#3). XLSX/ODS sheets store merges in `sheet['!merges']` and leave
+ * the non-anchor cells empty, which would otherwise produce blank columns or
+ * misaligned rows after `sheet_to_json`.
+ */
+function expandMergedCells(sheet: XLSX.WorkSheet): void {
+  const merges = sheet['!merges']
+  if (!merges || merges.length === 0) return
+  for (const range of merges) {
+    const anchorAddr = XLSX.utils.encode_cell({ r: range.s.r, c: range.s.c })
+    const anchor = sheet[anchorAddr]
+    if (!anchor) continue
+    for (let r = range.s.r; r <= range.e.r; r++) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        if (r === range.s.r && c === range.s.c) continue
+        const addr = XLSX.utils.encode_cell({ r, c })
+        if (sheet[addr]) continue
+        sheet[addr] = { ...anchor }
+      }
+    }
+  }
+}
+
 self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   const { fileBuffer, fileName, sheetIndex: requestedIndex = 0 } = event.data
 
@@ -112,6 +136,12 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     })
     return
   }
+
+  // Expand merged cells (#3). Excel/ODS files store merges as ranges in the
+  // sheet's `!merges` array; the top-left cell holds the value and every other
+  // cell in the range is empty. We copy the top-left value into every cell of
+  // the range so downstream sheet_to_json() sees a normal rectangular grid.
+  expandMergedCells(sheet)
 
   // Read the sheet as a grid of rows (#18). header:1 returns array-of-arrays
   // where the first sub-array is the header row in physical column order.
