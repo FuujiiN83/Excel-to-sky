@@ -57,6 +57,52 @@ button {
   }
 }
 
+/* Print-friendly stylesheet (#54). Hide every fixed-position helper that
+ * doesn't belong on paper (dock, banners, modals, dev panels) and force a
+ * white background so the dark theme doesn't burn through expensive toner.
+ * Keep page content readable: black text, no shadow, no backdrop blur. */
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .ets-skip-link,
+  .ets-card-hover,
+  [role='navigation'][aria-label='Navegación principal'],
+  .ee-hero-overlay,
+  .ee-hero-progress {
+    display: none !important;
+  }
+
+  /* Disable backdrop blurs — they print as solid greys. */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Avoid splitting cards across pages where reasonable. */
+  section,
+  article,
+  table {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  a[href]::after {
+    content: '';
+  }
+}
+
 /* Large-text mode (#172). Scales the whole viewport up via `zoom`, which is
  * the simplest cross-browser way to bump font sizes without auditing every
  * px-based inline style in the app. Supported in evergreen Chrome/Edge/Safari
