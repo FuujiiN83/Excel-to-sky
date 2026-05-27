@@ -9,6 +9,7 @@ import { Toaster } from './components/Toaster'
 import { ConfirmModalHost } from './components/ConfirmModal'
 import { Skeleton } from './components/Skeleton'
 import { PrivacyBadge } from './components/PrivacyBadge'
+import { NetworkAuditPanel } from './components/NetworkAuditPanel'
 import { SAMPLE_DATASETS } from './samples'
 import type { Dataset } from './types/dataset'
 import { loadSharedDashboard } from './lib/shareApi'
@@ -341,6 +342,7 @@ export default function App(): JSX.Element {
         <FloatingDock route={route} onNav={(n) => nav(n as RouteName)} />
       )}
       <PrivacyBadge localOnly={settings.localOnly} />
+      {import.meta.env.DEV && <NetworkAuditPanel />}
       <CookieBanner onLearnMore={() => nav('privacy')} />
       <NetworkErrorBanner />
       <ShortcutCheatsheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
