@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { Accent, Column, Dataset } from '../types/dataset'
-import { analyzeColumn, fmtNumber, fmtUnit } from '../lib/stats'
+import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import type { ColumnAnalysis } from '../lib/stats'
 import { StatCard } from '../components/StatCard'
 import { ChartBar } from '../components/ChartBar'
@@ -28,15 +28,15 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
   const isCat = !isNum && !isDate
   const accent = pickAccent(col)
   const isGeo =
-    isCat && !!analysis.top && analysis.top.length > 0 && analysis.top.every((t) => hasGeoCoords(t.key))
+    isCat &&
+    !!analysis.top &&
+    analysis.top.length > 0 &&
+    analysis.top.every((t) => hasGeoCoords(t.key))
 
   return (
     <div style={{ padding: '32px 28px 60px', maxWidth: 1400, margin: '0 auto' }}>
       {/* Column tabs */}
-      <div
-        className="flex flex-wrap"
-        style={{ gap: 8, marginBottom: 22 }}
-      >
+      <div className="flex flex-wrap" style={{ gap: 8, marginBottom: 22 }}>
         <button
           onClick={onBack}
           className="inline-flex items-center border border-border text-muted"
@@ -173,11 +173,19 @@ function NumberDetail({ analysis, col, accent }: DetailViewProps): JSX.Element {
           marginBottom: 22,
         }}
       >
-        <StatCard label="Máximo" value={fmtUnit(analysis.max, col.unit)} accent={accent} highlight />
+        <StatCard
+          label="Máximo"
+          value={fmtUnit(analysis.max, col.unit)}
+          accent={accent}
+          highlight
+        />
         <StatCard label="Mínimo" value={fmtUnit(analysis.min, col.unit)} accent={accent} />
         <StatCard
           label="Media"
-          value={fmtUnit(analysis.mean !== undefined ? Math.round(analysis.mean * 10) / 10 : undefined, col.unit)}
+          value={fmtUnit(
+            analysis.mean !== undefined ? Math.round(analysis.mean * 10) / 10 : undefined,
+            col.unit,
+          )}
           accent={accent}
         />
         <StatCard label="Mediana" value={fmtUnit(analysis.median, col.unit)} accent={accent} />
@@ -198,7 +206,7 @@ function NumberDetail({ analysis, col, accent }: DetailViewProps): JSX.Element {
               min: fmtUnit(analysis.min, col.unit),
               mean: fmtUnit(
                 analysis.mean !== undefined ? Math.round(analysis.mean) : undefined,
-                col.unit
+                col.unit,
               ),
               max: fmtUnit(analysis.max, col.unit),
             }}
@@ -241,9 +249,7 @@ function CategoryDetail({ analysis, accent, isGeo }: CategoryDetailProps): JSX.E
   const top = analysis.top || []
   const distinct = analysis.distinct || 0
   const count = analysis.count || 1
-  const top3Pct = Math.round(
-    (top.slice(0, 3).reduce((s, t) => s + t.count, 0) / count) * 100
-  )
+  const top3Pct = Math.round((top.slice(0, 3).reduce((s, t) => s + t.count, 0) / count) * 100)
   const modeCount = analysis.modeCount || 0
 
   return (
@@ -267,9 +273,7 @@ function CategoryDetail({ analysis, accent, isGeo }: CategoryDetailProps): JSX.E
           label="Menos común"
           value={String(analysis.least ?? '—')}
           accent={accent}
-          caption={`${analysis.leastCount ?? 0} aparición${
-            analysis.leastCount === 1 ? '' : 'es'
-          }`}
+          caption={`${analysis.leastCount ?? 0} aparición${analysis.leastCount === 1 ? '' : 'es'}`}
         />
         <StatCard
           label="Valores únicos"
@@ -331,8 +335,8 @@ function DateDetail({ analysis, accent }: DetailViewProps): JSX.Element {
           marginBottom: 22,
         }}
       >
-        <StatCard label="Más antiguo" value={String(analysis.earliest ?? '—')} accent={accent} />
-        <StatCard label="Más reciente" value={String(analysis.latest ?? '—')} accent={accent} highlight />
+        <StatCard label="Más antiguo" value={fmtDate(analysis.earliest)} accent={accent} />
+        <StatCard label="Más reciente" value={fmtDate(analysis.latest)} accent={accent} highlight />
         <StatCard label="Días distintos" value={analysis.distinct ?? 0} accent={accent} />
         <StatCard
           label="Periodos"
@@ -342,10 +346,7 @@ function DateDetail({ analysis, accent }: DetailViewProps): JSX.Element {
         />
       </div>
       <Card title="Línea temporal" sub="conteo por mes">
-        <ChartLine
-          points={timeline.map((p) => ({ x: p.key, y: p.count }))}
-          accent={accent}
-        />
+        <ChartLine points={timeline.map((p) => ({ x: p.key, y: p.count }))} accent={accent} />
       </Card>
     </>
   )

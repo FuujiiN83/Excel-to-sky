@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { LegalLayout } from './LegalLayout'
 import { useSettings } from '../lib/SettingsContext'
-import type { NumberLocale, Theme } from '../lib/settings'
+import type { DateFormat, NumberLocale, Theme } from '../lib/settings'
+import { fmtDate } from '../lib/stats'
 
 interface SettingsPageProps {
   onNav: (route: string) => void
@@ -59,6 +60,22 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
                 maximumFractionDigits: 1,
               })}
             />
+          </SettingsRow>
+
+          <SettingsRow
+            label="Formato de fecha"
+            description="Cómo se renderizan las fechas en stats, comparativas y vistas detalladas."
+          >
+            <SelectControl<DateFormat>
+              value={settings.dateFormat}
+              onChange={(v) => update('dateFormat', v)}
+              options={[
+                { value: 'dd/mm/yyyy', label: 'dd/mm/yyyy (Europa)' },
+                { value: 'mm/dd/yyyy', label: 'mm/dd/yyyy (EEUU)' },
+                { value: 'yyyy-mm-dd', label: 'yyyy-mm-dd (ISO 8601)' },
+              ]}
+            />
+            <SamplePreview label="Hoy" value={fmtDate(new Date())} />
           </SettingsRow>
         </div>
       )}
