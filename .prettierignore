@@ -1,0 +1,13 @@
+node_modules
+dist
+package-lock.json
+supabase/.branches
+supabase/.temp
+app
+scripts
+tsconfig.tsbuildinfo
+tsconfig.node.tsbuildinfo
+vite.config.d.ts
+vite.config.js
+*.min.js
+*.min.css
