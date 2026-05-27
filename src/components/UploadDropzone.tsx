@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { parseExcelFileWithMeta, fileSizeTier, WARN_FILE_BYTES } from '../lib/parser'
 import { friendlifyError, type FriendlyError } from '../lib/friendlyError'
 import { pushToast } from '../lib/toast'
@@ -63,6 +63,43 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
     if (!picker || busy) return
     void handleFile(picker.file, newIndex)
   }
+
+  // Clipboard paste support (#13). When the user pastes spreadsheet-shaped
+  // text on the upload page (typically copied straight out of Excel /
+  // Google Sheets — that's TSV by default), wrap it in a synthetic File so
+  // the existing parse pipeline handles it. We only react to paste events
+  // whose data shape actually looks tabular (>=1 newline OR a tab) so a
+  // stray paste in an unrelated text field doesn't trigger an upload.
+  useEffect(() => {
+    function onPaste(e: ClipboardEvent): void {
+      if (busy || picker) return
+      // Ignore if focus is in an input/textarea/contenteditable — the user
+      // is pasting into a form, not the dropzone.
+      const ae = document.activeElement as HTMLElement | null
+      if (ae) {
+        const tag = ae.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || ae.isContentEditable) return
+      }
+      const text = e.clipboardData?.getData('text/plain') ?? ''
+      if (!text) return
+      // Tabular shape gate: needs either a tab OR a newline with a comma /
+      // semicolon. A single line of plain text shouldn't trigger upload.
+      const looksTabular = text.includes('\t') || /\r?\n.*[,;]/.test(text)
+      if (!looksTabular) return
+      e.preventDefault()
+      // Tab-separated content is the default Excel clipboard payload, so we
+      // hand it to the worker as a .tsv blob; the CSV preprocessor picks
+      // the right delimiter via detectCsvDelimiter().
+      const blob = new Blob([text], { type: 'text/tab-separated-values' })
+      const file = new File([blob], 'pegado.tsv', { type: 'text/tab-separated-values' })
+      void handleFile(file)
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+    // handleFile is stable enough for this hook — it only depends on props
+    // that don't change for the lifetime of the dropzone.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy, picker])
 
   function confirmCurrentSheet(): void {
     if (!picker) return
@@ -231,6 +268,18 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
             }}
           >
             .xlsx · .xls · .csv · .tsv · .ods · hasta 20 MB
+          </p>
+        )}
+        {!picker && !busy && (
+          <p
+            style={{
+              color: 'var(--muted)',
+              fontSize: 11,
+              marginTop: 4,
+              letterSpacing: '0.04em',
+            }}
+          >
+            …o pega contenido tabular con ⌘V / Ctrl V
           </p>
         )}
 
