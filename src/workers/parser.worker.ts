@@ -1,14 +1,26 @@
 import * as XLSX from 'xlsx'
-import { inferColumnType } from '../lib/typeDetection'
-import type { Dataset, Column, CellValue } from '../types/dataset'
+import { inferColumnTypeDetailed } from '../lib/typeDetection'
+import type { Dataset, Column, CellValue, ColumnType } from '../types/dataset'
 
 export interface ParseRequest {
   fileBuffer: ArrayBuffer
   fileName: string
 }
+
+/** Per-column hints surfaced alongside the Dataset (#17). */
+export interface ColumnWarning {
+  columnKey: string
+  columnLabel: string
+  /** Detected primary type. */
+  type: ColumnType
+  /** Other plausible type that also covered >=20% of the sampled values. */
+  secondary: ColumnType
+}
+
 export interface ParseSuccess {
   ok: true
   dataset: Dataset
+  warnings?: ColumnWarning[]
 }
 export type ParsePhase = 'read' | 'sheet' | 'header' | 'row' | 'type-detect'
 export interface ParseError {
@@ -168,6 +180,7 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
 
   // Type-detect: read each column by index out of the row grid.
   let columns: Column[]
+  const warnings: ColumnWarning[] = []
   try {
     columns = headers.map((h, i) => {
       const values = dataRows.map((row) => {
@@ -175,11 +188,20 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
         if (v == null) return null
         return typeof v === 'string' ? fixMojibake(v).trim() : fixMojibake(String(v)).trim()
       })
+      const inferred = inferColumnTypeDetailed(values)
+      if (inferred.mixed && inferred.secondary) {
+        warnings.push({
+          columnKey: `col_${i}`,
+          columnLabel: h,
+          type: inferred.type,
+          secondary: inferred.secondary,
+        })
+      }
       return {
         key: `col_${i}`,
         label: h,
         originalLabel: h,
-        type: inferColumnType(values),
+        type: inferred.type,
       }
     })
   } catch (err) {
@@ -225,5 +247,5 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     rows,
     createdAt: new Date().toISOString(),
   }
-  post({ ok: true, dataset })
+  post({ ok: true, dataset, warnings: warnings.length > 0 ? warnings : undefined })
 })

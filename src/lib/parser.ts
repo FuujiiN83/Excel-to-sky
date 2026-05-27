@@ -1,6 +1,7 @@
 import type { Dataset } from '../types/dataset'
-import type { ParsePhase, ParseResponse } from '../workers/parser.worker'
+import type { ColumnWarning, ParsePhase, ParseResponse } from '../workers/parser.worker'
 import { logError } from './errorLog'
+import { pushToast } from './toast'
 
 /** Hard limit — files above this are rejected upfront. */
 export const MAX_FILE_BYTES = 20 * 1024 * 1024
@@ -63,6 +64,9 @@ function runParseWorker(buffer: ArrayBuffer, fileName: string): Promise<Dataset>
     worker.onmessage = (e: MessageEvent<ParseResponse>) => {
       worker.terminate()
       if (e.data.ok) {
+        if (e.data.warnings && e.data.warnings.length > 0) {
+          surfaceColumnWarnings(e.data.warnings)
+        }
         resolve(e.data.dataset)
         return
       }
@@ -84,6 +88,24 @@ function runParseWorker(buffer: ArrayBuffer, fileName: string): Promise<Dataset>
       )
     }
     worker.postMessage({ fileBuffer: buffer, fileName }, [buffer])
+  })
+}
+
+function surfaceColumnWarnings(warnings: ColumnWarning[]): void {
+  // First three columns at most to avoid flooding the user with toasts.
+  const sample = warnings.slice(0, 3)
+  const labels = sample.map((w) => `"${w.columnLabel}"`).join(', ')
+  const extra = warnings.length > sample.length ? ` y ${warnings.length - sample.length} más` : ''
+  pushToast(
+    `Tipos mixtos detectados en ${labels}${extra}. Las columnas se han etiquetado con el tipo más frecuente — limpia los valores raros si el dashboard sale mal.`,
+    'info',
+    7000,
+  )
+  void logError({
+    level: 'info',
+    context: 'parser',
+    message: `Mixed-type columns: ${warnings.length}`,
+    meta: { phase: 'type-detect', columnCount: warnings.length },
   })
 }
 
