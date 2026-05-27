@@ -3,33 +3,38 @@
 :root {
   color-scheme: dark;
   /* ETHEREAL GLASS — dark OLED, near-vantablack surfaces, hairline rings, cool accents */
-  --bg: #07080B;
-  --bg-mesh: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(77, 158, 250, 0.08), transparent 60%),
-             radial-gradient(ellipse 70% 50% at 90% 100%, rgba(124, 142, 250, 0.06), transparent 55%),
-             radial-gradient(ellipse 60% 40% at 50% 50%, rgba(94, 226, 192, 0.03), transparent 70%);
-  --surface: #0E1015;
-  --surface-2: #14171E;
+  --bg: #07080b;
+  --bg-mesh:
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(77, 158, 250, 0.08), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(124, 142, 250, 0.06), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(94, 226, 192, 0.03), transparent 70%);
+  --surface: #0e1015;
+  --surface-2: #14171e;
   --border: rgba(255, 255, 255, 0.06);
   --border-strong: rgba(255, 255, 255, 0.12);
-  --ink: #F5F5F7;
-  --ink-2: #C8C8D0;
-  --muted: #82828D;
-  --muted-2: #55555F;
+  --ink: #f5f5f7;
+  --ink-2: #c8c8d0;
+  /* --muted bumped from #82828D to #9090A0 to clear WCAG AA (4.5:1) on the
+   * #07080B background with a comfortable margin (~5.7:1 vs the prior 4.7:1). */
+  --muted: #9090a0;
+  /* --muted-2 stays decorative — never used for text, only for hairlines/dots
+   * inside cards where it's seen against the --surface tone, not pure bg. */
+  --muted-2: #55555f;
 
   /* Accents — cool, modern, low-luma highlights */
-  --sky: #4D9EFA;
+  --sky: #4d9efa;
   --sky-soft: rgba(77, 158, 250, 0.12);
-  --mint: #5EE2C0;
+  --mint: #5ee2c0;
   --mint-soft: rgba(94, 226, 192, 0.12);
-  --coral: #F87171;
+  --coral: #f87171;
   --coral-soft: rgba(248, 113, 113, 0.12);
-  --plum: #A78BFA;
+  --plum: #a78bfa;
   --plum-soft: rgba(167, 139, 250, 0.14);
-  --amber: #FBBF24;
+  --amber: #fbbf24;
   --amber-soft: rgba(251, 191, 36, 0.12);
-  --rose: #F472B6;
+  --rose: #f472b6;
   --rose-soft: rgba(244, 114, 182, 0.12);
-  --lime: #A3E635;
+  --lime: #a3e635;
   --lime-soft: rgba(163, 230, 53, 0.12);
 
   --radius-sm: 0;
@@ -37,32 +42,46 @@
   --radius-lg: 0;
   --radius-xl: 0;
 
-  --shadow-sm: 0 1px 0 rgba(255,255,255,0.04) inset;
-  --shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 24px -12px rgba(0,0,0,0.6);
-  --shadow-lg: 0 1px 0 rgba(255,255,255,0.06) inset, 0 30px 60px -24px rgba(0,0,0,0.7);
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 30px 60px -24px rgba(0, 0, 0, 0.7);
 
-  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-ui: "Geist", "Plus Jakarta Sans", ui-sans-serif, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-ui: 'Geist', 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
 }
 
 /* Light-mode override (optional toggle for the future) */
 .theme-light {
-  --bg: #FAFAFB;
+  --bg: #fafafb;
   --bg-mesh: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(77, 158, 250, 0.05), transparent 60%);
-  --surface: #FFFFFF;
-  --surface-2: #F4F4F6;
+  --surface: #ffffff;
+  --surface-2: #f4f4f6;
   --border: rgba(15, 17, 21, 0.07);
   --border-strong: rgba(15, 17, 21, 0.16);
-  --ink: #0F1115;
-  --ink-2: #2C2F36;
-  --muted: #6B6E76;
-  --muted-2: #A0A3AB;
+  --ink: #0f1115;
+  --ink-2: #2c2f36;
+  /* --muted darkened from #6B6E76 to #5A5C64 to clear WCAG AA (4.5:1) on the
+   * #FAFAFB background with the same margin as the dark theme. */
+  --muted: #5a5c64;
+  --muted-2: #a0a3ab;
 }
 
-.density-compact { --pad: 14px; --pad-lg: 18px; --gap: 10px; }
-.density-cozy    { --pad: 18px; --pad-lg: 24px; --gap: 14px; }
-.density-airy    { --pad: 24px; --pad-lg: 34px; --gap: 20px; }
+.density-compact {
+  --pad: 14px;
+  --pad-lg: 18px;
+  --gap: 10px;
+}
+.density-cozy {
+  --pad: 18px;
+  --pad-lg: 24px;
+  --gap: 14px;
+}
+.density-airy {
+  --pad: 24px;
+  --pad-lg: 34px;
+  --gap: 20px;
+}
 
 /* High-contrast theme variant: pure black/white surfaces, opaque borders,
  * fully-saturated low-luma accents. Apply by adding .theme-high-contrast
@@ -71,26 +90,26 @@
   --bg: #000000;
   --bg-mesh: none;
   --surface: #000000;
-  --surface-2: #0A0A0A;
+  --surface-2: #0a0a0a;
   --border: rgba(255, 255, 255, 0.5);
   --border-strong: rgba(255, 255, 255, 0.85);
-  --ink: #FFFFFF;
-  --ink-2: #FFFFFF;
-  --muted: #CCCCCC;
+  --ink: #ffffff;
+  --ink-2: #ffffff;
+  --muted: #cccccc;
   --muted-2: #999999;
-  --sky: #66CCFF;
+  --sky: #66ccff;
   --sky-soft: rgba(102, 204, 255, 0.3);
-  --mint: #00FF99;
+  --mint: #00ff99;
   --mint-soft: rgba(0, 255, 153, 0.3);
-  --coral: #FF6666;
+  --coral: #ff6666;
   --coral-soft: rgba(255, 102, 102, 0.3);
-  --plum: #CC99FF;
+  --plum: #cc99ff;
   --plum-soft: rgba(204, 153, 255, 0.3);
-  --amber: #FFCC33;
+  --amber: #ffcc33;
   --amber-soft: rgba(255, 204, 51, 0.3);
-  --rose: #FF99CC;
+  --rose: #ff99cc;
   --rose-soft: rgba(255, 153, 204, 0.3);
-  --lime: #CCFF66;
+  --lime: #ccff66;
   --lime-soft: rgba(204, 255, 102, 0.3);
 }
 
@@ -101,7 +120,7 @@
   :root {
     --border: rgba(255, 255, 255, 0.25);
     --border-strong: rgba(255, 255, 255, 0.55);
-    --muted: #B0B0BC;
-    --muted-2: #80808A;
+    --muted: #b0b0bc;
+    --muted-2: #80808a;
   }
 }
