@@ -199,7 +199,7 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
         if (v == null) return null
         return typeof v === 'string' ? fixMojibake(v).trim() : fixMojibake(String(v)).trim()
       })
-      const inferred = inferColumnTypeDetailed(values)
+      const inferred = inferColumnTypeDetailed(values, h)
       if (inferred.mixed && inferred.secondary) {
         warnings.push({
           columnKey: `col_${i}`,
