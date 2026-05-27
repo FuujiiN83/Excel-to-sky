@@ -1,9 +1,23 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Bundle analyzer (#182). Writes dist/stats.html with the gzip-weighted
+    // treemap of every chunk. Enabled on every build so the report tracks the
+    // last shipped bundle without needing a separate npm script.
+    visualizer({
+      filename: 'dist/stats.html',
+      template: 'treemap',
+      gzipSize: true,
+      brotliSize: true,
+      // Don't open the report automatically — CI runs would hang.
+      open: false,
+    }),
+  ],
   server: {
     // Vite already supports SPA fallback on dev. For preview/production, nginx handles it.
   },
