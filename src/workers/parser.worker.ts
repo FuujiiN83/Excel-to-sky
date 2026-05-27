@@ -140,13 +140,20 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     seenHeaders.add(h)
   }
 
-  const headers = rawHeaders.map(fixMojibake)
+  // Header labels: fix mojibake and trim leading/trailing whitespace.
+  // Empty headers were already rejected above; trim catches stray spaces that
+  // sneak past Excel's own UI (e.g. " Nombre " vs "Nombre ").
+  const headers = rawHeaders.map((h) => fixMojibake(h).trim())
   let columns: Column[]
   try {
     columns = headers.map((h, i) => {
       const values = rawRows.map((r) => {
         const v = r[rawHeaders[i]]
-        return v == null ? null : fixMojibake(String(v))
+        if (v == null) return null
+        // Trim string cell values (#16) — '  foo  ' and 'foo' should be the
+        // same value for type detection, distinct counts and dedup. Numbers
+        // and booleans are passed through untouched.
+        return typeof v === 'string' ? fixMojibake(v).trim() : fixMojibake(String(v)).trim()
       })
       return {
         key: `col_${i}`,
@@ -176,7 +183,8 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
         } else if (typeof v === 'number' || typeof v === 'boolean') {
           obj[`col_${i}`] = v
         } else {
-          obj[`col_${i}`] = fixMojibake(String(v))
+          // Same trim as during type-detection so the stored values match.
+          obj[`col_${i}`] = fixMojibake(String(v)).trim()
         }
       })
       rows.push(obj)
