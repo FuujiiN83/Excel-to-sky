@@ -116,7 +116,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
         <input
           ref={inputRef}
           type="file"
-          accept=".xlsx,.xls,.csv,.ods"
+          accept=".xlsx,.xls,.csv,.tsv,.ods,.txt"
           style={{ display: 'none' }}
           onChange={(e) => {
             const f = e.target.files?.[0]
@@ -177,7 +177,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
               letterSpacing: '0.04em',
             }}
           >
-            .xlsx · .xls · .csv · .ods · hasta 20 MB
+            .xlsx · .xls · .csv · .tsv · .ods · hasta 20 MB
           </p>
         )}
 
