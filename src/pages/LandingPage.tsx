@@ -455,6 +455,69 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
         <FeatureGrid />
       </section>
 
+      {/* COMPARISON */}
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+          padding: '120px 64px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: 80,
+            marginBottom: 56,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              paddingTop: 12,
+            }}
+          >
+            [04] Comparación
+          </div>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: '-0.035em',
+              margin: 0,
+            }}
+          >
+            Frente al resto,
+            <br />
+            <span style={{ color: 'var(--muted)' }}>desde la privacidad.</span>
+          </h2>
+        </div>
+
+        <ComparisonTable />
+
+        <p
+          style={{
+            fontSize: 12,
+            color: 'var(--muted)',
+            marginTop: 24,
+            maxWidth: 760,
+            lineHeight: 1.55,
+          }}
+        >
+          Comparativa basada en la documentación pública de cada producto a fecha
+          de hoy. “Parcial” indica que la característica existe pero requiere un
+          plan de pago, depende de la región del workspace o tiene restricciones
+          no triviales.
+        </p>
+      </section>
+
       {/* PRIVACY GUARANTEE */}
       <section
         style={{
@@ -482,7 +545,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
               paddingTop: 12,
             }}
           >
-            [04] Garantía
+            [05] Garantía
           </div>
           <h2
             className="font-display"
@@ -586,7 +649,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
               paddingTop: 12,
             }}
           >
-            [05] Preguntas
+            [06] Preguntas
           </div>
           <h2
             className="font-display"
@@ -696,7 +759,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
             marginBottom: 24,
           }}
         >
-          [06] Empezar
+          [07] Empezar
         </div>
         <h2
           className="font-display"
@@ -1029,6 +1092,174 @@ function IconTrash(): JSX.Element {
       <path d="M6 7l1 13h10l1-13" />
     </svg>
   )
+}
+
+type ComparisonCell = 'yes' | 'no' | 'partial'
+
+interface ComparisonRow {
+  label: string
+  values: [ComparisonCell, ComparisonCell, ComparisonCell, ComparisonCell]
+}
+
+function ComparisonTable(): JSX.Element {
+  const tools = ['Excel to Sky', 'Google Sheets', 'Power BI', 'Looker Studio']
+
+  const rows: ReadonlyArray<ComparisonRow> = [
+    {
+      label: 'Datos procesados en tu navegador',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+    {
+      label: 'Sin cuenta para usar',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+    {
+      label: 'Funciona offline tras la primera carga',
+      values: ['yes', 'partial', 'partial', 'no'],
+    },
+    {
+      label: 'Sin tracking analítico propio',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+    {
+      label: 'Compartir sin login del visitante',
+      values: ['yes', 'partial', 'partial', 'yes'],
+    },
+    {
+      label: 'Gratis sin límite de usuarios',
+      values: ['yes', 'yes', 'no', 'yes'],
+    },
+    {
+      label: 'Datos alojados en la UE por defecto',
+      values: ['yes', 'partial', 'partial', 'partial'],
+    },
+    {
+      label: 'Sin LLM analizando tus datos',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+  ]
+
+  return (
+    <div
+      style={{
+        overflowX: 'auto',
+        border: '1px solid var(--border)',
+        background: 'rgba(255,255,255,0.012)',
+      }}
+    >
+      <table
+        style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          fontSize: 13,
+          minWidth: 720,
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={thFirst}>Característica</th>
+            {tools.map((tool, i) => (
+              <th key={tool} style={i === 0 ? thBrand : th}>
+                {tool}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label}>
+              <td style={tdLabel}>{row.label}</td>
+              {row.values.map((cell, i) => (
+                <td key={i} style={i === 0 ? tdBrand : td}>
+                  <ComparisonMark cell={cell} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function ComparisonMark({ cell }: { cell: ComparisonCell }): JSX.Element {
+  if (cell === 'yes') {
+    return (
+      <span style={{ color: 'var(--mint)', fontSize: 16, fontWeight: 600 }} aria-label="Sí">
+        ✓
+      </span>
+    )
+  }
+  if (cell === 'partial') {
+    return (
+      <span
+        style={{
+          color: 'var(--amber, #F7B955)',
+          fontSize: 13,
+          fontWeight: 500,
+          letterSpacing: '0.02em',
+        }}
+        aria-label="Parcial"
+      >
+        Parcial
+      </span>
+    )
+  }
+  return (
+    <span style={{ color: 'var(--muted)', fontSize: 16, fontWeight: 400 }} aria-label="No">
+      ✗
+    </span>
+  )
+}
+
+const thBase = {
+  padding: '16px 18px',
+  textAlign: 'left' as const,
+  fontSize: 10,
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase' as const,
+  fontWeight: 600,
+  color: 'var(--muted)',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.02)',
+}
+
+const thFirst = {
+  ...thBase,
+  width: '34%',
+}
+
+const th = {
+  ...thBase,
+  textAlign: 'center' as const,
+  width: '16.5%',
+}
+
+const thBrand = {
+  ...th,
+  color: 'var(--sky)',
+  background: 'rgba(77,158,250,0.06)',
+}
+
+const tdLabel = {
+  padding: '14px 18px',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  color: 'var(--ink-2)',
+  fontSize: 13,
+}
+
+const td = {
+  padding: '14px 18px',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  textAlign: 'center' as const,
+}
+
+const tdBrand = {
+  ...td,
+  background: 'rgba(77,158,250,0.04)',
 }
 
 function PrivacyDiagram(): JSX.Element {
