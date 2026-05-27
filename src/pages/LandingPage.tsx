@@ -221,7 +221,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
 
           <div style={{ marginTop: 64, display: 'flex', gap: 48 }}>
             <Stat label="Procesado" value="Local" caption="en tu navegador" />
-            <Stat label="Tamaño máx" value="10 MB" caption=".xlsx · .csv · .ods" />
+            <Stat label="Tamaño máx" value="20 MB" caption=".xlsx · .csv · .ods" />
             <Stat label="Cuentas" value="0" caption="ninguna requerida" />
           </div>
         </div>

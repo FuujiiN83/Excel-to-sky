@@ -1,8 +1,18 @@
 import type { Dataset } from '../types/dataset'
-import type { ParsePhase, ParseResponse } from '../workers/parser.worker'
+import type { ColumnWarning, ParsePhase, ParseResponse } from '../workers/parser.worker'
 import { logError } from './errorLog'
+import { pushToast } from './toast'
 
-export const MAX_FILE_BYTES = 10 * 1024 * 1024
+/** Hard limit — files above this are rejected upfront. */
+export const MAX_FILE_BYTES = 20 * 1024 * 1024
+/** Soft warning — files between this and MAX_FILE_BYTES parse but the UI warns. */
+export const WARN_FILE_BYTES = 10 * 1024 * 1024
+
+export function fileSizeTier(sizeBytes: number): 'ok' | 'warn' | 'reject' {
+  if (sizeBytes > MAX_FILE_BYTES) return 'reject'
+  if (sizeBytes > WARN_FILE_BYTES) return 'warn'
+  return 'ok'
+}
 
 export interface ParseErrorContext {
   row?: number
@@ -44,17 +54,44 @@ class WorkerCrash extends Error {
   }
 }
 
-function runParseWorker(buffer: ArrayBuffer, fileName: string): Promise<Dataset> {
+export interface ParseSuccessMeta {
+  /** All sheet names if the workbook has more than one — undefined otherwise. */
+  sheetNames?: string[]
+  /** Zero-based index of the parsed sheet. */
+  sheetIndex: number
+}
+
+export interface ParseResult {
+  dataset: Dataset
+  meta: ParseSuccessMeta
+}
+
+export interface ParseExcelOptions {
+  /** Pick a specific sheet by index. Defaults to 0 (first sheet). */
+  sheetIndex?: number
+}
+
+function runParseWorker(
+  buffer: ArrayBuffer,
+  fileName: string,
+  sheetIndex?: number,
+): Promise<ParseResult> {
   // The worker only consumes the buffer once (it's transferred), so callers
   // that need a retry must keep a separate copy and pass it in fresh.
-  return new Promise<Dataset>((resolve, reject) => {
+  return new Promise<ParseResult>((resolve, reject) => {
     const worker = new Worker(new URL('../workers/parser.worker.ts', import.meta.url), {
       type: 'module',
     })
     worker.onmessage = (e: MessageEvent<ParseResponse>) => {
       worker.terminate()
       if (e.data.ok) {
-        resolve(e.data.dataset)
+        if (e.data.warnings && e.data.warnings.length > 0) {
+          surfaceColumnWarnings(e.data.warnings)
+        }
+        resolve({
+          dataset: e.data.dataset,
+          meta: { sheetNames: e.data.sheetNames, sheetIndex: e.data.sheetIndex },
+        })
         return
       }
       reject(
@@ -74,14 +111,45 @@ function runParseWorker(buffer: ArrayBuffer, fileName: string): Promise<Dataset>
         ),
       )
     }
-    worker.postMessage({ fileBuffer: buffer, fileName }, [buffer])
+    worker.postMessage({ fileBuffer: buffer, fileName, sheetIndex }, [buffer])
   })
 }
 
-export async function parseExcelFile(file: File): Promise<Dataset> {
+function surfaceColumnWarnings(warnings: ColumnWarning[]): void {
+  // First three columns at most to avoid flooding the user with toasts.
+  const sample = warnings.slice(0, 3)
+  const labels = sample.map((w) => `"${w.columnLabel}"`).join(', ')
+  const extra = warnings.length > sample.length ? ` y ${warnings.length - sample.length} más` : ''
+  pushToast(
+    `Tipos mixtos detectados en ${labels}${extra}. Las columnas se han etiquetado con el tipo más frecuente — limpia los valores raros si el dashboard sale mal.`,
+    'info',
+    7000,
+  )
+  void logError({
+    level: 'info',
+    context: 'parser',
+    message: `Mixed-type columns: ${warnings.length}`,
+    meta: { phase: 'type-detect', columnCount: warnings.length },
+  })
+}
+
+/**
+ * Parse an Excel/CSV file. Returns just the Dataset when the workbook has a
+ * single sheet; callers that care about multi-sheet workbooks should use
+ * parseExcelFileWithMeta() which also returns the sheet list.
+ */
+export async function parseExcelFile(file: File, opts?: ParseExcelOptions): Promise<Dataset> {
+  const { dataset } = await parseExcelFileWithMeta(file, opts)
+  return dataset
+}
+
+export async function parseExcelFileWithMeta(
+  file: File,
+  opts: ParseExcelOptions = {},
+): Promise<ParseResult> {
   if (file.size > MAX_FILE_BYTES) {
     const e = new ParseError(
-      `El archivo supera 10 MB (${(file.size / 1024 / 1024).toFixed(1)} MB). Reduce filas o conviértelo a CSV.`,
+      `El archivo supera ${Math.round(MAX_FILE_BYTES / 1024 / 1024)} MB (${(file.size / 1024 / 1024).toFixed(1)} MB). Reduce filas o conviértelo a CSV.`,
       { phase: 'read' },
     )
     void logError({
@@ -100,7 +168,7 @@ export async function parseExcelFile(file: File): Promise<Dataset> {
   for (let attempt = 0; attempt < 2; attempt++) {
     const fresh = sourceBuffer.slice(0)
     try {
-      return await runParseWorker(fresh, file.name)
+      return await runParseWorker(fresh, file.name, opts.sheetIndex)
     } catch (err) {
       if (err instanceof WorkerCrash && attempt === 0) {
         void logError({

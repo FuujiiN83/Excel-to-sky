@@ -62,9 +62,29 @@ function sample<T>(values: T[], max = 200): T[] {
 }
 
 export function inferColumnType(rawValues: (string | null | undefined)[]): ColumnType {
+  return inferColumnTypeDetailed(rawValues).type
+}
+
+/** Same detection as inferColumnType, but with diagnostics for #17 mixed-type warnings. */
+export interface DetailedInference {
+  type: ColumnType
+  /** Confidence in [0, 1] — share of sampled values that fit the chosen type. */
+  confidence: number
+  /** True when at least two type-detectors fire for >=20% of the sample. */
+  mixed: boolean
+  /** Secondary type that also had non-trivial coverage, when mixed. */
+  secondary?: ColumnType
+}
+
+const MIXED_SECONDARY_THRESHOLD = 0.2
+const MIXED_PRIMARY_THRESHOLD = 0.95
+
+export function inferColumnTypeDetailed(
+  rawValues: (string | null | undefined)[],
+): DetailedInference {
   const filtered = rawValues.filter((v): v is string => v != null && v !== '')
   const sampled = sample(filtered)
-  if (sampled.length === 0) return 'text'
+  if (sampled.length === 0) return { type: 'text', confidence: 1, mixed: false }
 
   const counts = { boolean: 0, date: 0, number: 0 }
   for (const v of sampled) {
@@ -73,13 +93,53 @@ export function inferColumnType(rawValues: (string | null | undefined)[]): Colum
     if (detectNumber(v) !== null) counts.number++
   }
   const total = sampled.length
+  const ratios = {
+    boolean: counts.boolean / total,
+    date: counts.date / total,
+    number: counts.number / total,
+  } as const
 
-  if (counts.boolean / total >= THRESHOLD) return 'boolean'
-  if (counts.date / total >= THRESHOLD) return 'date'
-  if (counts.number / total >= THRESHOLD) return 'number'
+  // Pick winning type using the existing THRESHOLD ordering.
+  let type: ColumnType
+  let confidence: number
+  if (ratios.boolean >= THRESHOLD) {
+    type = 'boolean'
+    confidence = ratios.boolean
+  } else if (ratios.date >= THRESHOLD) {
+    type = 'date'
+    confidence = ratios.date
+  } else if (ratios.number >= THRESHOLD) {
+    type = 'number'
+    confidence = ratios.number
+  } else {
+    const unique = new Set(sampled).size
+    if (total >= CATEGORY_MIN_ROWS && unique / total < CATEGORY_MAX_RATIO) {
+      type = 'category'
+    } else {
+      type = 'text'
+    }
+    confidence = 1 - Math.max(ratios.boolean, ratios.date, ratios.number)
+  }
 
-  const unique = new Set(sampled).size
-  if (total >= CATEGORY_MIN_ROWS && unique / total < CATEGORY_MAX_RATIO) return 'category'
+  // Mixed when the winning type is below near-certainty AND another type still
+  // hits the 20% floor (so a stray '12' in a name column doesn't flag).
+  const winnerRatio = type === 'text' || type === 'category' ? confidence : confidence
+  const otherRatios = (['boolean', 'date', 'number'] as const)
+    .filter((k) => k !== type)
+    .map((k) => ({ k, r: ratios[k] }))
+    .sort((a, b) => b.r - a.r)
 
-  return 'text'
+  const topOther = otherRatios[0]
+  const mixed =
+    winnerRatio < MIXED_PRIMARY_THRESHOLD &&
+    topOther !== undefined &&
+    topOther.r >= MIXED_SECONDARY_THRESHOLD &&
+    type !== 'category'
+
+  return {
+    type,
+    confidence,
+    mixed,
+    secondary: mixed ? topOther?.k : undefined,
+  }
 }

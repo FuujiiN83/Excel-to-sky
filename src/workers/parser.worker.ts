@@ -1,14 +1,32 @@
 import * as XLSX from 'xlsx'
-import { inferColumnType } from '../lib/typeDetection'
-import type { Dataset, Column, CellValue } from '../types/dataset'
+import { inferColumnTypeDetailed } from '../lib/typeDetection'
+import type { Dataset, Column, CellValue, ColumnType } from '../types/dataset'
 
 export interface ParseRequest {
   fileBuffer: ArrayBuffer
   fileName: string
+  /** Zero-based index into workbook.SheetNames. Defaults to 0 if omitted. */
+  sheetIndex?: number
 }
+
+/** Per-column hints surfaced alongside the Dataset (#17). */
+export interface ColumnWarning {
+  columnKey: string
+  columnLabel: string
+  /** Detected primary type. */
+  type: ColumnType
+  /** Other plausible type that also covered >=20% of the sampled values. */
+  secondary: ColumnType
+}
+
 export interface ParseSuccess {
   ok: true
   dataset: Dataset
+  warnings?: ColumnWarning[]
+  /** All sheet names in the workbook (in their original order). Only set when the workbook has more than one sheet. */
+  sheetNames?: string[]
+  /** Zero-based index of the sheet that was actually parsed. */
+  sheetIndex: number
 }
 export type ParsePhase = 'read' | 'sheet' | 'header' | 'row' | 'type-detect'
 export interface ParseError {
@@ -52,7 +70,7 @@ function post(response: ParseResponse): void {
 }
 
 self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
-  const { fileBuffer, fileName } = event.data
+  const { fileBuffer, fileName, sheetIndex: requestedIndex = 0 } = event.data
 
   let wb: XLSX.WorkBook
   try {
@@ -75,11 +93,16 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   if (wb.Props) wb.Props = {}
   if (wb.Custprops) wb.Custprops = {}
 
-  const sheetName = wb.SheetNames[0]
-  if (!sheetName) {
+  const sheetNames = wb.SheetNames
+  if (sheetNames.length === 0) {
     post({ ok: false, phase: 'sheet', error: 'El libro no contiene ninguna hoja.' })
     return
   }
+  // Multi-sheet (#1): caller can request any sheet by index; defaults to 0.
+  // Out-of-range requests are clamped rather than rejected so a stale picker
+  // value can't crash the worker.
+  const sheetIndex = Math.min(Math.max(0, requestedIndex), sheetNames.length - 1)
+  const sheetName = sheetNames[sheetIndex]
   const sheet = wb.Sheets[sheetName]
   if (!sheet) {
     post({
@@ -90,9 +113,18 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     return
   }
 
-  let rawRows: Record<string, unknown>[]
+  // Read the sheet as a grid of rows (#18). header:1 returns array-of-arrays
+  // where the first sub-array is the header row in physical column order.
+  // This makes the column order guarantee structural — we no longer rely on
+  // Object.keys() insertion order behaviour of sheet_to_json's object mode.
+  let grid: unknown[][]
   try {
-    rawRows = XLSX.utils.sheet_to_json(sheet, { defval: null, raw: false })
+    grid = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+      header: 1,
+      defval: null,
+      raw: false,
+      blankrows: false,
+    })
   } catch (err) {
     post({
       ok: false,
@@ -102,7 +134,20 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     return
   }
 
-  if (rawRows.length === 0) {
+  if (grid.length === 0) {
+    post({
+      ok: false,
+      phase: 'row',
+      row: 1,
+      error: `La hoja "${sheetName}" está vacía.`,
+    })
+    return
+  }
+
+  const headerRow = grid[0]
+  const dataRows = grid.slice(1)
+
+  if (dataRows.length === 0) {
     post({
       ok: false,
       phase: 'row',
@@ -112,11 +157,15 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     return
   }
 
-  const rawHeaders = Object.keys(rawRows[0])
+  // Normalise headers in column order. Mojibake fix + trim are applied here
+  // (#16), and we capture the raw form for error messages.
+  const rawHeaders: string[] = headerRow.map((h) => (h == null ? '' : String(h)))
+  const headers = rawHeaders.map((h) => fixMojibake(h).trim())
+
   // Header validation: empty or duplicate names are surfaced with the actual Excel column letter.
   const seenHeaders = new Set<string>()
-  for (let i = 0; i < rawHeaders.length; i++) {
-    const h = rawHeaders[i].trim()
+  for (let i = 0; i < headers.length; i++) {
+    const h = headers[i]
     if (h === '') {
       post({
         ok: false,
@@ -140,19 +189,30 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     seenHeaders.add(h)
   }
 
-  const headers = rawHeaders.map(fixMojibake)
+  // Type-detect: read each column by index out of the row grid.
   let columns: Column[]
+  const warnings: ColumnWarning[] = []
   try {
     columns = headers.map((h, i) => {
-      const values = rawRows.map((r) => {
-        const v = r[rawHeaders[i]]
-        return v == null ? null : fixMojibake(String(v))
+      const values = dataRows.map((row) => {
+        const v = row[i]
+        if (v == null) return null
+        return typeof v === 'string' ? fixMojibake(v).trim() : fixMojibake(String(v)).trim()
       })
+      const inferred = inferColumnTypeDetailed(values)
+      if (inferred.mixed && inferred.secondary) {
+        warnings.push({
+          columnKey: `col_${i}`,
+          columnLabel: h,
+          type: inferred.type,
+          secondary: inferred.secondary,
+        })
+      }
       return {
         key: `col_${i}`,
         label: h,
         originalLabel: h,
-        type: inferColumnType(values),
+        type: inferred.type,
       }
     })
   } catch (err) {
@@ -165,26 +225,26 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   }
 
   const rows: Record<string, CellValue>[] = []
-  for (let r = 0; r < rawRows.length; r++) {
+  for (let r = 0; r < dataRows.length; r++) {
     try {
-      const raw = rawRows[r]
+      const raw = dataRows[r]
       const obj: Record<string, CellValue> = {}
-      rawHeaders.forEach((h, i) => {
-        const v = raw[h]
+      for (let i = 0; i < headers.length; i++) {
+        const v = raw[i]
         if (v == null) {
           obj[`col_${i}`] = null
         } else if (typeof v === 'number' || typeof v === 'boolean') {
           obj[`col_${i}`] = v
         } else {
-          obj[`col_${i}`] = fixMojibake(String(v))
+          obj[`col_${i}`] = fixMojibake(String(v)).trim()
         }
-      })
+      }
       rows.push(obj)
     } catch (err) {
       post({
         ok: false,
         phase: 'row',
-        row: r + 2, // +2: row index is 0-based, Excel rows are 1-based, header is row 1
+        row: r + 2, // header is Excel row 1, dataRows[0] is Excel row 2
         error: `Error procesando la fila ${r + 2}: ${err instanceof Error ? err.message : 'desconocido'}.`,
       })
       return
@@ -198,5 +258,11 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     rows,
     createdAt: new Date().toISOString(),
   }
-  post({ ok: true, dataset })
+  post({
+    ok: true,
+    dataset,
+    warnings: warnings.length > 0 ? warnings : undefined,
+    sheetNames: sheetNames.length > 1 ? sheetNames : undefined,
+    sheetIndex,
+  })
 })
