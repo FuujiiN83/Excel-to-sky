@@ -1172,6 +1172,8 @@ function ComparisonTable(): JSX.Element {
       }}
     >
       <table
+        aria-rowcount={rows.length + 1}
+        aria-colcount={tools.length + 1}
         style={{
           width: '100%',
           borderCollapse: 'collapse',
@@ -1179,11 +1181,17 @@ function ComparisonTable(): JSX.Element {
           minWidth: 720,
         }}
       >
+        <caption style={captionStyle}>
+          Excel to Sky frente a Google Sheets, Power BI y Looker Studio en ocho dimensiones de
+          privacidad y autonomía del usuario.
+        </caption>
         <thead>
           <tr>
-            <th style={thFirst}>Característica</th>
+            <th scope="col" style={thFirst}>
+              Característica
+            </th>
             {tools.map((tool, i) => (
-              <th key={tool} style={i === 0 ? thBrand : th}>
+              <th key={tool} scope="col" style={i === 0 ? thBrand : th}>
                 {tool}
               </th>
             ))}
@@ -1192,7 +1200,9 @@ function ComparisonTable(): JSX.Element {
         <tbody>
           {rows.map((row) => (
             <tr key={row.label}>
-              <td style={tdLabel}>{row.label}</td>
+              <th scope="row" style={tdLabel}>
+                {row.label}
+              </th>
               {row.values.map((cell, i) => (
                 <td key={i} style={i === 0 ? tdBrand : td}>
                   <ComparisonMark cell={cell} />
@@ -1284,6 +1294,20 @@ const td = {
 const tdBrand = {
   ...td,
   background: 'rgba(77,158,250,0.04)',
+}
+
+const captionStyle = {
+  // Caption is read by screen readers but visually hidden — the surrounding
+  // [04] section header already provides a visible title for sighted users.
+  position: 'absolute' as const,
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap' as const,
+  border: 0,
 }
 
 function PrivacyDiagram(): JSX.Element {

@@ -24,6 +24,7 @@ function Logo({ size = 26 }: { size?: number }): JSX.Element {
   return (
     <div className="flex items-center gap-2.5">
       <div
+        aria-hidden
         className="relative overflow-hidden"
         style={{
           width: size,
@@ -33,7 +34,7 @@ function Logo({ size = 26 }: { size?: number }): JSX.Element {
           boxShadow: '0 0 0 1px var(--border), 0 6px 18px -8px rgba(77,158,250,0.5)',
         }}
       >
-        <svg viewBox="0 0 24 24" className="absolute inset-0 w-full h-full">
+        <svg viewBox="0 0 24 24" className="absolute inset-0 w-full h-full" aria-hidden>
           <path
             d="M7 17 L 11 13 L 14 16 L 18 8"
             stroke="rgba(255,255,255,0.95)"
@@ -52,7 +53,15 @@ function Logo({ size = 26 }: { size?: number }): JSX.Element {
         >
           Excel to Sky
         </span>
-        <span className="text-muted" style={{ fontSize: 10, marginTop: 3, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <span
+          className="text-muted"
+          style={{
+            fontSize: 10,
+            marginTop: 3,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+        >
           v0.5 · beta
         </span>
       </div>
@@ -78,6 +87,8 @@ export function TopBar(props: TopBarProps): JSX.Element {
         <Logo />
         {!hideNav && (
           <nav
+            role="navigation"
+            aria-label="Secciones del dashboard"
             className="flex bg-surface border border-border"
             style={{ gap: 2, marginLeft: 8, padding: 4 }}
           >
@@ -87,6 +98,7 @@ export function TopBar(props: TopBarProps): JSX.Element {
                 <button
                   key={it.id}
                   onClick={() => onNav(it.id)}
+                  aria-current={active ? 'page' : undefined}
                   className="border-none transition-all"
                   style={{
                     padding: '6px 14px',
@@ -124,10 +136,7 @@ export function TopBar(props: TopBarProps): JSX.Element {
               xls
             </div>
             <span style={{ color: 'var(--ink-2)' }}>{dataset.label}</span>
-            <span
-              className="font-mono text-muted"
-              style={{ fontSize: 11 }}
-            >
+            <span className="font-mono text-muted" style={{ fontSize: 11 }}>
               {dataset.rows.length} filas · {dataset.columns.length} columnas
             </span>
           </div>

@@ -27,6 +27,38 @@ button {
   cursor: pointer;
 }
 
+/* Large-text mode (#172). Scales the whole viewport up via `zoom`, which is
+ * the simplest cross-browser way to bump font sizes without auditing every
+ * px-based inline style in the app. Supported in evergreen Chrome/Edge/Safari
+ * and Firefox 126+. Quietly no-ops elsewhere. */
+html.large-text {
+  zoom: 1.125;
+}
+
+/* Skip-to-content link — visually hidden until focused via Tab, lands on the
+ * #main-content target so keyboard and screen-reader users can bypass the nav. */
+.ets-skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 300;
+  padding: 10px 16px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border: 2px solid var(--sky);
+  transform: translateY(-200%);
+  transition: transform 120ms ease;
+}
+.ets-skip-link:focus,
+.ets-skip-link:focus-visible {
+  transform: translateY(0);
+  outline: none;
+}
+
 /* Focus indicators — keyboard-only via :focus-visible.
  * Mouse clicks still don't show a ring; keyboard users always do. */
 *:focus {

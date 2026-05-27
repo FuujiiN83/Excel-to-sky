@@ -40,6 +40,16 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
         if (f) void handleFile(f)
       }}
       onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          inputRef.current?.click()
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label="Zona para soltar tu Excel o CSV. Pulsa Enter para abrir el selector de archivos."
+      aria-busy={busy}
       style={{
         padding: 6,
         borderRadius: 0,
