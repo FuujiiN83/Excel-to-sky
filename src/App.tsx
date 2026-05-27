@@ -22,6 +22,7 @@ import { saveLocalDashboard, touchLocalDashboard } from './lib/localDb'
 import { isSupabaseConfigured } from './lib/supabase'
 import { InsightsWorkbench } from './dev/InsightsWorkbench'
 import { analyzeDataset } from './lib/insights'
+import { useSettings } from './lib/SettingsContext'
 
 type RouteName =
   | 'upload'
@@ -44,6 +45,7 @@ interface Route {
 }
 
 export default function App(): JSX.Element {
+  const { settings } = useSettings()
   const [route, setRoute] = useState<Route>({ name: 'landing' })
   const [dataset, setDataset] = useState<Dataset>(SAMPLE_DATASETS.personas)
   const [hasUploaded, setHasUploaded] = useState(false)
@@ -106,6 +108,7 @@ export default function App(): JSX.Element {
   useEffect(() => {
     if (!import.meta.env.DEV) return
     if (!hasUploaded) return
+    if (!settings.autoAnalyze) return
     void analyzeDataset(dataset)
       .then((report) => {
         // eslint-disable-next-line no-console
@@ -114,7 +117,7 @@ export default function App(): JSX.Element {
       .catch((e: unknown) => {
         console.error('[insights] failed:', e)
       })
-  }, [dataset, hasUploaded])
+  }, [dataset, hasUploaded, settings.autoAnalyze])
 
   const isUpload = route.name === 'upload'
   const isPublic = route.name === 'public'
