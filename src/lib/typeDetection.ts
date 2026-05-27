@@ -57,6 +57,68 @@ const FALSE_VALUES = new Set([
 // rupee, real (R$), zloty, franc.
 const CURRENCY_STRIP = /(?:R\$|kr|zł|CHF|CHF\.|[€$£¥₽₪₩₹])/gi
 
+// Header keywords that bias a numeric column toward 'currency' (#36). These
+// are lowercase, accent-folded, and matched as whole-word substrings so a
+// header like 'Ingresos brutos' still triggers but 'precision' does not.
+const MONETARY_HEADER_KEYWORDS = [
+  // ES
+  'precio',
+  'precios',
+  'ingresos',
+  'ingreso',
+  'gasto',
+  'gastos',
+  'coste',
+  'costes',
+  'importe',
+  'importes',
+  'salario',
+  'salarios',
+  'venta',
+  'ventas',
+  'beneficio',
+  'beneficios',
+  'tarifa',
+  'tarifas',
+  'factura',
+  'facturas',
+  'subtotal',
+  'total',
+  // EN
+  'price',
+  'prices',
+  'cost',
+  'costs',
+  'revenue',
+  'income',
+  'expense',
+  'expenses',
+  'salary',
+  'sales',
+  'amount',
+  'amounts',
+  'fee',
+  'fees',
+  'profit',
+  'invoice',
+] as const
+const MONETARY_HEADER_GLYPHS = ['€', '$', '£', '¥', '₽', '₪', '₩', '₹', 'zł'] as const
+
+function foldAccents(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+function headerSuggestsCurrency(label: string | undefined): boolean {
+  if (!label) return false
+  if (MONETARY_HEADER_GLYPHS.some((g) => label.includes(g))) return true
+  const folded = foldAccents(label.toLowerCase())
+  return MONETARY_HEADER_KEYWORDS.some((kw) => {
+    // Whole-word match: kw bordered by non-alpha chars (or string edges).
+    const re = new RegExp(`(?:^|[^a-z0-9])${kw}(?:[^a-z0-9]|$)`)
+    return re.test(folded)
+  })
+}
+
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T.*)?$/
 const DMY = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
 
@@ -120,8 +182,11 @@ function sample<T>(values: T[], max = 200): T[] {
   return [...head, ...tail]
 }
 
-export function inferColumnType(rawValues: (string | null | undefined)[]): ColumnType {
-  return inferColumnTypeDetailed(rawValues).type
+export function inferColumnType(
+  rawValues: (string | null | undefined)[],
+  headerLabel?: string,
+): ColumnType {
+  return inferColumnTypeDetailed(rawValues, headerLabel).type
 }
 
 /** Same detection as inferColumnType, but with diagnostics for #17 mixed-type warnings. */
@@ -140,6 +205,7 @@ const MIXED_PRIMARY_THRESHOLD = 0.95
 
 export function inferColumnTypeDetailed(
   rawValues: (string | null | undefined)[],
+  headerLabel?: string,
 ): DetailedInference {
   const filtered = rawValues.filter((v): v is string => v != null && v !== '')
   const sampled = sample(filtered)
@@ -168,7 +234,10 @@ export function inferColumnTypeDetailed(
     type = 'date'
     confidence = ratios.date
   } else if (ratios.number >= THRESHOLD) {
-    type = 'number'
+    // Header-based currency bias (#36): a column of numbers whose label
+    // suggests money ('Precio', 'Total', '€', 'Cost'…) is reclassified as
+    // 'currency' so downstream stats render it with currency formatting.
+    type = headerSuggestsCurrency(headerLabel) ? 'currency' : 'number'
     confidence = ratios.number
   } else {
     const unique = new Set(sampled).size
