@@ -337,6 +337,16 @@ export function registerSubtypeDetector(detector: SubtypeDetector): void {
   SUBTYPE_DETECTORS.push(detector)
 }
 
+// ---------- Detector: time-only (#22) ----------
+// HH:MM or HH:MM:SS, 24h or 12h with am/pm. Excludes ISO datetimes (those
+// are picked up by detectDate / the datetime-tz detector).
+const TIME_ONLY_RE = /^(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?(?:\s?[apAP]\.?\s?[mM]\.?)?$/
+registerSubtypeDetector({
+  name: 'time',
+  appliesTo: ['text', 'category'],
+  test: (v) => TIME_ONLY_RE.test(v.trim()),
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
