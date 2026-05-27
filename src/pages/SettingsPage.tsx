@@ -26,7 +26,17 @@ interface SettingsPageProps {
 }
 
 export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
-  const { settings, ready, update } = useSettings()
+  const { settings, ready, update, reset } = useSettings()
+
+  function onReset(): void {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm('¿Restablecer todas las preferencias a sus valores por defecto?')
+    ) {
+      return
+    }
+    void reset()
+  }
 
   return (
     <LegalLayout title="Configuración" onNav={onNav}>
@@ -132,6 +142,38 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
               ))}
             </div>
           </SettingsRow>
+
+          <div
+            style={{
+              marginTop: 16,
+              paddingTop: 24,
+              borderTop: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              flexWrap: 'wrap',
+            }}
+          >
+            <button
+              type="button"
+              onClick={onReset}
+              style={{
+                background: 'transparent',
+                color: 'var(--coral, #F87171)',
+                border: '1px solid var(--coral, #F87171)',
+                padding: '8px 16px',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Restablecer valores por defecto
+            </button>
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+              Borra todas las preferencias guardadas en este navegador.
+            </span>
+          </div>
         </div>
       )}
     </LegalLayout>
