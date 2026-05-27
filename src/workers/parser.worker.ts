@@ -82,6 +82,42 @@ function post(response: ParseResponse): void {
  * Returns 0 when the first row already looks like a header (no penalty for
  * the common, well-formed case).
  */
+// Spanish + English keywords that flag a row as a total/subtotal/summary
+// row (#4). Matched against the first non-empty cell of the row (lowercased,
+// punctuation stripped). A row is dropped before stats run.
+const TOTAL_ROW_KEYWORDS = new Set([
+  'total',
+  'totals',
+  'subtotal',
+  'subtotals',
+  'gran total',
+  'grand total',
+  'suma',
+  'sum',
+  'promedio',
+  'average',
+  'media',
+  'mean',
+  'count',
+  'recuento',
+  'conteo',
+])
+function isTotalRow(row: unknown[]): boolean {
+  for (const cell of row) {
+    if (cell == null) continue
+    const s = String(cell).trim()
+    if (s === '') continue
+    // Strip a trailing colon and lowercase. Multi-word keys like 'gran total'
+    // need the whole label, so we don't split on spaces.
+    const key = s
+      .toLowerCase()
+      .replace(/[:.;,]+$/, '')
+      .trim()
+    return TOTAL_ROW_KEYWORDS.has(key)
+  }
+  return false
+}
+
 const HEADER_SCAN_DEPTH = 5
 function detectHeaderRow(grid: unknown[][]): number {
   if (grid.length === 0) return 0
@@ -224,7 +260,20 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   // rows above it are discarded.
   const headerRowIndex = detectHeaderRow(grid)
   const headerRow = grid[headerRowIndex]
-  const dataRows = grid.slice(headerRowIndex + 1)
+  const rawDataRows = grid.slice(headerRowIndex + 1)
+
+  // Drop total / subtotal / 'media' / 'count' summary rows (#4). These are
+  // common in BI / accounting exports and would otherwise pollute the
+  // dataset's aggregates with double-counted figures. We keep a parallel
+  // array of original Excel row numbers so downstream errors still point
+  // at the right cell.
+  const dataRows: unknown[][] = []
+  const dataRowExcelNumbers: number[] = []
+  for (let i = 0; i < rawDataRows.length; i++) {
+    if (isTotalRow(rawDataRows[i])) continue
+    dataRows.push(rawDataRows[i])
+    dataRowExcelNumbers.push(headerRowIndex + i + 2)
+  }
 
   if (dataRows.length === 0) {
     post({
@@ -325,10 +374,11 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
       post({
         ok: false,
         phase: 'row',
-        // dataRows[0] sits immediately after the detected header row; +2
-        // converts a 0-indexed offset to a 1-indexed Excel row number.
-        row: headerRowIndex + r + 2,
-        error: `Error procesando la fila ${headerRowIndex + r + 2}: ${err instanceof Error ? err.message : 'desconocido'}.`,
+        // dataRowExcelNumbers[r] is the 1-indexed Excel row this survivor
+        // came from, accounting for the detected header row and any total /
+        // subtotal rows that were filtered out.
+        row: dataRowExcelNumbers[r],
+        error: `Error procesando la fila ${dataRowExcelNumbers[r]}: ${err instanceof Error ? err.message : 'desconocido'}.`,
       })
       return
     }
