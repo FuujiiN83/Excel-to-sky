@@ -407,6 +407,110 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
         </div>
       </section>
 
+      {/* PRIVACY GUARANTEE */}
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+          padding: '120px 64px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: 80,
+            marginBottom: 56,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              paddingTop: 12,
+            }}
+          >
+            [03] Garantía
+          </div>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: '-0.035em',
+              margin: 0,
+            }}
+          >
+            Tus datos no salen
+            <br />
+            <span style={{ color: 'var(--muted)' }}>de tu navegador.</span>
+          </h2>
+        </div>
+
+        <PrivacyDiagram />
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            borderTop: '1px solid var(--border)',
+            marginTop: 56,
+          }}
+        >
+          {[
+            {
+              label: '01 — Parseo',
+              body: 'El Excel se abre y procesa en memoria, dentro de un Web Worker. Nunca se sube a un servidor para leerlo.',
+            },
+            {
+              label: '02 — Análisis',
+              body: 'Tipos de columna, estadísticas, gráficos e insights se calculan localmente. No hay llamadas a APIs externas ni LLMs.',
+            },
+            {
+              label: '03 — Compartir',
+              body: 'Sólo si pulsas “Compartir” y aceptas explícitamente, copiamos un snapshot a Supabase (UE) para generar un enlace público.',
+            },
+          ].map((item, i) => (
+            <div
+              key={item.label}
+              style={{
+                padding: '32px 24px',
+                borderRight: i < 2 ? '1px solid var(--border)' : 'none',
+                borderBottom: '1px solid var(--border)',
+              }}
+            >
+              <div
+                className="font-mono"
+                style={{
+                  fontSize: 11,
+                  letterSpacing: '0.18em',
+                  color: 'var(--sky)',
+                  fontWeight: 600,
+                  marginBottom: 12,
+                }}
+              >
+                {item.label}
+              </div>
+              <p
+                style={{
+                  fontSize: 14,
+                  color: 'var(--ink-2)',
+                  lineHeight: 1.6,
+                  margin: 0,
+                }}
+              >
+                {item.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* FAQ */}
       <section
         style={{
@@ -434,7 +538,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
               paddingTop: 12,
             }}
           >
-            [03] Preguntas
+            [04] Preguntas
           </div>
           <h2
             className="font-display"
@@ -544,7 +648,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
             marginBottom: 24,
           }}
         >
-          [04] Empezar
+          [05] Empezar
         </div>
         <h2
           className="font-display"
@@ -652,6 +756,121 @@ function CornerTicks({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }): JSX
         pointerEvents: 'none',
       }}
     />
+  )
+}
+
+function PrivacyDiagram(): JSX.Element {
+  return (
+    <div
+      style={{
+        border: '1px solid var(--border)',
+        background: 'rgba(255,255,255,0.012)',
+        padding: '40px 32px',
+        position: 'relative',
+      }}
+    >
+      <svg
+        viewBox="0 0 800 220"
+        role="img"
+        aria-label="Diagrama: Excel → navegador local → dashboard. Sin paso por servidor."
+        style={{ width: '100%', height: 'auto', display: 'block' }}
+      >
+        {/* connecting line */}
+        <line
+          x1="140"
+          y1="110"
+          x2="660"
+          y2="110"
+          stroke="var(--border-strong)"
+          strokeWidth="1"
+          strokeDasharray="4 4"
+        />
+
+        {/* Excel node */}
+        <g transform="translate(40,60)">
+          <rect width="100" height="100" fill="rgba(255,255,255,0.04)" stroke="var(--border-strong)" />
+          <text
+            x="50"
+            y="40"
+            textAnchor="middle"
+            fontSize="10"
+            fontFamily="var(--font-mono, monospace)"
+            fill="var(--muted)"
+            letterSpacing="2"
+          >
+            EXCEL
+          </text>
+          <text x="50" y="68" textAnchor="middle" fontSize="22" fontWeight="600" fill="var(--ink)">
+            .xlsx
+          </text>
+          <text x="50" y="86" textAnchor="middle" fontSize="10" fill="var(--muted)">
+            tu archivo
+          </text>
+        </g>
+
+        {/* Browser (local) node */}
+        <g transform="translate(310,40)">
+          <rect width="180" height="140" fill="rgba(46,107,255,0.06)" stroke="var(--sky)" />
+          <text
+            x="90"
+            y="34"
+            textAnchor="middle"
+            fontSize="10"
+            fontFamily="var(--font-mono, monospace)"
+            fill="var(--sky)"
+            letterSpacing="2"
+          >
+            TU NAVEGADOR
+          </text>
+          <text x="90" y="68" textAnchor="middle" fontSize="20" fontWeight="600" fill="var(--ink)">
+            100% local
+          </text>
+          <text x="90" y="92" textAnchor="middle" fontSize="11" fill="var(--ink-2)">
+            parseo · stats · gráficos
+          </text>
+          <text x="90" y="112" textAnchor="middle" fontSize="11" fill="var(--ink-2)">
+            insights · render
+          </text>
+        </g>
+
+        {/* Dashboard node */}
+        <g transform="translate(660,60)">
+          <rect width="100" height="100" fill="rgba(255,255,255,0.04)" stroke="var(--border-strong)" />
+          <text
+            x="50"
+            y="40"
+            textAnchor="middle"
+            fontSize="10"
+            fontFamily="var(--font-mono, monospace)"
+            fill="var(--muted)"
+            letterSpacing="2"
+          >
+            DASHBOARD
+          </text>
+          <text x="50" y="68" textAnchor="middle" fontSize="22" fontWeight="600" fill="var(--ink)">
+            ↗
+          </text>
+          <text x="50" y="86" textAnchor="middle" fontSize="10" fill="var(--muted)">
+            navegable
+          </text>
+        </g>
+
+        {/* Crossed-out cloud (no server) */}
+        <g transform="translate(330,180)">
+          <text
+            x="70"
+            y="10"
+            textAnchor="middle"
+            fontSize="10"
+            fontFamily="var(--font-mono, monospace)"
+            fill="var(--muted)"
+            letterSpacing="2"
+          >
+            ✕  NUNCA PASA POR UN SERVIDOR
+          </text>
+        </g>
+      </svg>
+    </div>
   )
 }
 
