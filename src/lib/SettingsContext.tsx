@@ -5,7 +5,18 @@ import {
   resetSettings as resetPersisted,
   saveSettings,
   type Settings,
+  type Theme,
 } from './settings'
+
+/** Removes existing theme classes and adds the one for the active theme. */
+function applyTheme(theme: Theme): void {
+  if (typeof document === 'undefined') return
+  const cls = document.documentElement.classList
+  cls.remove('theme-light', 'theme-high-contrast')
+  if (theme === 'light') cls.add('theme-light')
+  else if (theme === 'high-contrast') cls.add('theme-high-contrast')
+  // 'dark' is the default, no class needed.
+}
 
 interface SettingsContextValue {
   settings: Settings
@@ -35,6 +46,11 @@ export function SettingsProvider({ children }: ProviderProps): JSX.Element {
       cancelled = true
     }
   }, [])
+
+  // Apply theme imperatively whenever it changes (after load + on every update).
+  useEffect(() => {
+    applyTheme(settings.theme)
+  }, [settings.theme])
 
   const value = useMemo<SettingsContextValue>(
     () => ({
