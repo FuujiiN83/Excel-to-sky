@@ -396,6 +396,16 @@ registerSubtypeDetector({
   test: (v) => EMAIL_RE.test(v.trim().toLowerCase()),
 })
 
+// ---------- Detector: URL (#27) ----------
+// http(s):// or protocol-less www. prefixes. Trim only — case preserved
+// because URLs are case-insensitive only in the scheme + host.
+const URL_RE = /^(?:https?:\/\/|www\.)[^\s]+$/i
+registerSubtypeDetector({
+  name: 'url',
+  appliesTo: ['text', 'category'],
+  test: (v) => URL_RE.test(v.trim()),
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
