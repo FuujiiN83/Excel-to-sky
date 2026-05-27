@@ -4,6 +4,8 @@ import { useSettings } from '../lib/SettingsContext'
 import type { ChartShape, ChartableType, DateFormat, NumberLocale, Theme } from '../lib/settings'
 import { fmtDate } from '../lib/stats'
 import { HelpTip } from '../components/HelpTip'
+import { confirm } from '../components/ConfirmModal'
+import { pushToast } from '../lib/toast'
 
 const CHARTABLE_TYPES: ReadonlyArray<{ key: ChartableType; label: string; options: ChartShape[] }> =
   [
@@ -29,14 +31,17 @@ interface SettingsPageProps {
 export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
   const { settings, ready, update, reset } = useSettings()
 
-  function onReset(): void {
-    if (
-      typeof window !== 'undefined' &&
-      !window.confirm('¿Restablecer todas las preferencias a sus valores por defecto?')
-    ) {
-      return
-    }
-    void reset()
+  async function onReset(): Promise<void> {
+    const ok = await confirm({
+      title: '¿Restablecer todas las preferencias?',
+      body: 'Tema, formatos, gráficos por defecto y autoanálisis volverán a sus valores originales. Esta acción no se puede deshacer.',
+      confirmLabel: 'Restablecer',
+      cancelLabel: 'Cancelar',
+      destructive: true,
+    })
+    if (!ok) return
+    await reset()
+    pushToast('Preferencias restablecidas.', 'success')
   }
 
   return (
@@ -171,7 +176,7 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
           >
             <button
               type="button"
-              onClick={onReset}
+              onClick={() => void onReset()}
               style={{
                 background: 'transparent',
                 color: 'var(--coral, #F87171)',
