@@ -1,7 +1,154 @@
 import type { ColumnType } from '../types/dataset'
 
-const TRUE_VALUES = new Set(['true', '1', 'sí', 'si', 'yes', 'y', 'verdadero'])
-const FALSE_VALUES = new Set(['false', '0', 'no', 'n', 'falso'])
+// Boolean variants (#33). Covers Spanish, English, Italian, French, German,
+// Portuguese plus check-mark glyphs and the common 0/1 pair. detectBoolean
+// trims + lowercases the input, so the set entries are all lowercase.
+const TRUE_VALUES = new Set([
+  'true',
+  '1',
+  // ES / IT
+  'sí',
+  'si',
+  'verdadero',
+  'verdad',
+  'vero',
+  // EN
+  'yes',
+  'y',
+  't',
+  // FR
+  'oui',
+  'vrai',
+  // DE
+  'ja',
+  'wahr',
+  // PT
+  'sim',
+  // glyphs
+  '✓',
+  '✔',
+])
+const FALSE_VALUES = new Set([
+  'false',
+  '0',
+  // ES / IT
+  'no',
+  'n',
+  'falso',
+  // EN
+  'f',
+  // FR
+  'non',
+  'faux',
+  // DE
+  'nein',
+  'falsch',
+  // PT
+  'não',
+  'nao',
+  // glyphs
+  '✗',
+  '✘',
+  '×',
+])
+
+// Currency symbols stripped during numeric detection (#21). Includes the
+// pre-existing big four (€$£¥) plus krona/koruna (kr), ruble, shekel, won,
+// rupee, real (R$), zloty, franc.
+const CURRENCY_STRIP = /(?:R\$|kr|zł|CHF|CHF\.|[€$£¥₽₪₩₹])/gi
+
+// Header keywords that bias a numeric column toward 'currency' (#36). These
+// are lowercase, accent-folded, and matched as whole-word substrings so a
+// header like 'Ingresos brutos' still triggers but 'precision' does not.
+const MONETARY_HEADER_KEYWORDS = [
+  // ES
+  'precio',
+  'precios',
+  'ingresos',
+  'ingreso',
+  'gasto',
+  'gastos',
+  'coste',
+  'costes',
+  'importe',
+  'importes',
+  'salario',
+  'salarios',
+  'venta',
+  'ventas',
+  'beneficio',
+  'beneficios',
+  'tarifa',
+  'tarifas',
+  'factura',
+  'facturas',
+  'subtotal',
+  'total',
+  // EN
+  'price',
+  'prices',
+  'cost',
+  'costs',
+  'revenue',
+  'income',
+  'expense',
+  'expenses',
+  'salary',
+  'sales',
+  'amount',
+  'amounts',
+  'fee',
+  'fees',
+  'profit',
+  'invoice',
+] as const
+const MONETARY_HEADER_GLYPHS = ['€', '$', '£', '¥', '₽', '₪', '₩', '₹', 'zł'] as const
+
+function foldAccents(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+/**
+ * Sequential-ID detector (#35). Returns true when the *full* column reads as
+ * strictly ascending integers, allowing a tiny tolerance for gaps (sorted
+ * filtering / deleted rows). Operates on the raw column (not the sample) so
+ * we don't falsely flag a sorted subset that happens to look like an ID.
+ */
+function isSequentialIdColumn(rawValues: (string | null | undefined)[]): boolean {
+  const filtered = rawValues.filter((v): v is string => v != null && v !== '')
+  // Need a meaningful sequence — three rows isn't enough to call it.
+  if (filtered.length < 20) return false
+  const ints: number[] = []
+  for (const v of filtered) {
+    const n = detectNumber(v)
+    if (n === null || !Number.isInteger(n)) return false
+    ints.push(n)
+  }
+  // Must be strictly ascending.
+  for (let i = 1; i < ints.length; i++) {
+    if (ints[i] <= ints[i - 1]) return false
+  }
+  // ≥95% of consecutive diffs should be exactly 1; the rest are filtered-out
+  // gaps. Any diff above 100 is a hard reject (probably a real measurement).
+  let ones = 0
+  for (let i = 1; i < ints.length; i++) {
+    const d = ints[i] - ints[i - 1]
+    if (d > 100) return false
+    if (d === 1) ones++
+  }
+  return ones / (ints.length - 1) >= 0.95
+}
+
+function headerSuggestsCurrency(label: string | undefined): boolean {
+  if (!label) return false
+  if (MONETARY_HEADER_GLYPHS.some((g) => label.includes(g))) return true
+  const folded = foldAccents(label.toLowerCase())
+  return MONETARY_HEADER_KEYWORDS.some((kw) => {
+    // Whole-word match: kw bordered by non-alpha chars (or string edges).
+    const re = new RegExp(`(?:^|[^a-z0-9])${kw}(?:[^a-z0-9]|$)`)
+    return re.test(folded)
+  })
+}
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T.*)?$/
 const DMY = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
@@ -19,7 +166,12 @@ export function detectBoolean(raw: string): boolean | null {
 
 export function detectNumber(raw: string): number | null {
   if (!raw) return null
-  let s = raw.trim().replace(/[€$£¥\s]/g, '')
+  // Strip leading/trailing whitespace, currency symbols and thin spaces (NBSP).
+  let s = raw
+    .trim()
+    .replace(CURRENCY_STRIP, '')
+    .replace(/[\s\u00A0]/g, '')
+  if (!s) return null
   const lastComma = s.lastIndexOf(',')
   const lastDot = s.lastIndexOf('.')
   if (lastComma !== -1 && lastDot !== -1) {
@@ -61,8 +213,11 @@ function sample<T>(values: T[], max = 200): T[] {
   return [...head, ...tail]
 }
 
-export function inferColumnType(rawValues: (string | null | undefined)[]): ColumnType {
-  return inferColumnTypeDetailed(rawValues).type
+export function inferColumnType(
+  rawValues: (string | null | undefined)[],
+  headerLabel?: string,
+): ColumnType {
+  return inferColumnTypeDetailed(rawValues, headerLabel).type
 }
 
 /** Same detection as inferColumnType, but with diagnostics for #17 mixed-type warnings. */
@@ -81,6 +236,7 @@ const MIXED_PRIMARY_THRESHOLD = 0.95
 
 export function inferColumnTypeDetailed(
   rawValues: (string | null | undefined)[],
+  headerLabel?: string,
 ): DetailedInference {
   const filtered = rawValues.filter((v): v is string => v != null && v !== '')
   const sampled = sample(filtered)
@@ -109,8 +265,20 @@ export function inferColumnTypeDetailed(
     type = 'date'
     confidence = ratios.date
   } else if (ratios.number >= THRESHOLD) {
-    type = 'number'
-    confidence = ratios.number
+    // Sequential-ID detection (#35): a column of strictly ascending integers
+    // is an identifier, not a measurement. Demote to 'category' so the
+    // dashboard skips the histogram + mean / median stats that would
+    // otherwise pollute the page with meaningless aggregates.
+    if (isSequentialIdColumn(rawValues)) {
+      type = 'category'
+      confidence = ratios.number
+    } else {
+      // Header-based currency bias (#36): a column of numbers whose label
+      // suggests money ('Precio', 'Total', '€', 'Cost'…) is reclassified as
+      // 'currency' so downstream stats render it with currency formatting.
+      type = headerSuggestsCurrency(headerLabel) ? 'currency' : 'number'
+      confidence = ratios.number
+    }
   } else {
     const unique = new Set(sampled).size
     if (total >= CATEGORY_MIN_ROWS && unique / total < CATEGORY_MAX_RATIO) {

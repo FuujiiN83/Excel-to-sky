@@ -117,6 +117,13 @@ export default function App(): JSX.Element {
     setHasUploaded(true)
   }
 
+  function updateColumn(columnKey: string, patch: Partial<Dataset['columns'][number]>): void {
+    setDataset((prev) => ({
+      ...prev,
+      columns: prev.columns.map((c) => (c.key === columnKey ? { ...c, ...patch } : c)),
+    }))
+  }
+
   // Pathname-based initial route (e.g. /app, /faq, /privacy, /terms). /d/<slug>
   // is handled by the dedicated effect below.
   useEffect(() => {
@@ -297,6 +304,7 @@ export default function App(): JSX.Element {
                   columnKey={route.columnKey}
                   onPickColumn={(k) => nav('detail', { columnKey: k })}
                   onBack={() => nav('dashboard')}
+                  onUpdateColumn={updateColumn}
                 />
               )}
               {route.name === 'compare' && (
