@@ -55,3 +55,23 @@ textarea:focus-visible,
   to   { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
 }
 .ee-fade-in { animation: ee-fade-up 600ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+
+/* Reduced-motion: collapse every animation and transition to ~instant,
+ * disable smooth scroll, and pin the entrance fade-in. Specific component
+ * overrides (e.g. the hero demo loop) layer their own rules on top of this. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ee-fade-in {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
