@@ -27,6 +27,36 @@ button {
   cursor: pointer;
 }
 
+/* Loading skeleton (#248). Two-stop linear gradient swept across the element
+ * via animation; the base colour is the surface so the placeholder visually
+ * belongs to the card it lives in. */
+@keyframes ee-skeleton-shimmer {
+  from {
+    background-position: -120% 0;
+  }
+  to {
+    background-position: 120% 0;
+  }
+}
+.ets-skeleton {
+  background-color: rgba(255, 255, 255, 0.04);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 240% 100%;
+  background-repeat: no-repeat;
+  animation: ee-skeleton-shimmer 1500ms linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ets-skeleton {
+    animation: none;
+    background-image: none;
+  }
+}
+
 /* Large-text mode (#172). Scales the whole viewport up via `zoom`, which is
  * the simplest cross-browser way to bump font sizes without auditing every
  * px-based inline style in the app. Supported in evergreen Chrome/Edge/Safari
