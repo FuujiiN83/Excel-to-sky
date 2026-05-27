@@ -30,26 +30,41 @@ function pickAccent(col: Column): Accent {
 export function DashboardPage(props: DashboardPageProps): JSX.Element {
   const { dataset, onColumnClick, onCompare, onShare, isPublic } = props
 
-  const numCols = dataset.columns.filter((c) => c.type === 'number' || c.type === 'currency')
-  const catCols = dataset.columns.filter((c) => c.type === 'category' || c.type === 'text')
-  const dateCols = dataset.columns.filter((c) => c.type === 'date')
+  // Group columns by type. Cached by dataset identity so we don't re-walk all
+  // columns on every render (e.g. when an unrelated prop changes upstream).
+  const { numCols, catCols, dateCols } = useMemo(
+    () => ({
+      numCols: dataset.columns.filter((c) => c.type === 'number' || c.type === 'currency'),
+      catCols: dataset.columns.filter((c) => c.type === 'category' || c.type === 'text'),
+      dateCols: dataset.columns.filter((c) => c.type === 'date'),
+    }),
+    [dataset],
+  )
 
   const analyses = useMemo(
     () => dataset.columns.map((c) => ({ col: c, analysis: analyzeColumn(dataset, c.key) })),
     [dataset],
   )
 
+  // Index analyses by column key so per-column lookups inside the JSX become
+  // O(1) instead of an Array.find walk over every column on every render.
+  const analysisByKey = useMemo(() => {
+    const map = new Map<string, (typeof analyses)[number]['analysis']>()
+    for (const entry of analyses) map.set(entry.col.key, entry.analysis)
+    return map
+  }, [analyses])
+
   const geoCol = useMemo(() => {
     for (const c of dataset.columns) {
       if (c.type !== 'category' && c.type !== 'geo' && c.type !== 'text') continue
-      const a = analyses.find((x) => x.col.key === c.key)?.analysis
+      const a = analysisByKey.get(c.key)
       if (!a?.top || a.top.length === 0) continue
       if (a.top.every((t) => hasGeoCoords(t.key))) return c
     }
     return null
-  }, [dataset, analyses])
+  }, [dataset, analysisByKey])
 
-  const geoAnalysis = geoCol ? analyses.find((x) => x.col.key === geoCol.key)?.analysis : null
+  const geoAnalysis = geoCol ? (analysisByKey.get(geoCol.key) ?? null) : null
 
   return (
     <div style={{ padding: '32px 28px 60px', maxWidth: 1400, margin: '0 auto' }}>

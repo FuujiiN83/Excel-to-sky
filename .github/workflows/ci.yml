@@ -39,6 +39,9 @@ jobs:
       - name: Production build
         run: npm run build
 
+      - name: Bundle size budget
+        run: npm run bundle:check
+
       - name: Upload dist as artifact
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
