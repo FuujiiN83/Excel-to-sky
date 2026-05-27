@@ -308,6 +308,7 @@ function CategoryDetail({ analysis, accent, isGeo }: CategoryDetailProps): JSX.E
               bars={top.map((t) => ({ label: t.key, value: t.count }))}
               accent={accent}
               orientation="horizontal"
+              showSort
             />
           )}
         </Card>
