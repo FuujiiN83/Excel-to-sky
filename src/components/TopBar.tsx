@@ -1,4 +1,5 @@
 import type { Dataset } from '../types/dataset'
+import { useT } from '../lib/i18n/useT'
 
 interface TopBarProps {
   current: string | null
@@ -10,14 +11,19 @@ interface TopBarProps {
 
 interface NavItem {
   id: string
-  label: string
+  /** i18n key resolved via useT at render time. */
+  labelKey:
+    | 'topbar.nav.dashboard'
+    | 'topbar.nav.compare'
+    | 'topbar.nav.columns'
+    | 'topbar.nav.share'
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'compare', label: 'Comparar' },
-  { id: 'detail', label: 'Columnas' },
-  { id: 'share', label: 'Compartir' },
+  { id: 'dashboard', labelKey: 'topbar.nav.dashboard' },
+  { id: 'compare', labelKey: 'topbar.nav.compare' },
+  { id: 'detail', labelKey: 'topbar.nav.columns' },
+  { id: 'share', labelKey: 'topbar.nav.share' },
 ]
 
 function Logo({ size = 26 }: { size?: number }): JSX.Element {
@@ -71,6 +77,7 @@ function Logo({ size = 26 }: { size?: number }): JSX.Element {
 
 export function TopBar(props: TopBarProps): JSX.Element {
   const { current, onNav, dataset, hideNav, onShare } = props
+  const t = useT()
 
   return (
     <header
@@ -109,7 +116,7 @@ export function TopBar(props: TopBarProps): JSX.Element {
                     transitionDuration: '150ms',
                   }}
                 >
-                  {it.label}
+                  {t(it.labelKey)}
                 </button>
               )
             })}
@@ -168,7 +175,7 @@ export function TopBar(props: TopBarProps): JSX.Element {
               <polyline points="16 6 12 2 8 6" />
               <line x1="12" y1="2" x2="12" y2="15" />
             </svg>
-            Compartir
+            {t('topbar.share')}
           </button>
         )}
       </div>

@@ -1,7 +1,15 @@
 import type { ReactNode } from 'react'
 import { LegalLayout } from './LegalLayout'
 import { useSettings } from '../lib/SettingsContext'
-import type { ChartShape, ChartableType, DateFormat, NumberLocale, Theme } from '../lib/settings'
+import type {
+  ChartShape,
+  ChartableType,
+  DateFormat,
+  NumberLocale,
+  Theme,
+  UiLocale,
+} from '../lib/settings'
+import { UI_LOCALES } from '../lib/i18n'
 import { fmtDate } from '../lib/stats'
 import { HelpTip } from '../components/HelpTip'
 import { confirm } from '../components/ConfirmModal'
@@ -56,6 +64,17 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
         <p style={{ color: 'var(--muted)', marginTop: 24 }}>Cargando…</p>
       ) : (
         <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 28 }}>
+          <SettingsRow
+            label="Idioma de la interfaz"
+            description="Cambia el idioma de la app y de los insights estadísticos. La traducción cubre las superficies principales; algunas vistas legales y mensajes técnicos siguen en castellano por ahora."
+          >
+            <SelectControl<UiLocale>
+              value={settings.uiLocale}
+              onChange={(v) => update('uiLocale', v)}
+              options={UI_LOCALES.map((l) => ({ value: l.code, label: l.label }))}
+            />
+          </SettingsRow>
+
           <SettingsRow
             label="Tema"
             description="Paleta visual de la aplicación. El alto contraste también se activa automáticamente si tu sistema operativo lo pide."
