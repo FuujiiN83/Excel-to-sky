@@ -1,27 +1,46 @@
 import { useMemo } from 'react'
-import type { Accent, Column, Dataset } from '../types/dataset'
+import type { Accent, Column, ColumnType, Dataset } from '../types/dataset'
 import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import type { ColumnAnalysis } from '../lib/stats'
 import { StatCard } from '../components/StatCard'
 import { ChartBar } from '../components/ChartBar'
 import { ChartLine } from '../components/ChartLine'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
+import { pushToast } from '../lib/toast'
 
 interface ColumnDetailPageProps {
   dataset: Dataset
   columnKey: string
   onPickColumn: (key: string) => void
   onBack: () => void
+  /** Optional setter from the parent that lets the user override a column type (#34). */
+  onUpdateColumn?: (columnKey: string, patch: Partial<Column>) => void
 }
+
+const OVERRIDABLE_TYPES: ReadonlyArray<{ value: ColumnType; label: string }> = [
+  { value: 'number', label: 'Número' },
+  { value: 'currency', label: 'Moneda' },
+  { value: 'date', label: 'Fecha' },
+  { value: 'category', label: 'Categoría' },
+  { value: 'text', label: 'Texto' },
+  { value: 'geo', label: 'Geográfico' },
+  { value: 'boolean', label: 'Booleano' },
+]
 
 function pickAccent(col: Column): Accent {
   return col.color || 'sky'
 }
 
 export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
-  const { dataset, columnKey, onPickColumn, onBack } = props
+  const { dataset, columnKey, onPickColumn, onBack, onUpdateColumn } = props
   const col = dataset.columns.find((c) => c.key === columnKey) || dataset.columns[0]
   const analysis = useMemo(() => analyzeColumn(dataset, col.key), [dataset, col.key])
+
+  function applyOverride(newType: ColumnType): void {
+    if (!onUpdateColumn || newType === col.type) return
+    onUpdateColumn(col.key, { type: newType })
+    pushToast(`Tipo de "${col.label}" cambiado a ${newType}.`, 'success', 3000)
+  }
 
   const isNum = col.type === 'number' || col.type === 'currency'
   const isDate = col.type === 'date'
@@ -85,46 +104,89 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
       </div>
 
       {/* Title */}
-      <div className="flex items-center" style={{ gap: 16, marginBottom: 28 }}>
-        <div
-          className="grid place-items-center font-display"
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 0,
-            background: `var(--${accent}-soft)`,
-            color: `var(--${accent})`,
-            fontWeight: 700,
-            fontSize: 18,
-          }}
-        >
-          {isNum ? '#' : isDate ? '⌛' : 'Aa'}
-        </div>
-        <div>
+      <div
+        className="flex items-center justify-between"
+        style={{ gap: 16, marginBottom: 28, flexWrap: 'wrap' }}
+      >
+        <div className="flex items-center" style={{ gap: 16 }}>
           <div
-            className="text-muted"
+            className="grid place-items-center font-display"
             style={{
-              fontSize: 11,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-            }}
-          >
-            Columna · {col.type}
-            {col.unit && ` · en ${col.unit}`}
-          </div>
-          <h1
-            className="font-display"
-            style={{
-              fontSize: 'clamp(26px, 2.8vw, 38px)',
+              width: 40,
+              height: 40,
+              borderRadius: 0,
+              background: `var(--${accent}-soft)`,
+              color: `var(--${accent})`,
               fontWeight: 700,
-              letterSpacing: '-0.03em',
-              margin: '4px 0 0',
+              fontSize: 18,
             }}
           >
-            {col.label}
-          </h1>
+            {isNum ? '#' : isDate ? '⌛' : 'Aa'}
+          </div>
+          <div>
+            <div
+              className="text-muted"
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+              }}
+            >
+              Columna · {col.type}
+              {col.unit && ` · en ${col.unit}`}
+            </div>
+            <h1
+              className="font-display"
+              style={{
+                fontSize: 'clamp(26px, 2.8vw, 38px)',
+                fontWeight: 700,
+                letterSpacing: '-0.03em',
+                margin: '4px 0 0',
+              }}
+            >
+              {col.label}
+            </h1>
+          </div>
         </div>
+        {onUpdateColumn && (
+          <label
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: 11,
+              color: 'var(--muted)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              fontFamily: 'var(--font-mono, monospace)',
+            }}
+          >
+            <span>Tipo</span>
+            <select
+              value={col.type}
+              onChange={(e) => applyOverride(e.target.value as ColumnType)}
+              aria-label={`Cambiar tipo de columna "${col.label}"`}
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border-strong)',
+                color: 'var(--ink)',
+                padding: '6px 10px',
+                fontSize: 12,
+                fontFamily: 'inherit',
+                letterSpacing: 'normal',
+                textTransform: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {OVERRIDABLE_TYPES.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
       {isNum && <NumberDetail analysis={analysis} col={col} accent={accent} />}
