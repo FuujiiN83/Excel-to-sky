@@ -386,6 +386,16 @@ registerSubtypeDetector({
   },
 })
 
+// ---------- Detector: email address (#26) ----------
+// Pragmatic RFC-ish check: at least one char, @, domain with a dot, no
+// whitespace. Lowercased before matching so 'John@Example.com' is detected.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+registerSubtypeDetector({
+  name: 'email',
+  appliesTo: ['text', 'category'],
+  test: (v) => EMAIL_RE.test(v.trim().toLowerCase()),
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
