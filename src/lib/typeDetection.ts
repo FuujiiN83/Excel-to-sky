@@ -451,6 +451,33 @@ registerSubtypeDetector({
   test: (v) => UUID_RE.test(v.trim()),
 })
 
+// ---------- Detector: Spanish DNI / NIE (#37) ----------
+// DNI: 8 digits + checksum letter. NIE: X/Y/Z + 7 digits + checksum letter
+// (X=0, Y=1, Z=2 prefix for the modulo calculation). The letter is the
+// lookup of (num % 23) in 'TRWAGMYFPDXBNJZSQVHLCKE'.
+const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE'
+const DNI_RE = /^(\d{8})([A-Z])$/
+const NIE_RE = /^([XYZ])(\d{7})([A-Z])$/
+registerSubtypeDetector({
+  name: 'dni-nie',
+  appliesTo: ['text', 'category'],
+  test: (v) => {
+    const s = v.trim().toUpperCase()
+    const dni = DNI_RE.exec(s)
+    if (dni) {
+      const num = Number(dni[1])
+      return DNI_LETTERS[num % 23] === dni[2]
+    }
+    const nie = NIE_RE.exec(s)
+    if (nie) {
+      const prefix = { X: '0', Y: '1', Z: '2' }[nie[1] as 'X' | 'Y' | 'Z']
+      const num = Number(prefix + nie[2])
+      return DNI_LETTERS[num % 23] === nie[3]
+    }
+    return false
+  },
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
