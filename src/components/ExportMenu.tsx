@@ -7,10 +7,15 @@ interface ExportMenuProps {
   dataset: Dataset
 }
 
-const FORMATS: ReadonlyArray<{ value: ExportFormat; label: string; sub: string }> = [
-  { value: 'csv', label: 'CSV', sub: 'separado por comas, RFC 4180' },
-  { value: 'json', label: 'JSON', sub: 'objetos por fila, listado completo' },
-  { value: 'xlsx', label: 'XLSX', sub: 'Excel moderno (recomendado)' },
+type MenuOption =
+  | { kind: 'export'; value: ExportFormat; label: string; sub: string }
+  | { kind: 'pdf'; label: string; sub: string }
+
+const FORMATS: ReadonlyArray<MenuOption> = [
+  { kind: 'export', value: 'csv', label: 'CSV', sub: 'separado por comas, RFC 4180' },
+  { kind: 'export', value: 'json', label: 'JSON', sub: 'objetos por fila, listado completo' },
+  { kind: 'export', value: 'xlsx', label: 'XLSX', sub: 'Excel moderno (recomendado)' },
+  { kind: 'pdf', label: 'PDF (imprimir)', sub: 'usa el cuadro de diálogo del navegador' },
 ]
 
 /**
@@ -47,6 +52,13 @@ export function ExportMenu({ dataset }: ExportMenuProps): JSX.Element {
       const msg = err instanceof Error ? err.message : 'No se pudo exportar.'
       pushToast(msg, 'error', 5000)
     }
+  }
+
+  function printPdf(): void {
+    setOpen(false)
+    // The print stylesheet from #54 already strips dock/overlays. Just kick
+    // off the browser dialog; the user picks 'Save as PDF' from there.
+    window.print()
   }
 
   return (
@@ -93,10 +105,10 @@ export function ExportMenu({ dataset }: ExportMenuProps): JSX.Element {
         >
           {FORMATS.map((f) => (
             <button
-              key={f.value}
+              key={f.kind === 'export' ? f.value : 'pdf'}
               role="menuitem"
               type="button"
-              onClick={() => void pick(f.value)}
+              onClick={() => (f.kind === 'export' ? void pick(f.value) : printPdf())}
               style={{
                 background: 'transparent',
                 border: 'none',

@@ -87,6 +87,7 @@ type RouteName =
   | 'compare'
   | 'share'
   | 'public'
+  | 'embed'
   | 'landing'
   | 'faq'
   | 'privacy'
@@ -137,22 +138,26 @@ export default function App(): JSX.Element {
     else if (path === '/dev/insights') setRoute({ name: 'dev_insights' })
   }, [])
 
-  // Detect /d/<slug> URL on mount and load the shared dashboard from Supabase.
+  // Detect /d/<slug> or /embed/<slug> URLs on mount and load from Supabase.
+  // The embed variant strips chrome (#158) — same data, no FloatingDock /
+  // PrivacyBadge / Cookie banner so it can be iframed cleanly.
   useEffect(() => {
-    const match = /^\/d\/([A-Za-z0-9]{12})$/.exec(window.location.pathname)
-    if (!match) return
+    const path = window.location.pathname
+    const slugMatch = /^\/(d|embed)\/([A-Za-z0-9]{12})$/.exec(path)
+    if (!slugMatch) return
     if (!isSupabaseConfigured()) {
       console.warn('Slug detectado pero Supabase no configurado')
       return
     }
-    const slug = match[1]
+    const isEmbed = slugMatch[1] === 'embed'
+    const slug = slugMatch[2]
     void loadSharedDashboard(slug)
       .then(async (ds) => {
         await saveLocalDashboard({ slug, name: ds.label, deleteToken: '', owner: 'visited' })
         await touchLocalDashboard(slug)
         setDataset(ds)
         setHasUploaded(true)
-        setRoute({ name: 'public' })
+        setRoute({ name: isEmbed ? 'embed' : 'public' })
       })
       .catch((err) => {
         console.error(err)
@@ -206,6 +211,22 @@ export default function App(): JSX.Element {
 
   const isUpload = route.name === 'upload'
   const isPublic = route.name === 'public'
+  const isEmbed = route.name === 'embed'
+
+  // Embed mode (#158) — minimal-chrome view for iframed dashboards. Skip the
+  // standalone path AND every floating helper (banner, badge, toaster) so the
+  // host page is responsible for its own UI.
+  if (isEmbed) {
+    return (
+      <div style={{ minHeight: '100vh' }}>
+        <main id="main-content">
+          <Suspense fallback={<RouteFallback />}>
+            <PublicViewPage dataset={dataset} onColumnClick={() => {}} onExit={() => {}} />
+          </Suspense>
+        </main>
+      </div>
+    )
+  }
   const isStandalone =
     route.name === 'landing' ||
     route.name === 'faq' ||

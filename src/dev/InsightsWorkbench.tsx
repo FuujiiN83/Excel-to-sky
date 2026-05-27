@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { SAMPLE_DATASETS } from '../samples'
 import { analyzeDataset, type InsightReport } from '../lib/insights'
+import { insightsToMarkdown } from '../lib/insights/markdown'
+import { pushToast } from '../lib/toast'
 import type { Dataset } from '../types/dataset'
 
 export function InsightsWorkbench(): JSX.Element {
@@ -65,6 +67,59 @@ export function InsightsWorkbench(): JSX.Element {
 
       {busy && <p style={{ color: 'var(--muted)' }}>Analizando…</p>}
       {error && <p style={{ color: 'var(--coral)' }}>{error}</p>}
+      {report && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+          <button
+            type="button"
+            onClick={() => {
+              const md = insightsToMarkdown(report, SAMPLE_DATASETS[selected].label)
+              void navigator.clipboard.writeText(md)
+              pushToast('Markdown del informe copiado al portapapeles.', 'success', 3000)
+            }}
+            style={{
+              background: 'var(--ink)',
+              color: 'var(--bg)',
+              border: 'none',
+              padding: '8px 14px',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Copiar como Markdown
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const md = insightsToMarkdown(report, SAMPLE_DATASETS[selected].label)
+              const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `insights-${SAMPLE_DATASETS[selected].label}.md`
+              document.body.appendChild(a)
+              a.click()
+              document.body.removeChild(a)
+              setTimeout(() => URL.revokeObjectURL(url), 1000)
+              pushToast('Informe descargado como .md', 'success', 3000)
+            }}
+            style={{
+              background: 'transparent',
+              color: 'var(--ink-2)',
+              border: '1px solid var(--border-strong)',
+              padding: '8px 14px',
+              fontSize: 12,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Descargar .md
+          </button>
+        </div>
+      )}
       {report && (
         <>
           <Section title="Summary">
