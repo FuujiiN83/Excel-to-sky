@@ -7,6 +7,7 @@ import {
   type Settings,
   type Theme,
 } from './settings'
+import { setNumberLocale } from './stats'
 
 /** Removes existing theme classes and adds the one for the active theme. */
 function applyTheme(theme: Theme): void {
@@ -51,6 +52,11 @@ export function SettingsProvider({ children }: ProviderProps): JSX.Element {
   useEffect(() => {
     applyTheme(settings.theme)
   }, [settings.theme])
+
+  // Pipe the locale into the stats module so every fmt* helper picks it up.
+  useEffect(() => {
+    setNumberLocale(settings.numberLocale)
+  }, [settings.numberLocale])
 
   const value = useMemo<SettingsContextValue>(
     () => ({

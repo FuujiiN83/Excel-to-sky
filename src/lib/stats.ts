@@ -2,14 +2,25 @@ import type { CellValue, ColumnType, Dataset } from '../types/dataset'
 
 // ---------- Formatting helpers ----------
 
+/**
+ * Module-level locale used by every fmt* helper. SettingsContext keeps it in
+ * sync with the persisted user preference via setNumberLocale below. Default
+ * is es-ES to preserve historical behaviour when settings haven't loaded yet.
+ */
+let activeNumberLocale = 'es-ES'
+
+export function setNumberLocale(locale: string): void {
+  activeNumberLocale = locale
+}
+
 export function fmtNumber(n: unknown): string {
   if (n === undefined || n === null) return '—'
   if (typeof n !== 'number') return String(n)
   if (Number.isNaN(n)) return '—'
   if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0', '') + 'M'
   if (Math.abs(n) >= 10_000) return (n / 1_000).toFixed(1).replace('.0', '') + 'k'
-  if (Number.isInteger(n)) return n.toLocaleString('es-ES')
-  return n.toLocaleString('es-ES', { maximumFractionDigits: 1 })
+  if (Number.isInteger(n)) return n.toLocaleString(activeNumberLocale)
+  return n.toLocaleString(activeNumberLocale, { maximumFractionDigits: 1 })
 }
 
 export function fmtUnit(n: unknown, unit?: string): string {
@@ -148,7 +159,12 @@ export function analyzeColumn(dataset: Dataset, columnKey: string): ColumnAnalys
     return out
   }
 
-  if (col.type === 'category' || col.type === 'text' || col.type === 'geo' || col.type === 'boolean') {
+  if (
+    col.type === 'category' ||
+    col.type === 'text' ||
+    col.type === 'geo' ||
+    col.type === 'boolean'
+  ) {
     const freq: Record<string, number> = {}
     values.forEach((v) => {
       const key = String(v)
@@ -158,7 +174,10 @@ export function analyzeColumn(dataset: Dataset, columnKey: string): ColumnAnalys
     if (sorted.length === 0) return out
     out.distinct = sorted.length
     out.top = sorted.slice(0, 8).map(([key, count]) => ({ key, count }))
-    out.bottom = sorted.slice(-3).reverse().map(([key, count]) => ({ key, count }))
+    out.bottom = sorted
+      .slice(-3)
+      .reverse()
+      .map(([key, count]) => ({ key, count }))
     out.mode = sorted[0][0]
     out.modeCount = sorted[0][1]
     const last = sorted[sorted.length - 1]
@@ -205,7 +224,7 @@ export interface GroupAggregate {
 export function groupAggregate(
   dataset: Dataset,
   groupKey: string,
-  metricKey: string
+  metricKey: string,
 ): GroupAggregate[] {
   const map: Record<string, number[]> = {}
   for (const row of dataset.rows) {
@@ -226,15 +245,13 @@ export function groupAggregate(
 }
 
 export function coerceNumbers(dataset: Dataset, key: string): number[] {
-  return dataset.rows
-    .map((r) => toNumber(r[key]))
-    .filter((n) => !Number.isNaN(n))
+  return dataset.rows.map((r) => toNumber(r[key])).filter((n) => !Number.isNaN(n))
 }
 
 export function coercePairs(
   dataset: Dataset,
   xKey: string,
-  yKey: string
+  yKey: string,
 ): { x: number; y: number }[] {
   const out: { x: number; y: number }[] = []
   for (const row of dataset.rows) {
