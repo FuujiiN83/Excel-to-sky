@@ -88,6 +88,9 @@ function runParseWorker(
         if (e.data.warnings && e.data.warnings.length > 0) {
           surfaceColumnWarnings(e.data.warnings)
         }
+        if (e.data.mojibakeFixCount && e.data.mojibakeFixCount > 0) {
+          surfaceMojibakeWarning(e.data.mojibakeFixCount)
+        }
         resolve({
           dataset: e.data.dataset,
           meta: { sheetNames: e.data.sheetNames, sheetIndex: e.data.sheetIndex },
@@ -112,6 +115,20 @@ function runParseWorker(
       )
     }
     worker.postMessage({ fileBuffer: buffer, fileName, sheetIndex }, [buffer])
+  })
+}
+
+function surfaceMojibakeWarning(count: number): void {
+  pushToast(
+    `Detectados ${count} valores con codificación mal interpretada (probablemente UTF-8 leído como Latin-1). Hemos intentado restaurarlos automáticamente, pero revisa columnas con acentos y eñes por si quedan glifos raros.`,
+    'info',
+    8000,
+  )
+  void logError({
+    level: 'info',
+    context: 'parser',
+    message: `Mojibake recoveries: ${count}`,
+    meta: { phase: 'type-detect', mojibakeFixCount: count },
   })
 }
 

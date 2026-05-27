@@ -83,6 +83,12 @@ export interface ParseSuccess {
   sheetNames?: string[]
   /** Zero-based index of the sheet that was actually parsed. */
   sheetIndex: number
+  /**
+   * Number of cells (header + body) where mojibake recovery actually fired.
+   * Surfaced so the UI can warn the user when the source file is heavily
+   * mis-encoded — even after recovery, some glyphs may still be wrong (#19).
+   */
+  mojibakeFixCount?: number
 }
 export type ParsePhase = 'read' | 'sheet' | 'header' | 'row' | 'type-detect'
 export interface ParseError {
@@ -98,13 +104,18 @@ export interface ParseError {
 export type ParseResponse = ParseSuccess | ParseError
 
 // Detect strings whose bytes look like UTF-8 misinterpreted as Latin-1
-// (e.g. "DuraciÃ³n" should be "Duración"). Re-decode when matched.
+// (e.g. "DuraciÃ³n" should be "Duración"). Re-decode when matched. The
+// counter is incremented on every successful fix so the worker can surface
+// a "your file is mis-encoded" hint to the UI (#19).
 const MOJIBAKE_RE = /[\u00C2\u00C3][\u0080-\u00BF]/
+let mojibakeFixCount = 0
 function fixMojibake(s: string): string {
   if (!MOJIBAKE_RE.test(s)) return s
   try {
     const bytes = Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff)
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    const fixed = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    mojibakeFixCount++
+    return fixed
   } catch {
     return s
   }
@@ -231,6 +242,9 @@ function expandMergedCells(sheet: XLSX.WorkSheet): void {
 }
 
 self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
+  // Reset the per-parse counter so a previous job's fixes don't leak into
+  // the next one when the worker is re-used.
+  mojibakeFixCount = 0
   const { fileBuffer, fileName, sheetIndex: requestedIndex = 0 } = event.data
 
   // CSV / TSV / TXT files get a pre-decode pass so we can recover from
@@ -465,5 +479,6 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     warnings: warnings.length > 0 ? warnings : undefined,
     sheetNames: sheetNames.length > 1 ? sheetNames : undefined,
     sheetIndex,
+    mojibakeFixCount: mojibakeFixCount > 0 ? mojibakeFixCount : undefined,
   })
 })
