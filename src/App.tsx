@@ -15,6 +15,7 @@ import { LandingPage } from './pages/LandingPage'
 import { FaqPage } from './pages/FaqPage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { TermsPage } from './pages/TermsPage'
+import { BugReportPage } from './pages/BugReportPage'
 import { loadSharedDashboard } from './lib/shareApi'
 import { saveLocalDashboard, touchLocalDashboard } from './lib/localDb'
 import { isSupabaseConfigured } from './lib/supabase'
@@ -32,6 +33,7 @@ type RouteName =
   | 'faq'
   | 'privacy'
   | 'terms'
+  | 'report'
   | 'dev_insights'
 
 interface Route {
@@ -62,6 +64,7 @@ export default function App(): JSX.Element {
     else if (path === '/faq') setRoute({ name: 'faq' })
     else if (path === '/privacy') setRoute({ name: 'privacy' })
     else if (path === '/terms') setRoute({ name: 'terms' })
+    else if (path === '/report') setRoute({ name: 'report' })
     else if (path === '/dev/insights') setRoute({ name: 'dev_insights' })
   }, [])
 
@@ -117,6 +120,7 @@ export default function App(): JSX.Element {
     route.name === 'faq' ||
     route.name === 'privacy' ||
     route.name === 'terms' ||
+    route.name === 'report' ||
     route.name === 'dev_insights'
 
   if (isStandalone) {
@@ -126,6 +130,7 @@ export default function App(): JSX.Element {
         {route.name === 'faq' && <FaqPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'privacy' && <PrivacyPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'terms' && <TermsPage onNav={(n) => nav(n as RouteName)} />}
+        {route.name === 'report' && <BugReportPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'dev_insights' && <InsightsWorkbench />}
         <CookieBanner onLearnMore={() => nav('privacy')} />
         <NetworkErrorBanner />
