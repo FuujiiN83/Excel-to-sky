@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react'
 import type { Accent } from '../types/dataset'
 
 // Scale value font-size down for long string values so they don't overflow the card.
-function valueFontSize(value: string | number): string {
-  const len = String(value).length
+function valueFontSize(value: string | number | ReactNode): string {
+  const len = typeof value === 'string' || typeof value === 'number' ? String(value).length : 6
   if (len <= 4) return 'clamp(30px, 3vw, 42px)'
   if (len <= 8) return 'clamp(24px, 2.4vw, 32px)'
   if (len <= 14) return 'clamp(18px, 1.7vw, 24px)'
@@ -12,7 +13,11 @@ function valueFontSize(value: string | number): string {
 
 interface StatCardProps {
   label: string
-  value: string | number
+  /**
+   * The displayed value. Accepts a string/number for plain rendering or any
+   * ReactNode (e.g. <AnimatedNumber />) for richer presentations.
+   */
+  value: string | number | ReactNode
   accent?: Accent
   caption?: string
   /** Show solid soft-accent background (legacy "accent" flag on GiantStat). */
@@ -102,7 +107,9 @@ export function StatCard({
           {value}
         </div>
         {caption && (
-          <div style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.01em' }}>{caption}</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.01em' }}>
+            {caption}
+          </div>
         )}
       </div>
     </div>
