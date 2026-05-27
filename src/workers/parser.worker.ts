@@ -90,9 +90,18 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     return
   }
 
-  let rawRows: Record<string, unknown>[]
+  // Read the sheet as a grid of rows (#18). header:1 returns array-of-arrays
+  // where the first sub-array is the header row in physical column order.
+  // This makes the column order guarantee structural — we no longer rely on
+  // Object.keys() insertion order behaviour of sheet_to_json's object mode.
+  let grid: unknown[][]
   try {
-    rawRows = XLSX.utils.sheet_to_json(sheet, { defval: null, raw: false })
+    grid = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+      header: 1,
+      defval: null,
+      raw: false,
+      blankrows: false,
+    })
   } catch (err) {
     post({
       ok: false,
@@ -102,7 +111,20 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     return
   }
 
-  if (rawRows.length === 0) {
+  if (grid.length === 0) {
+    post({
+      ok: false,
+      phase: 'row',
+      row: 1,
+      error: `La hoja "${sheetName}" está vacía.`,
+    })
+    return
+  }
+
+  const headerRow = grid[0]
+  const dataRows = grid.slice(1)
+
+  if (dataRows.length === 0) {
     post({
       ok: false,
       phase: 'row',
@@ -112,11 +134,15 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     return
   }
 
-  const rawHeaders = Object.keys(rawRows[0])
+  // Normalise headers in column order. Mojibake fix + trim are applied here
+  // (#16), and we capture the raw form for error messages.
+  const rawHeaders: string[] = headerRow.map((h) => (h == null ? '' : String(h)))
+  const headers = rawHeaders.map((h) => fixMojibake(h).trim())
+
   // Header validation: empty or duplicate names are surfaced with the actual Excel column letter.
   const seenHeaders = new Set<string>()
-  for (let i = 0; i < rawHeaders.length; i++) {
-    const h = rawHeaders[i].trim()
+  for (let i = 0; i < headers.length; i++) {
+    const h = headers[i]
     if (h === '') {
       post({
         ok: false,
@@ -140,19 +166,13 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     seenHeaders.add(h)
   }
 
-  // Header labels: fix mojibake and trim leading/trailing whitespace.
-  // Empty headers were already rejected above; trim catches stray spaces that
-  // sneak past Excel's own UI (e.g. " Nombre " vs "Nombre ").
-  const headers = rawHeaders.map((h) => fixMojibake(h).trim())
+  // Type-detect: read each column by index out of the row grid.
   let columns: Column[]
   try {
     columns = headers.map((h, i) => {
-      const values = rawRows.map((r) => {
-        const v = r[rawHeaders[i]]
+      const values = dataRows.map((row) => {
+        const v = row[i]
         if (v == null) return null
-        // Trim string cell values (#16) — '  foo  ' and 'foo' should be the
-        // same value for type detection, distinct counts and dedup. Numbers
-        // and booleans are passed through untouched.
         return typeof v === 'string' ? fixMojibake(v).trim() : fixMojibake(String(v)).trim()
       })
       return {
@@ -172,27 +192,26 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   }
 
   const rows: Record<string, CellValue>[] = []
-  for (let r = 0; r < rawRows.length; r++) {
+  for (let r = 0; r < dataRows.length; r++) {
     try {
-      const raw = rawRows[r]
+      const raw = dataRows[r]
       const obj: Record<string, CellValue> = {}
-      rawHeaders.forEach((h, i) => {
-        const v = raw[h]
+      for (let i = 0; i < headers.length; i++) {
+        const v = raw[i]
         if (v == null) {
           obj[`col_${i}`] = null
         } else if (typeof v === 'number' || typeof v === 'boolean') {
           obj[`col_${i}`] = v
         } else {
-          // Same trim as during type-detection so the stored values match.
           obj[`col_${i}`] = fixMojibake(String(v)).trim()
         }
-      })
+      }
       rows.push(obj)
     } catch (err) {
       post({
         ok: false,
         phase: 'row',
-        row: r + 2, // +2: row index is 0-based, Excel rows are 1-based, header is row 1
+        row: r + 2, // header is Excel row 1, dataRows[0] is Excel row 2
         error: `Error procesando la fila ${r + 2}: ${err instanceof Error ? err.message : 'desconocido'}.`,
       })
       return
