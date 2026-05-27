@@ -369,6 +369,23 @@ registerSubtypeDetector({
   test: (v) => PERCENT_RE.test(v.trim()),
 })
 
+// ---------- Detector: phone number (#25) ----------
+// E.164 ("+CC NNN…", up to 15 digits) or local separator-friendly forms
+// ("+34 600 123 456", "600-123-456", "(91) 555 1234"). At least 7 digits.
+const PHONE_RE = /^\+?(?:\d[\s\-./]?){6,15}\d$/
+registerSubtypeDetector({
+  name: 'phone',
+  // Phones tend to be picked up as text/category. Some short, hyphen-less
+  // local numbers also pass detectNumber, so include number too.
+  appliesTo: ['text', 'category', 'number'],
+  test: (v) => {
+    const s = v.trim()
+    if (!PHONE_RE.test(s)) return false
+    // Require at least 7 digits to avoid matching, e.g., "1-2-3".
+    return (s.match(/\d/g)?.length ?? 0) >= 7
+  },
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
