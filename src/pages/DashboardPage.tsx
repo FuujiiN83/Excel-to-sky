@@ -3,6 +3,7 @@ import type { Accent, Column, Dataset } from '../types/dataset'
 import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import { StatCard, MiniSpark } from '../components/StatCard'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
+import { AnimatedNumber } from '../components/AnimatedNumber'
 
 interface DashboardPageProps {
   dataset: Dataset
@@ -145,13 +146,13 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
       >
         <StatCard
           label="Filas"
-          value={fmtNumber(dataset.rows.length)}
+          value={<AnimatedNumber value={dataset.rows.length} />}
           accent="sky"
           caption="todas válidas, 0 vacías"
         />
         <StatCard
           label="Columnas"
-          value={dataset.columns.length}
+          value={<AnimatedNumber value={dataset.columns.length} />}
           accent="plum"
           caption={`${numCols.length} num · ${catCols.length} cat · ${dateCols.length} fecha`}
         />

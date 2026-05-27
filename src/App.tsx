@@ -5,6 +5,8 @@ import { CookieBanner } from './components/CookieBanner'
 import { NetworkErrorBanner } from './components/NetworkErrorBanner'
 import { ShortcutCheatsheet } from './components/ShortcutCheatsheet'
 import { ChangelogModal } from './components/ChangelogModal'
+import { Toaster } from './components/Toaster'
+import { ConfirmModalHost } from './components/ConfirmModal'
 import { SAMPLE_DATASETS } from './samples'
 import type { Dataset } from './types/dataset'
 import { UploadPage } from './pages/UploadPage'
@@ -167,6 +169,8 @@ export default function App(): JSX.Element {
         <NetworkErrorBanner />
         <ShortcutCheatsheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
         <ChangelogModal />
+        <Toaster />
+        <ConfirmModalHost />
       </div>
     )
   }
@@ -251,6 +255,8 @@ export default function App(): JSX.Element {
       <NetworkErrorBanner />
       <ShortcutCheatsheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <ChangelogModal />
+      <Toaster />
+      <ConfirmModalHost />
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { SAMPLE_DATASETS } from '../samples'
 import type { Dataset } from '../types/dataset'
 import { UploadDropzone } from '../components/UploadDropzone'
 import { EmptyState } from '../components/EmptyState'
+import { Skeleton } from '../components/Skeleton'
 import { listLocalDashboards, type LocalDashboard } from '../lib/localDb'
 
 interface UploadPageProps {
@@ -18,14 +19,15 @@ export function UploadPage({
   hasActiveDashboard,
   onReturnToDashboard,
 }: UploadPageProps): JSX.Element {
-  const [mine, setMine] = useState<LocalDashboard[]>([])
+  const [mine, setMine] = useState<LocalDashboard[] | null>(null)
 
   useEffect(() => {
     void listLocalDashboards().then(setMine)
   }, [])
 
-  const created = mine.filter((d) => d.owner === 'created')
-  const visited = mine.filter((d) => d.owner === 'visited')
+  const created = (mine ?? []).filter((d) => d.owner === 'created')
+  const visited = (mine ?? []).filter((d) => d.owner === 'visited')
+  const loading = mine === null
 
   return (
     <>
@@ -187,20 +189,11 @@ export function UploadPage({
               <button
                 key={ds.id}
                 onClick={() => onUseSample(ds.id)}
-                className="bg-surface border border-border flex flex-col text-left"
+                className="ets-card-hover bg-surface border border-border flex flex-col text-left"
                 style={{
                   borderRadius: 0,
                   padding: 16,
                   gap: 6,
-                  transition: 'all .15s ease',
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-strong)'
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border)'
-                  e.currentTarget.style.transform = 'translateY(0)'
                 }}
               >
                 <div style={{ fontSize: 20 }}>📊</div>
@@ -223,13 +216,37 @@ export function UploadPage({
         >
           Mis dashboards
         </h2>
-        {created.length === 0 && visited.length === 0 && (
+        {loading ? (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: 8,
+            }}
+          >
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  border: '1px solid var(--border)',
+                  padding: 12,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                }}
+              >
+                <Skeleton width="60%" height={14} />
+                <Skeleton width="40%" height={10} />
+              </div>
+            ))}
+          </div>
+        ) : created.length === 0 && visited.length === 0 ? (
           <EmptyState
             variant="no-dashboards"
             title="Aquí aparecerán tus dashboards"
             body="Cuando subas un Excel o compartas tu primer dashboard, lo verás listado en este panel para abrirlo con un click la próxima vez."
           />
-        )}
+        ) : null}
         {created.length > 0 && (
           <>
             <p className="text-muted text-sm mb-2" style={{ fontSize: 13, marginBottom: 8 }}>
@@ -252,7 +269,7 @@ export function UploadPage({
                     onClick={() => {
                       window.location.pathname = `/d/${d.slug}`
                     }}
-                    className="w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
+                    className="ets-card-hover w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
                     style={{
                       width: '100%',
                       textAlign: 'left',
@@ -300,7 +317,7 @@ export function UploadPage({
                     onClick={() => {
                       window.location.pathname = `/d/${d.slug}`
                     }}
-                    className="w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
+                    className="ets-card-hover w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
                     style={{
                       width: '100%',
                       textAlign: 'left',
