@@ -3,6 +3,7 @@ import { LegalLayout } from './LegalLayout'
 import { useSettings } from '../lib/SettingsContext'
 import type { ChartShape, ChartableType, DateFormat, NumberLocale, Theme } from '../lib/settings'
 import { fmtDate } from '../lib/stats'
+import { HelpTip } from '../components/HelpTip'
 
 const CHARTABLE_TYPES: ReadonlyArray<{ key: ChartableType; label: string; options: ChartShape[] }> =
   [
@@ -69,6 +70,7 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
           <SettingsRow
             label="Formato de números"
             description="Define el separador de miles y el decimal usados en gráficos, estadísticas y comparativas."
+            tooltip="Esto solo cambia cómo se muestran los números en pantalla. No afecta a los datos del Excel original ni a los enlaces compartidos."
           >
             <SelectControl<NumberLocale>
               value={settings.numberLocale}
@@ -92,6 +94,7 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
           <SettingsRow
             label="Formato de fecha"
             description="Cómo se renderizan las fechas en stats, comparativas y vistas detalladas."
+            tooltip="Solo cambia cómo se muestran. Por dentro Excel to Sky parsea cualquier fecha en formato dd/mm/yyyy, mm/dd/yyyy o ISO yyyy-mm-dd indistintamente."
           >
             <SelectControl<DateFormat>
               value={settings.dateFormat}
@@ -119,6 +122,7 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
           <SettingsRow
             label="Gráfico por defecto"
             description="Forma de gráfico preferida para cada tipo de columna. 'Auto' deja que la app elija la más apropiada según la forma de los datos."
+            tooltip="Tu elección guía a Excel to Sky; el motor siempre podrá ofrecer un gráfico alternativo si la forma del dato no encaja con el preferido (por ejemplo, intentar 'mapa' en una columna sin coordenadas detectadas)."
           >
             <div
               style={{
@@ -203,10 +207,11 @@ function ChartTypeRow({ label, value, options, onChange }: ChartTypeRowProps): J
 interface SettingsRowProps {
   label: string
   description?: string
+  tooltip?: string
   children: ReactNode
 }
 
-function SettingsRow({ label, description, children }: SettingsRowProps): JSX.Element {
+function SettingsRow({ label, description, tooltip, children }: SettingsRowProps): JSX.Element {
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div
@@ -225,9 +230,12 @@ function SettingsRow({ label, description, children }: SettingsRowProps): JSX.El
             fontWeight: 600,
             color: 'var(--ink)',
             letterSpacing: '-0.01em',
+            display: 'flex',
+            alignItems: 'center',
           }}
         >
           {label}
+          {tooltip && <HelpTip content={tooltip} side="right" />}
         </div>
         {description && (
           <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.55 }}>{description}</div>
