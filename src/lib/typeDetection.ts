@@ -441,6 +441,16 @@ registerSubtypeDetector({
   },
 })
 
+// ---------- Detector: UUID (#30) ----------
+// RFC 4122 hex with hyphens. Accepts any version (the version nibble is
+// not enforced because Excel exports of v7/ULID-shaped IDs are common).
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+registerSubtypeDetector({
+  name: 'uuid',
+  appliesTo: ['text', 'category'],
+  test: (v) => UUID_RE.test(v.trim()),
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
