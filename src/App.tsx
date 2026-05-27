@@ -102,7 +102,6 @@ export default function App(): JSX.Element {
       // eslint-disable-next-line no-console
       console.log('[insights]', report)
     }).catch((e: unknown) => {
-      // eslint-disable-next-line no-console
       console.error('[insights] failed:', e)
     })
   }, [dataset, hasUploaded])

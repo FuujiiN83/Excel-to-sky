@@ -26,7 +26,6 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
       for (const f of results) collected.push(f)
     } catch (err) {
       // Fail-open: log to console (will appear in worker), keep going
-      // eslint-disable-next-line no-console
       console.warn(`[insights] heuristic ${h.type} failed:`, err)
     }
   }
