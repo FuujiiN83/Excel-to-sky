@@ -133,13 +133,18 @@ export default function App(): JSX.Element {
   if (isStandalone) {
     return (
       <div>
-        {route.name === 'landing' && <LandingPage onNav={(n) => nav(n as RouteName)} />}
-        {route.name === 'faq' && <FaqPage onNav={(n) => nav(n as RouteName)} />}
-        {route.name === 'privacy' && <PrivacyPage onNav={(n) => nav(n as RouteName)} />}
-        {route.name === 'terms' && <TermsPage onNav={(n) => nav(n as RouteName)} />}
-        {route.name === 'report' && <BugReportPage onNav={(n) => nav(n as RouteName)} />}
-        {route.name === 'settings' && <SettingsPage onNav={(n) => nav(n as RouteName)} />}
-        {route.name === 'dev_insights' && <InsightsWorkbench />}
+        <a href="#main-content" className="ets-skip-link">
+          Saltar al contenido
+        </a>
+        <div id="main-content">
+          {route.name === 'landing' && <LandingPage onNav={(n) => nav(n as RouteName)} />}
+          {route.name === 'faq' && <FaqPage onNav={(n) => nav(n as RouteName)} />}
+          {route.name === 'privacy' && <PrivacyPage onNav={(n) => nav(n as RouteName)} />}
+          {route.name === 'terms' && <TermsPage onNav={(n) => nav(n as RouteName)} />}
+          {route.name === 'report' && <BugReportPage onNav={(n) => nav(n as RouteName)} />}
+          {route.name === 'settings' && <SettingsPage onNav={(n) => nav(n as RouteName)} />}
+          {route.name === 'dev_insights' && <InsightsWorkbench />}
+        </div>
         <CookieBanner onLearnMore={() => nav('privacy')} />
         <NetworkErrorBanner />
       </div>
@@ -148,31 +153,38 @@ export default function App(): JSX.Element {
 
   return (
     <div>
+      <a href="#main-content" className="ets-skip-link">
+        Saltar al contenido
+      </a>
       {isUpload ? (
         <>
           <TopBar current={null} onNav={() => {}} dataset={null} hideNav />
-          <UploadPage
-            onParsed={(ds) => {
-              loadDataset(ds)
-              nav('dashboard')
-            }}
-            onUseSample={(id) => {
-              const next = SAMPLE_DATASETS[id]
-              if (next) {
-                loadDataset(next)
+          <main id="main-content">
+            <UploadPage
+              onParsed={(ds) => {
+                loadDataset(ds)
                 nav('dashboard')
-              }
-            }}
-            hasActiveDashboard={hasUploaded}
-            onReturnToDashboard={() => nav('dashboard')}
-          />
+              }}
+              onUseSample={(id) => {
+                const next = SAMPLE_DATASETS[id]
+                if (next) {
+                  loadDataset(next)
+                  nav('dashboard')
+                }
+              }}
+              hasActiveDashboard={hasUploaded}
+              onReturnToDashboard={() => nav('dashboard')}
+            />
+          </main>
         </>
       ) : isPublic ? (
-        <PublicViewPage
-          dataset={dataset}
-          onColumnClick={(c) => nav('detail', { columnKey: c.key })}
-          onExit={() => nav('dashboard')}
-        />
+        <main id="main-content">
+          <PublicViewPage
+            dataset={dataset}
+            onColumnClick={(c) => nav('detail', { columnKey: c.key })}
+            onExit={() => nav('dashboard')}
+          />
+        </main>
       ) : (
         <>
           <TopBar
@@ -181,32 +193,34 @@ export default function App(): JSX.Element {
             dataset={dataset}
             onShare={() => nav('share')}
           />
-          {route.name === 'dashboard' && (
-            <DashboardPage
-              dataset={dataset}
-              onColumnClick={(c) => nav('detail', { columnKey: c.key })}
-              onCompare={() => nav('compare')}
-              onShare={() => nav('share')}
-            />
-          )}
-          {route.name === 'detail' && route.columnKey && (
-            <ColumnDetailPage
-              dataset={dataset}
-              columnKey={route.columnKey}
-              onPickColumn={(k) => nav('detail', { columnKey: k })}
-              onBack={() => nav('dashboard')}
-            />
-          )}
-          {route.name === 'compare' && (
-            <ComparePage dataset={dataset} onBack={() => nav('dashboard')} />
-          )}
-          {route.name === 'share' && (
-            <SharePage
-              dataset={dataset}
-              onBack={() => nav('dashboard')}
-              onOpenPublic={() => nav('public')}
-            />
-          )}
+          <main id="main-content">
+            {route.name === 'dashboard' && (
+              <DashboardPage
+                dataset={dataset}
+                onColumnClick={(c) => nav('detail', { columnKey: c.key })}
+                onCompare={() => nav('compare')}
+                onShare={() => nav('share')}
+              />
+            )}
+            {route.name === 'detail' && route.columnKey && (
+              <ColumnDetailPage
+                dataset={dataset}
+                columnKey={route.columnKey}
+                onPickColumn={(k) => nav('detail', { columnKey: k })}
+                onBack={() => nav('dashboard')}
+              />
+            )}
+            {route.name === 'compare' && (
+              <ComparePage dataset={dataset} onBack={() => nav('dashboard')} />
+            )}
+            {route.name === 'share' && (
+              <SharePage
+                dataset={dataset}
+                onBack={() => nav('dashboard')}
+                onOpenPublic={() => nav('public')}
+              />
+            )}
+          </main>
         </>
       )}
 
