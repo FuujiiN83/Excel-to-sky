@@ -16,11 +16,13 @@ import { FaqPage } from './pages/FaqPage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { TermsPage } from './pages/TermsPage'
 import { BugReportPage } from './pages/BugReportPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { loadSharedDashboard } from './lib/shareApi'
 import { saveLocalDashboard, touchLocalDashboard } from './lib/localDb'
 import { isSupabaseConfigured } from './lib/supabase'
 import { InsightsWorkbench } from './dev/InsightsWorkbench'
 import { analyzeDataset } from './lib/insights'
+import { useSettings } from './lib/SettingsContext'
 
 type RouteName =
   | 'upload'
@@ -34,6 +36,7 @@ type RouteName =
   | 'privacy'
   | 'terms'
   | 'report'
+  | 'settings'
   | 'dev_insights'
 
 interface Route {
@@ -42,6 +45,7 @@ interface Route {
 }
 
 export default function App(): JSX.Element {
+  const { settings } = useSettings()
   const [route, setRoute] = useState<Route>({ name: 'landing' })
   const [dataset, setDataset] = useState<Dataset>(SAMPLE_DATASETS.personas)
   const [hasUploaded, setHasUploaded] = useState(false)
@@ -65,6 +69,7 @@ export default function App(): JSX.Element {
     else if (path === '/privacy') setRoute({ name: 'privacy' })
     else if (path === '/terms') setRoute({ name: 'terms' })
     else if (path === '/report') setRoute({ name: 'report' })
+    else if (path === '/settings') setRoute({ name: 'settings' })
     else if (path === '/dev/insights') setRoute({ name: 'dev_insights' })
   }, [])
 
@@ -103,6 +108,7 @@ export default function App(): JSX.Element {
   useEffect(() => {
     if (!import.meta.env.DEV) return
     if (!hasUploaded) return
+    if (!settings.autoAnalyze) return
     void analyzeDataset(dataset)
       .then((report) => {
         // eslint-disable-next-line no-console
@@ -111,7 +117,7 @@ export default function App(): JSX.Element {
       .catch((e: unknown) => {
         console.error('[insights] failed:', e)
       })
-  }, [dataset, hasUploaded])
+  }, [dataset, hasUploaded, settings.autoAnalyze])
 
   const isUpload = route.name === 'upload'
   const isPublic = route.name === 'public'
@@ -121,6 +127,7 @@ export default function App(): JSX.Element {
     route.name === 'privacy' ||
     route.name === 'terms' ||
     route.name === 'report' ||
+    route.name === 'settings' ||
     route.name === 'dev_insights'
 
   if (isStandalone) {
@@ -131,6 +138,7 @@ export default function App(): JSX.Element {
         {route.name === 'privacy' && <PrivacyPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'terms' && <TermsPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'report' && <BugReportPage onNav={(n) => nav(n as RouteName)} />}
+        {route.name === 'settings' && <SettingsPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'dev_insights' && <InsightsWorkbench />}
         <CookieBanner onLearnMore={() => nav('privacy')} />
         <NetworkErrorBanner />

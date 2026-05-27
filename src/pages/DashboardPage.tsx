@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { Accent, Column, Dataset } from '../types/dataset'
-import { analyzeColumn, fmtNumber, fmtUnit } from '../lib/stats'
+import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import { StatCard, MiniSpark } from '../components/StatCard'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
 
@@ -35,7 +35,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
 
   const analyses = useMemo(
     () => dataset.columns.map((c) => ({ col: c, analysis: analyzeColumn(dataset, c.key) })),
-    [dataset]
+    [dataset],
   )
 
   const geoCol = useMemo(() => {
@@ -48,9 +48,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
     return null
   }, [dataset, analyses])
 
-  const geoAnalysis = geoCol
-    ? analyses.find((x) => x.col.key === geoCol.key)?.analysis
-    : null
+  const geoAnalysis = geoCol ? analyses.find((x) => x.col.key === geoCol.key)?.analysis : null
 
   return (
     <div style={{ padding: '32px 28px 60px', maxWidth: 1400, margin: '0 auto' }}>
@@ -60,10 +58,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
         style={{ alignItems: 'flex-end', gap: 20, marginBottom: 28 }}
       >
         <div>
-          <div
-            className="flex items-center"
-            style={{ gap: 10, marginBottom: 8 }}
-          >
+          <div className="flex items-center" style={{ gap: 10, marginBottom: 8 }}>
             <span
               className="text-muted"
               style={{
@@ -103,11 +98,9 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
           >
             Resumen del dataset
           </h1>
-          <p
-            className="text-muted"
-            style={{ marginTop: 8, maxWidth: 600, fontSize: 15 }}
-          >
-            Hemos detectado {dataset.columns.length} columnas en {dataset.rows.length} filas. Toca una tarjeta para ver sus estadísticas completas.
+          <p className="text-muted" style={{ marginTop: 8, maxWidth: 600, fontSize: 15 }}>
+            Hemos detectado {dataset.columns.length} columnas en {dataset.rows.length} filas. Toca
+            una tarjeta para ver sus estadísticas completas.
           </p>
         </div>
         {!isPublic && (
@@ -126,7 +119,6 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
             </button>
             <button
               onClick={onShare}
-              
               style={{
                 background: 'var(--ink)',
                 color: 'var(--bg)',
@@ -163,12 +155,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
           accent="plum"
           caption={`${numCols.length} num · ${catCols.length} cat · ${dateCols.length} fecha`}
         />
-        <StatCard
-          label="Calidad"
-          value="98%"
-          accent="mint"
-          caption="estimación heurística"
-        />
+        <StatCard label="Calidad" value="98%" accent="mint" caption="estimación heurística" />
         <StatCard
           label="Última carga"
           value="hoy"
@@ -178,30 +165,21 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
       </div>
 
       {/* Column grid */}
-      <div
-        className="flex justify-between items-center"
-        style={{ margin: '4px 4px 14px' }}
-      >
+      <div className="flex justify-between items-center" style={{ margin: '4px 4px 14px' }}>
         <div
           className="font-display"
           style={{ fontWeight: 600, fontSize: 20, letterSpacing: '-0.02em' }}
         >
           Columnas detectadas
         </div>
-        <div
-          className="flex text-muted"
-          style={{ gap: 8, fontSize: 12 }}
-        >
+        <div className="flex text-muted" style={{ gap: 8, fontSize: 12 }}>
           <span>Número ({numCols.length})</span>
           <span>Categoría ({catCols.length})</span>
           <span>Fecha ({dateCols.length})</span>
         </div>
       </div>
 
-      <div
-        className="grid"
-        style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}
-      >
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
         {analyses.map(({ col, analysis }) => {
           const accent = pickAccent(col)
           const isNum = col.type === 'number' || col.type === 'currency'
@@ -228,16 +206,17 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
                 />
               </div>
             )
-            preview = analysis.histogram && analysis.histogram.length > 0 ? (
-              <LabeledBars
-                items={analysis.histogram.slice(0, 4).map((b) => ({
-                  label: `${fmtNumber(b.lo)}–${fmtNumber(b.hi)}`,
-                  count: b.count,
-                }))}
-                accent={accent}
-                totalForPercent={analysis.count}
-              />
-            ) : null
+            preview =
+              analysis.histogram && analysis.histogram.length > 0 ? (
+                <LabeledBars
+                  items={analysis.histogram.slice(0, 4).map((b) => ({
+                    label: `${fmtNumber(b.lo)}–${fmtNumber(b.hi)}`,
+                    count: b.count,
+                  }))}
+                  accent={accent}
+                  totalForPercent={analysis.count}
+                />
+              ) : null
           } else if (isCat) {
             const top = analysis.top ?? []
             const allUnique = analysis.distinct != null && analysis.distinct === analysis.count
@@ -265,17 +244,18 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
           } else if (isDate) {
             primary = (
               <div style={{ display: 'flex', gap: 18 }}>
-                <MiniStat label="desde" value={String(analysis.earliest ?? '—')} />
-                <MiniStat label="hasta" value={String(analysis.latest ?? '—')} />
+                <MiniStat label="desde" value={fmtDate(analysis.earliest)} />
+                <MiniStat label="hasta" value={fmtDate(analysis.latest)} />
               </div>
             )
-            preview = analysis.timeline && analysis.timeline.length > 0 ? (
-              <MiniSpark
-                values={analysis.timeline.map((t) => t.count)}
-                accent={accent}
-                height={44}
-              />
-            ) : null
+            preview =
+              analysis.timeline && analysis.timeline.length > 0 ? (
+                <MiniSpark
+                  values={analysis.timeline.map((t) => t.count)}
+                  accent={accent}
+                  height={44}
+                />
+              ) : null
           }
 
           return (
@@ -319,10 +299,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
                   >
                     {isNum ? '#' : isDate ? '⌛' : 'Aa'}
                   </span>
-                  <div
-                    className="text-ink"
-                    style={{ fontWeight: 600, fontSize: 15 }}
-                  >
+                  <div className="text-ink" style={{ fontWeight: 600, fontSize: 15 }}>
                     {col.label}
                   </div>
                 </div>
@@ -516,7 +493,14 @@ function LabeledBars({ items, accent, totalForPercent }: LabeledBarsProps): JSX.
             </div>
             <div
               className="font-mono"
-              style={{ flex: '0 0 auto', color: 'var(--ink-2)', fontWeight: 500, fontSize: 11, minWidth: 30, textAlign: 'right' }}
+              style={{
+                flex: '0 0 auto',
+                color: 'var(--ink-2)',
+                fontWeight: 500,
+                fontSize: 11,
+                minWidth: 30,
+                textAlign: 'right',
+              }}
             >
               {it.count}
             </div>
