@@ -13,6 +13,48 @@ export function setNumberLocale(locale: string): void {
   activeNumberLocale = locale
 }
 
+type DateFormatSetting = 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd'
+let activeDateFormat: DateFormatSetting = 'dd/mm/yyyy'
+
+export function setDateFormat(format: DateFormatSetting): void {
+  activeDateFormat = format
+}
+
+/**
+ * Format a date string or Date according to the active user preference.
+ * Accepts dd/mm/yyyy (the canonical internal representation produced by
+ * analyzeColumn), ISO yyyy-mm-dd, or a Date instance.
+ */
+export function fmtDate(value: string | Date | null | undefined): string {
+  if (value == null) return '—'
+  const parts = toDateParts(value)
+  if (!parts) return typeof value === 'string' ? value : '—'
+  const dd = String(parts.d).padStart(2, '0')
+  const mm = String(parts.m).padStart(2, '0')
+  const yyyy = String(parts.y)
+  switch (activeDateFormat) {
+    case 'mm/dd/yyyy':
+      return `${mm}/${dd}/${yyyy}`
+    case 'yyyy-mm-dd':
+      return `${yyyy}-${mm}-${dd}`
+    case 'dd/mm/yyyy':
+    default:
+      return `${dd}/${mm}/${yyyy}`
+  }
+}
+
+function toDateParts(value: string | Date): { d: number; m: number; y: number } | null {
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null
+    return { d: value.getDate(), m: value.getMonth() + 1, y: value.getFullYear() }
+  }
+  const dmy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value)
+  if (dmy) return { d: Number(dmy[1]), m: Number(dmy[2]), y: Number(dmy[3]) }
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(value)
+  if (iso) return { d: Number(iso[3]), m: Number(iso[2]), y: Number(iso[1]) }
+  return null
+}
+
 export function fmtNumber(n: unknown): string {
   if (n === undefined || n === null) return '—'
   if (typeof n !== 'number') return String(n)

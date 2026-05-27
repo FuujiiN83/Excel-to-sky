@@ -7,7 +7,7 @@ import {
   type Settings,
   type Theme,
 } from './settings'
-import { setNumberLocale } from './stats'
+import { setDateFormat, setNumberLocale } from './stats'
 
 /** Removes existing theme classes and adds the one for the active theme. */
 function applyTheme(theme: Theme): void {
@@ -57,6 +57,10 @@ export function SettingsProvider({ children }: ProviderProps): JSX.Element {
   useEffect(() => {
     setNumberLocale(settings.numberLocale)
   }, [settings.numberLocale])
+
+  useEffect(() => {
+    setDateFormat(settings.dateFormat)
+  }, [settings.dateFormat])
 
   const value = useMemo<SettingsContextValue>(
     () => ({
