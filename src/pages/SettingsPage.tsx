@@ -96,6 +96,17 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
           </SettingsRow>
 
           <SettingsRow
+            label="Analizar tras subir"
+            description="Cuando está activo, el motor de insights estadísticos corre automáticamente al cargar un Excel. Desactívalo si prefieres lanzarlo a mano (útil con archivos grandes)."
+          >
+            <ToggleControl
+              checked={settings.autoAnalyze}
+              onChange={(v) => update('autoAnalyze', v)}
+              label={settings.autoAnalyze ? 'Activado' : 'Desactivado'}
+            />
+          </SettingsRow>
+
+          <SettingsRow
             label="Gráfico por defecto"
             description="Forma de gráfico preferida para cada tipo de columna. 'Auto' deja que la app elija la más apropiada según la forma de los datos."
           >
@@ -222,6 +233,60 @@ function SelectControl<T extends string>({
         </option>
       ))}
     </select>
+  )
+}
+
+interface ToggleControlProps {
+  checked: boolean
+  onChange: (v: boolean) => void
+  label: string
+}
+
+function ToggleControl({ checked, onChange, label }: ToggleControlProps): JSX.Element {
+  return (
+    <label
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 10,
+        cursor: 'pointer',
+        userSelect: 'none',
+        fontSize: 13,
+        color: 'var(--ink-2)',
+      }}
+    >
+      <span
+        style={{
+          position: 'relative',
+          display: 'inline-block',
+          width: 38,
+          height: 22,
+          background: checked ? 'var(--sky)' : 'var(--surface-2, rgba(255,255,255,0.08))',
+          border: `1px solid ${checked ? 'var(--sky)' : 'var(--border-strong)'}`,
+          transition: 'background 120ms ease',
+        }}
+      >
+        <span
+          style={{
+            position: 'absolute',
+            top: 2,
+            left: checked ? 18 : 2,
+            width: 16,
+            height: 16,
+            background: 'var(--ink)',
+            transition: 'left 120ms ease',
+          }}
+        />
+      </span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+        aria-label={label}
+      />
+      <span>{label}</span>
+    </label>
   )
 }
 
