@@ -5,6 +5,7 @@ import type {
   ChartShape,
   ChartableType,
   DateFormat,
+  Density,
   NumberLocale,
   Theme,
   UiLocale,
@@ -166,6 +167,22 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
               checked={settings.largeText}
               onChange={(v) => update('largeText', v)}
               label={settings.largeText ? 'Activado' : 'Desactivado'}
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            label="Densidad"
+            description="Cuánto espacio dejan las tarjetas y stats entre sí. Compact aprieta todo en menos píxeles, airy lo airea para presentaciones."
+          >
+            <RadioGroup<Density>
+              value={settings.density}
+              onChange={(v) => update('density', v)}
+              options={[
+                { value: 'compact', label: 'Compact' },
+                { value: 'cozy', label: 'Cozy', hint: 'Por defecto' },
+                { value: 'airy', label: 'Airy' },
+              ]}
+              name="density"
             />
           </SettingsRow>
 
