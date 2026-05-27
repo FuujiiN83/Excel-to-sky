@@ -68,6 +68,15 @@ export function SettingsProvider({ children }: ProviderProps): JSX.Element {
     document.documentElement.classList.toggle('large-text', settings.largeText)
   }, [settings.largeText])
 
+  // Apply the density class on <html> so the existing density-* tokens in
+  // tokens.css drive the spacing variables (--pad, --gap) across the app.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const cls = document.documentElement.classList
+    cls.remove('density-compact', 'density-cozy', 'density-airy')
+    cls.add(`density-${settings.density}`)
+  }, [settings.density])
+
   const value = useMemo<SettingsContextValue>(
     () => ({
       settings,

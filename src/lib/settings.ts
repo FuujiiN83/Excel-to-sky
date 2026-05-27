@@ -5,6 +5,7 @@ export type Theme = 'dark' | 'light' | 'high-contrast'
 export type NumberLocale = 'es-ES' | 'en-US' | 'de-DE' | 'fr-FR' | 'pt-PT'
 export type DateFormat = 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd'
 export type UiLocale = 'es' | 'en'
+export type Density = 'compact' | 'cozy' | 'airy'
 
 /** Subset of ColumnType that the dashboard makes a chart for. */
 export type ChartableType = Extract<ColumnType, 'number' | 'currency' | 'category' | 'date' | 'geo'>
@@ -19,6 +20,8 @@ export interface Settings {
   largeText: boolean
   /** When true, every server-touching control (share, public-link load) is hidden. */
   localOnly: boolean
+  /** Spacing density applied to the dashboard surfaces. */
+  density: Density
   defaultChartType: Record<ChartableType, ChartShape>
 }
 
@@ -30,6 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoAnalyze: true,
   largeText: false,
   localOnly: false,
+  density: 'cozy',
   defaultChartType: {
     number: 'auto',
     currency: 'auto',
@@ -75,6 +79,7 @@ function mergeDefaults(stored: unknown): Settings {
     autoAnalyze: typeof s.autoAnalyze === 'boolean' ? s.autoAnalyze : DEFAULT_SETTINGS.autoAnalyze,
     largeText: typeof s.largeText === 'boolean' ? s.largeText : DEFAULT_SETTINGS.largeText,
     localOnly: typeof s.localOnly === 'boolean' ? s.localOnly : DEFAULT_SETTINGS.localOnly,
+    density: validDensity(s.density) ?? DEFAULT_SETTINGS.density,
     defaultChartType: {
       ...DEFAULT_SETTINGS.defaultChartType,
       ...(s.defaultChartType ?? {}),
@@ -95,6 +100,9 @@ function validLocale(v: unknown): NumberLocale | undefined {
 }
 function validDateFormat(v: unknown): DateFormat | undefined {
   return v === 'dd/mm/yyyy' || v === 'mm/dd/yyyy' || v === 'yyyy-mm-dd' ? v : undefined
+}
+function validDensity(v: unknown): Density | undefined {
+  return v === 'compact' || v === 'cozy' || v === 'airy' ? v : undefined
 }
 
 export async function loadSettings(): Promise<Settings> {
