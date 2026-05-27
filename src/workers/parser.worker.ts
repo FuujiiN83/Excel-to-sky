@@ -66,6 +66,15 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     return
   }
 
+  // Strip workbook metadata (#196). XLSX/ODS files embed properties like
+  // Author, LastAuthor, Company, ApplicationVersion and any custom-defined
+  // props the spreadsheet picked up over its lifetime. Those never reach the
+  // user-facing Dataset, but historically lived on the WorkBook for the rest
+  // of this function. Discarding them here narrows the risk surface in case
+  // any future code path serialises the raw WorkBook.
+  if (wb.Props) wb.Props = {}
+  if (wb.Custprops) wb.Custprops = {}
+
   const sheetName = wb.SheetNames[0]
   if (!sheetName) {
     post({ ok: false, phase: 'sheet', error: 'El libro no contiene ninguna hoja.' })

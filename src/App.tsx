@@ -8,6 +8,8 @@ import { ChangelogModal } from './components/ChangelogModal'
 import { Toaster } from './components/Toaster'
 import { ConfirmModalHost } from './components/ConfirmModal'
 import { Skeleton } from './components/Skeleton'
+import { PrivacyBadge } from './components/PrivacyBadge'
+import { NetworkAuditPanel } from './components/NetworkAuditPanel'
 import { SAMPLE_DATASETS } from './samples'
 import type { Dataset } from './types/dataset'
 import { loadSharedDashboard } from './lib/shareApi'
@@ -277,7 +279,7 @@ export default function App(): JSX.Element {
             current={route.name}
             onNav={(n) => nav(n as RouteName)}
             dataset={dataset}
-            onShare={() => nav('share')}
+            onShare={settings.localOnly ? undefined : () => nav('share')}
           />
           <main id="main-content">
             <Suspense fallback={<RouteFallback />}>
@@ -286,7 +288,7 @@ export default function App(): JSX.Element {
                   dataset={dataset}
                   onColumnClick={(c) => nav('detail', { columnKey: c.key })}
                   onCompare={() => nav('compare')}
-                  onShare={() => nav('share')}
+                  onShare={settings.localOnly ? () => {} : () => nav('share')}
                 />
               )}
               {route.name === 'detail' && route.columnKey && (
@@ -300,12 +302,36 @@ export default function App(): JSX.Element {
               {route.name === 'compare' && (
                 <ComparePage dataset={dataset} onBack={() => nav('dashboard')} />
               )}
-              {route.name === 'share' && (
+              {route.name === 'share' && !settings.localOnly && (
                 <SharePage
                   dataset={dataset}
                   onBack={() => nav('dashboard')}
                   onOpenPublic={() => nav('public')}
                 />
+              )}
+              {route.name === 'share' && settings.localOnly && (
+                <div style={{ padding: 64, textAlign: 'center', color: 'var(--muted)' }}>
+                  <p style={{ fontSize: 15 }}>
+                    El modo solo-local está activado. Desactívalo en{' '}
+                    <button
+                      type="button"
+                      onClick={() => nav('settings')}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--sky)',
+                        cursor: 'pointer',
+                        padding: 0,
+                        fontFamily: 'inherit',
+                        fontSize: 'inherit',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Configuración
+                    </button>{' '}
+                    para compartir.
+                  </p>
+                </div>
               )}
             </Suspense>
           </main>
@@ -315,6 +341,8 @@ export default function App(): JSX.Element {
       {(!isUpload || hasUploaded) && (
         <FloatingDock route={route} onNav={(n) => nav(n as RouteName)} />
       )}
+      <PrivacyBadge localOnly={settings.localOnly} />
+      {import.meta.env.DEV && <NetworkAuditPanel />}
       <CookieBanner onLearnMore={() => nav('privacy')} />
       <NetworkErrorBanner />
       <ShortcutCheatsheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />

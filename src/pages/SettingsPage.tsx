@@ -6,6 +6,7 @@ import { fmtDate } from '../lib/stats'
 import { HelpTip } from '../components/HelpTip'
 import { confirm } from '../components/ConfirmModal'
 import { pushToast } from '../lib/toast'
+import { clearAllLocalData } from '../lib/clearAll'
 
 const CHARTABLE_TYPES: ReadonlyArray<{ key: ChartableType; label: string; options: ChartShape[] }> =
   [
@@ -42,6 +43,20 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
     if (!ok) return
     await reset()
     pushToast('Preferencias restablecidas.', 'success')
+  }
+
+  async function onClearAll(): Promise<void> {
+    const ok = await confirm({
+      title: '¿Borrar TODOS los datos locales?',
+      body: 'Esto eliminará dashboards guardados, preferencias, log de errores y cualquier dato que Excel to Sky haya almacenado en este navegador. Los enlaces públicos que ya compartiste seguirán funcionando hasta su expiración natural. La página se recargará al terminar.',
+      confirmLabel: 'Borrar todo',
+      cancelLabel: 'Cancelar',
+      destructive: true,
+    })
+    if (!ok) return
+    await clearAllLocalData()
+    pushToast('Datos locales borrados. Recargando…', 'success', 2000)
+    window.setTimeout(() => window.location.reload(), 800)
   }
 
   return (
@@ -136,6 +151,18 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
           </SettingsRow>
 
           <SettingsRow
+            label="Modo solo-local"
+            description="Oculta toda la interfaz de compartir. Útil para sesiones con datos sensibles donde quieres asegurarte de que nada sale del navegador, ni siquiera por accidente."
+            tooltip="Esto desactiva los botones de 'Compartir' y la ruta /share. Los dashboards que ya hayas creado siguen siendo accesibles por su enlace público hasta que caduquen — esta opción solo previene crear nuevos."
+          >
+            <ToggleControl
+              checked={settings.localOnly}
+              onChange={(v) => update('localOnly', v)}
+              label={settings.localOnly ? 'Activado' : 'Desactivado'}
+            />
+          </SettingsRow>
+
+          <SettingsRow
             label="Gráfico por defecto"
             description="Forma de gráfico preferida para cada tipo de columna. 'Auto' deja que la app elija la más apropiada según la forma de los datos."
             tooltip="Tu elección guía a Excel to Sky; el motor siempre podrá ofrecer un gráfico alternativo si la forma del dato no encaja con el preferido (por ejemplo, intentar 'mapa' en una columna sin coordenadas detectadas)."
@@ -169,30 +196,52 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
               paddingTop: 24,
               borderTop: '1px solid var(--border)',
               display: 'flex',
-              alignItems: 'center',
-              gap: 16,
-              flexWrap: 'wrap',
+              flexDirection: 'column',
+              gap: 14,
             }}
           >
-            <button
-              type="button"
-              onClick={() => void onReset()}
-              style={{
-                background: 'transparent',
-                color: 'var(--coral, #F87171)',
-                border: '1px solid var(--coral, #F87171)',
-                padding: '8px 16px',
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              Restablecer valores por defecto
-            </button>
-            <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-              Borra todas las preferencias guardadas en este navegador.
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => void onReset()}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--coral, #F87171)',
+                  border: '1px solid var(--coral, #F87171)',
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Restablecer valores por defecto
+              </button>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                Borra todas las preferencias guardadas en este navegador.
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => void onClearAll()}
+                style={{
+                  background: 'var(--coral, #F87171)',
+                  color: '#fff',
+                  border: '1px solid var(--coral, #F87171)',
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Borrar todos los datos locales
+              </button>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                Elimina dashboards, preferencias y log de errores. Recarga al terminar.
+              </span>
+            </div>
           </div>
         </div>
       )}
