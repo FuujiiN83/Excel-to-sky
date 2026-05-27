@@ -7,6 +7,7 @@ import { ChartBar } from '../components/ChartBar'
 import { ChartLine } from '../components/ChartLine'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
 import { ChartExportButton } from '../components/ChartExportButton'
+import { SubtypeBadge } from '../components/SubtypeBadge'
 import { useSettings } from '../lib/SettingsContext'
 import { accentForPalette } from '../lib/palette'
 import { pushToast } from '../lib/toast'
@@ -144,6 +145,12 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
             >
               Columna · {col.type}
               {col.unit && ` · en ${col.unit}`}
+              {col.subtype && (
+                <>
+                  {' '}
+                  · <SubtypeBadge subtype={col.subtype} />
+                </>
+              )}
             </div>
             <h1
               className="font-display"

@@ -1,4 +1,4 @@
-import type { ColumnType } from '../types/dataset'
+import type { ColumnSubtype, ColumnType } from '../types/dataset'
 
 // Boolean variants (#33). Covers Spanish, English, Italian, French, German,
 // Portuguese plus check-mark glyphs and the common 0/1 pair. detectBoolean
@@ -310,4 +310,56 @@ export function inferColumnTypeDetailed(
     mixed,
     secondary: mixed ? topOther?.k : undefined,
   }
+}
+
+// ---------- Subtype detection (#22 #23 #24 #25 #26 #27 #28 #29 #30 #37) ----------
+
+/**
+ * Threshold above which a subtype detector wins. Higher than the base-type
+ * THRESHOLD (0.8) because subtypes describe content shape, not coarse class:
+ * if 90% of the column reads as email, the remaining 10% is almost always
+ * dirty data of the same shape, not a different subtype.
+ */
+const SUBTYPE_THRESHOLD = 0.9
+
+interface SubtypeDetector {
+  readonly name: ColumnSubtype
+  /** Optional gate on the base type. */
+  readonly appliesTo: ReadonlyArray<ColumnType>
+  /** Returns true when `value` matches this subtype. */
+  readonly test: (value: string) => boolean
+}
+
+/** Registered subtype detectors. First registered with ≥SUBTYPE_THRESHOLD wins. */
+const SUBTYPE_DETECTORS: SubtypeDetector[] = []
+
+export function registerSubtypeDetector(detector: SubtypeDetector): void {
+  SUBTYPE_DETECTORS.push(detector)
+}
+
+/**
+ * Infer a specialized subtype for a column once its base type is known.
+ * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
+ *
+ * Subtypes are purely informational (badge label, format hints). They never
+ * change `Column.type`, so charts and stats keep working unmodified.
+ */
+export function detectSubtype(
+  rawValues: (string | null | undefined)[],
+  baseType: ColumnType,
+): ColumnSubtype | undefined {
+  const filtered = rawValues.filter((v): v is string => v != null && v !== '')
+  if (filtered.length === 0) return undefined
+  const sampled = sample(filtered)
+  const total = sampled.length
+
+  for (const det of SUBTYPE_DETECTORS) {
+    if (det.appliesTo.length > 0 && !det.appliesTo.includes(baseType)) continue
+    let hits = 0
+    for (const v of sampled) {
+      if (det.test(v)) hits++
+    }
+    if (hits / total >= SUBTYPE_THRESHOLD) return det.name
+  }
+  return undefined
 }

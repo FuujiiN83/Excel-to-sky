@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx'
-import { inferColumnTypeDetailed } from '../lib/typeDetection'
+import { inferColumnTypeDetailed, detectSubtype } from '../lib/typeDetection'
 import type { Dataset, Column, CellValue, ColumnType } from '../types/dataset'
 
 export interface ParseRequest {
@@ -208,11 +208,13 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
           secondary: inferred.secondary,
         })
       }
+      const subtype = detectSubtype(values, inferred.type)
       return {
         key: `col_${i}`,
         label: h,
         originalLabel: h,
         type: inferred.type,
+        ...(subtype && { subtype }),
       }
     })
   } catch (err) {

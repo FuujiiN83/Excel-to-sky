@@ -36,3 +36,7 @@ vite.config.js
 # Test coverage
 coverage/
 .mcp.json
+
+# Local Supabase auth / OAuth scratch files
+supabase-auth-url.txt
+supabase-auth*.txt
