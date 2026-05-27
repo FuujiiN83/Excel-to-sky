@@ -2,14 +2,67 @@ import type { CellValue, ColumnType, Dataset } from '../types/dataset'
 
 // ---------- Formatting helpers ----------
 
+/**
+ * Module-level locale used by every fmt* helper. SettingsContext keeps it in
+ * sync with the persisted user preference via setNumberLocale below. Default
+ * is es-ES to preserve historical behaviour when settings haven't loaded yet.
+ */
+let activeNumberLocale = 'es-ES'
+
+export function setNumberLocale(locale: string): void {
+  activeNumberLocale = locale
+}
+
+type DateFormatSetting = 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd'
+let activeDateFormat: DateFormatSetting = 'dd/mm/yyyy'
+
+export function setDateFormat(format: DateFormatSetting): void {
+  activeDateFormat = format
+}
+
+/**
+ * Format a date string or Date according to the active user preference.
+ * Accepts dd/mm/yyyy (the canonical internal representation produced by
+ * analyzeColumn), ISO yyyy-mm-dd, or a Date instance.
+ */
+export function fmtDate(value: string | Date | null | undefined): string {
+  if (value == null) return '—'
+  const parts = toDateParts(value)
+  if (!parts) return typeof value === 'string' ? value : '—'
+  const dd = String(parts.d).padStart(2, '0')
+  const mm = String(parts.m).padStart(2, '0')
+  const yyyy = String(parts.y)
+  switch (activeDateFormat) {
+    case 'mm/dd/yyyy':
+      return `${mm}/${dd}/${yyyy}`
+    case 'yyyy-mm-dd':
+      return `${yyyy}-${mm}-${dd}`
+    case 'dd/mm/yyyy':
+    default:
+      return `${dd}/${mm}/${yyyy}`
+  }
+}
+
+function toDateParts(value: string | Date): { d: number; m: number; y: number } | null {
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null
+    return { d: value.getDate(), m: value.getMonth() + 1, y: value.getFullYear() }
+  }
+  const dmy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value)
+  if (dmy) return { d: Number(dmy[1]), m: Number(dmy[2]), y: Number(dmy[3]) }
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(value)
+  if (iso) return { d: Number(iso[3]), m: Number(iso[2]), y: Number(iso[1]) }
+  return null
+}
+
 export function fmtNumber(n: unknown): string {
   if (n === undefined || n === null) return '—'
   if (typeof n !== 'number') return String(n)
   if (Number.isNaN(n)) return '—'
   if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0', '') + 'M'
   if (Math.abs(n) >= 10_000) return (n / 1_000).toFixed(1).replace('.0', '') + 'k'
-  if (Number.isInteger(n)) return n.toLocaleString('es-ES')
-  return n.toLocaleString('es-ES', { maximumFractionDigits: 1 })
+  if (Number.isInteger(n)) return n.toLocaleString(activeNumberLocale)
+  return n.toLocaleString(activeNumberLocale, { maximumFractionDigits: 1 })
 }
 
 export function fmtUnit(n: unknown, unit?: string): string {
@@ -148,7 +201,12 @@ export function analyzeColumn(dataset: Dataset, columnKey: string): ColumnAnalys
     return out
   }
 
-  if (col.type === 'category' || col.type === 'text' || col.type === 'geo' || col.type === 'boolean') {
+  if (
+    col.type === 'category' ||
+    col.type === 'text' ||
+    col.type === 'geo' ||
+    col.type === 'boolean'
+  ) {
     const freq: Record<string, number> = {}
     values.forEach((v) => {
       const key = String(v)
@@ -158,7 +216,10 @@ export function analyzeColumn(dataset: Dataset, columnKey: string): ColumnAnalys
     if (sorted.length === 0) return out
     out.distinct = sorted.length
     out.top = sorted.slice(0, 8).map(([key, count]) => ({ key, count }))
-    out.bottom = sorted.slice(-3).reverse().map(([key, count]) => ({ key, count }))
+    out.bottom = sorted
+      .slice(-3)
+      .reverse()
+      .map(([key, count]) => ({ key, count }))
     out.mode = sorted[0][0]
     out.modeCount = sorted[0][1]
     const last = sorted[sorted.length - 1]
@@ -205,7 +266,7 @@ export interface GroupAggregate {
 export function groupAggregate(
   dataset: Dataset,
   groupKey: string,
-  metricKey: string
+  metricKey: string,
 ): GroupAggregate[] {
   const map: Record<string, number[]> = {}
   for (const row of dataset.rows) {
@@ -226,15 +287,13 @@ export function groupAggregate(
 }
 
 export function coerceNumbers(dataset: Dataset, key: string): number[] {
-  return dataset.rows
-    .map((r) => toNumber(r[key]))
-    .filter((n) => !Number.isNaN(n))
+  return dataset.rows.map((r) => toNumber(r[key])).filter((n) => !Number.isNaN(n))
 }
 
 export function coercePairs(
   dataset: Dataset,
   xKey: string,
-  yKey: string
+  yKey: string,
 ): { x: number; y: number }[] {
   const out: { x: number; y: number }[] = []
   for (const row of dataset.rows) {
