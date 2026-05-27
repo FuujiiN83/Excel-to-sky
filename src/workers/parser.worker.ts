@@ -101,7 +101,17 @@ export interface ParseError {
   /** Pipeline stage that failed. */
   phase?: ParsePhase
 }
-export type ParseResponse = ParseSuccess | ParseError
+/** Incremental progress event (#11). Sent zero or more times before the final ParseSuccess / ParseError. */
+export interface ParseProgress {
+  kind: 'progress'
+  /** Pipeline stage currently in flight. */
+  phase: ParsePhase
+  /** 0–1 share of the current phase that's done. */
+  ratio: number
+  /** Human-readable label rendered next to the bar (in Spanish). */
+  label: string
+}
+export type ParseResponse = ParseSuccess | ParseError | ParseProgress
 
 // Detect strings whose bytes look like UTF-8 misinterpreted as Latin-1
 // (e.g. "DuraciÃ³n" should be "Duración"). Re-decode when matched. The
@@ -134,6 +144,10 @@ function colName(i: number): string {
 
 function post(response: ParseResponse): void {
   ;(self as unknown as DedicatedWorkerGlobalScope).postMessage(response)
+}
+
+function postProgress(phase: ParsePhase, ratio: number, label: string): void {
+  post({ kind: 'progress', phase, ratio: Math.max(0, Math.min(1, ratio)), label })
 }
 
 /**
@@ -246,6 +260,7 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   // the next one when the worker is re-used.
   mojibakeFixCount = 0
   const { fileBuffer, fileName, sheetIndex: requestedIndex = 0 } = event.data
+  postProgress('read', 0, 'Leyendo archivo…')
 
   // CSV / TSV / TXT files get a pre-decode pass so we can recover from
   // Latin-1 source files (#7) and pick the right field separator (#6)
@@ -299,6 +314,8 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     })
     return
   }
+
+  postProgress('sheet', 0.4, `Hoja "${sheetName}" cargada`)
 
   // Expand merged cells (#3). Excel/ODS files store merges as ranges in the
   // sheet's `!merges` array; the top-left cell holds the value and every other
@@ -399,6 +416,8 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     seenHeaders.add(h)
   }
 
+  postProgress('header', 0.55, 'Cabecera validada')
+
   // Type-detect: read each column by index out of the row grid.
   let columns: Column[]
   const warnings: ColumnWarning[] = []
@@ -436,7 +455,12 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     return
   }
 
+  postProgress('type-detect', 0.7, `${columns.length} columnas tipadas`)
+
   const rows: Record<string, CellValue>[] = []
+  // Emit a progress event roughly every 5% of the row pass so a 50k-row
+  // file produces ~20 updates rather than one per row.
+  const progressEvery = Math.max(1, Math.floor(dataRows.length / 20))
   for (let r = 0; r < dataRows.length; r++) {
     try {
       const raw = dataRows[r]
@@ -452,6 +476,15 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
         }
       }
       rows.push(obj)
+      if (r % progressEvery === 0) {
+        const rowProgress = dataRows.length > 0 ? r / dataRows.length : 1
+        // Map 0-1 row progress into the 0.7-0.98 slice of total progress.
+        postProgress(
+          'row',
+          0.7 + rowProgress * 0.28,
+          `Procesando filas ${r + 1}/${dataRows.length}`,
+        )
+      }
     } catch (err) {
       post({
         ok: false,

@@ -19,6 +19,8 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
   const [busy, setBusy] = useState(false)
   const [hover, setHover] = useState(false)
   const [error, setError] = useState<FriendlyError | null>(null)
+  // 0-1 progress reported by the worker (#11). Null while idle.
+  const [progress, setProgress] = useState<{ ratio: number; label: string } | null>(null)
   // When set, the user is sitting on the sheet picker after a multi-sheet parse.
   // The dropzone shows the picker UI and defers calling onParsed until they confirm.
   const [picker, setPicker] = useState<MultiSheet | null>(null)
@@ -27,6 +29,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
   async function handleFile(file: File, sheetIndex = 0): Promise<void> {
     setBusy(true)
     setError(null)
+    setProgress({ ratio: 0, label: 'Cargando archivo…' })
     if (fileSizeTier(file.size) === 'warn' && sheetIndex === 0) {
       pushToast(
         `Archivo grande (${(file.size / 1024 / 1024).toFixed(1)} MB > ${Math.round(WARN_FILE_BYTES / 1024 / 1024)} MB). El parseo puede tardar unos segundos.`,
@@ -35,7 +38,10 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
       )
     }
     try {
-      const result = await parseExcelFileWithMeta(file, { sheetIndex })
+      const result = await parseExcelFileWithMeta(file, {
+        sheetIndex,
+        onProgress: ({ ratio, label }) => setProgress({ ratio, label }),
+      })
       const { dataset, meta } = result
       if (meta.sheetNames && meta.sheetNames.length > 1) {
         // Multi-sheet workbook (#1) — show the picker before bubbling up.
@@ -49,6 +55,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
       setPicker(null)
     } finally {
       setBusy(false)
+      setProgress(null)
     }
   }
 
@@ -168,7 +175,53 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
               ? 'Elige la hoja que quieres usar'
               : 'Arrastra tu Excel o haz click'}
         </p>
-        {!picker && (
+        {busy && progress && (
+          <div
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress.ratio * 100)}
+            aria-label={progress.label}
+            style={{
+              marginTop: 16,
+              maxWidth: 320,
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              textAlign: 'left',
+            }}
+          >
+            <div
+              style={{
+                height: 6,
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--border)',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${Math.round(progress.ratio * 100)}%`,
+                  height: '100%',
+                  background:
+                    'linear-gradient(90deg, var(--sky) 0%, var(--plum) 50%, var(--mint) 100%)',
+                  transition: 'width 160ms ease-out',
+                }}
+              />
+            </div>
+            <p
+              style={{
+                marginTop: 6,
+                fontSize: 11,
+                color: 'var(--muted)',
+                letterSpacing: '0.04em',
+                fontFamily: 'var(--font-mono, monospace)',
+              }}
+            >
+              {progress.label} · {Math.round(progress.ratio * 100)}%
+            </p>
+          </div>
+        )}
+        {!picker && !busy && (
           <p
             style={{
               color: 'var(--muted)',

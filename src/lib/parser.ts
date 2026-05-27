@@ -1,5 +1,10 @@
 import type { Dataset } from '../types/dataset'
-import type { ColumnWarning, ParsePhase, ParseResponse } from '../workers/parser.worker'
+import type {
+  ColumnWarning,
+  ParsePhase,
+  ParseProgress,
+  ParseResponse,
+} from '../workers/parser.worker'
 import { logError } from './errorLog'
 import { pushToast } from './toast'
 
@@ -69,12 +74,15 @@ export interface ParseResult {
 export interface ParseExcelOptions {
   /** Pick a specific sheet by index. Defaults to 0 (first sheet). */
   sheetIndex?: number
+  /** Receive 0-or-more progress updates while the worker runs (#11). */
+  onProgress?: (event: { phase: ParsePhase; ratio: number; label: string }) => void
 }
 
 function runParseWorker(
   buffer: ArrayBuffer,
   fileName: string,
-  sheetIndex?: number,
+  sheetIndex: number | undefined,
+  onProgress?: ParseExcelOptions['onProgress'],
 ): Promise<ParseResult> {
   // The worker only consumes the buffer once (it's transferred), so callers
   // that need a retry must keep a separate copy and pass it in fresh.
@@ -83,6 +91,13 @@ function runParseWorker(
       type: 'module',
     })
     worker.onmessage = (e: MessageEvent<ParseResponse>) => {
+      // Progress events are streamed before the terminal ParseSuccess/Error.
+      // Discriminate via the absence of `ok`: only progress carries `kind`.
+      if (!('ok' in e.data)) {
+        const p: ParseProgress = e.data
+        onProgress?.({ phase: p.phase, ratio: p.ratio, label: p.label })
+        return
+      }
       worker.terminate()
       if (e.data.ok) {
         if (e.data.warnings && e.data.warnings.length > 0) {
@@ -185,7 +200,7 @@ export async function parseExcelFileWithMeta(
   for (let attempt = 0; attempt < 2; attempt++) {
     const fresh = sourceBuffer.slice(0)
     try {
-      return await runParseWorker(fresh, file.name, opts.sheetIndex)
+      return await runParseWorker(fresh, file.name, opts.sheetIndex, opts.onProgress)
     } catch (err) {
       if (err instanceof WorkerCrash && attempt === 0) {
         void logError({
