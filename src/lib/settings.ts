@@ -97,9 +97,30 @@ export async function loadSettings(): Promise<Settings> {
   try {
     const d = await db()
     const stored = await d.get('kv', KEY)
-    return mergeDefaults(stored)
+    if (stored) return mergeDefaults(stored)
+    // First-load auto-detection (#206). Peek at navigator.language to seed
+    // uiLocale. We only do this when *nothing* is persisted yet, so a user
+    // who explicitly picked 'es' on a Chrome that reports 'en' doesn't get
+    // overridden on every visit.
+    const detected = detectInitialSettings()
+    if (detected) await saveSettings(detected)
+    return detected ?? DEFAULT_SETTINGS
   } catch {
     return DEFAULT_SETTINGS
+  }
+}
+
+function detectInitialSettings(): Settings | null {
+  if (typeof navigator === 'undefined') return null
+  const lang = (navigator.language || '').toLowerCase()
+  // Only flip to English when the browser explicitly reports it.
+  // Anything else falls back to the Spanish default (current product locale).
+  if (!lang.startsWith('en')) return null
+  return {
+    ...DEFAULT_SETTINGS,
+    uiLocale: 'en',
+    numberLocale: lang === 'en-gb' ? 'en-US' : 'en-US',
+    dateFormat: 'mm/dd/yyyy',
   }
 }
 
