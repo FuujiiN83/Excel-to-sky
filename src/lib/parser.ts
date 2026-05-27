@@ -33,6 +33,51 @@ export class ParseError extends Error {
   }
 }
 
+/** Sentinel rejection used to ask the outer loop to retry. */
+class WorkerCrash extends Error {
+  constructor(
+    message: string,
+    readonly stack2?: string,
+  ) {
+    super(message)
+    this.name = 'WorkerCrash'
+  }
+}
+
+function runParseWorker(buffer: ArrayBuffer, fileName: string): Promise<Dataset> {
+  // The worker only consumes the buffer once (it's transferred), so callers
+  // that need a retry must keep a separate copy and pass it in fresh.
+  return new Promise<Dataset>((resolve, reject) => {
+    const worker = new Worker(new URL('../workers/parser.worker.ts', import.meta.url), {
+      type: 'module',
+    })
+    worker.onmessage = (e: MessageEvent<ParseResponse>) => {
+      worker.terminate()
+      if (e.data.ok) {
+        resolve(e.data.dataset)
+        return
+      }
+      reject(
+        new ParseError(e.data.error, {
+          row: e.data.row,
+          column: e.data.column,
+          phase: e.data.phase,
+        }),
+      )
+    }
+    worker.onerror = (e) => {
+      worker.terminate()
+      reject(
+        new WorkerCrash(
+          e.message || 'Worker terminó inesperadamente',
+          e.error instanceof Error ? e.error.stack : undefined,
+        ),
+      )
+    }
+    worker.postMessage({ fileBuffer: buffer, fileName }, [buffer])
+  })
+}
+
 export async function parseExcelFile(file: File): Promise<Dataset> {
   if (file.size > MAX_FILE_BYTES) {
     const e = new ParseError(
@@ -48,50 +93,54 @@ export async function parseExcelFile(file: File): Promise<Dataset> {
     throw e
   }
 
-  const buffer = await file.arrayBuffer()
-  const worker = new Worker(new URL('../workers/parser.worker.ts', import.meta.url), {
-    type: 'module',
-  })
+  // ArrayBuffer is transferred to the worker on postMessage, so we read the
+  // file once and clone the buffer per attempt.
+  const sourceBuffer = await file.arrayBuffer()
 
-  return new Promise<Dataset>((resolve, reject) => {
-    worker.onmessage = (e: MessageEvent<ParseResponse>) => {
-      worker.terminate()
-      if (e.data.ok) {
-        resolve(e.data.dataset)
-        return
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const fresh = sourceBuffer.slice(0)
+    try {
+      return await runParseWorker(fresh, file.name)
+    } catch (err) {
+      if (err instanceof WorkerCrash && attempt === 0) {
+        void logError({
+          level: 'warn',
+          context: 'parser',
+          message: `Parser worker crashed, retrying once: ${err.message}`,
+          stack: err.stack2,
+          meta: { phase: 'read', worker: 'parser', retry: 1, fileName: file.name },
+        })
+        continue
       }
-      const err = new ParseError(e.data.error, {
-        row: e.data.row,
-        column: e.data.column,
-        phase: e.data.phase,
-      })
-      void logError({
-        level: 'error',
-        context: 'parser',
-        message: err.message,
-        meta: {
-          phase: err.phase,
-          row: err.row,
-          column: err.column,
-          fileName: file.name,
-        },
-      })
-      reject(err)
+      if (err instanceof WorkerCrash) {
+        const wrapped = new ParseError(err.message, { phase: 'read' })
+        void logError({
+          level: 'error',
+          context: 'parser',
+          message: wrapped.message,
+          stack: err.stack2,
+          meta: { phase: 'read', worker: 'parser', retry: 2, fileName: file.name },
+        })
+        throw wrapped
+      }
+      // Real ParseError from the worker — no retry, just log and rethrow.
+      if (err instanceof ParseError) {
+        void logError({
+          level: 'error',
+          context: 'parser',
+          message: err.message,
+          meta: {
+            phase: err.phase,
+            row: err.row,
+            column: err.column,
+            fileName: file.name,
+          },
+        })
+      }
+      throw err
     }
-    worker.onerror = (e) => {
-      worker.terminate()
-      const err = new ParseError(e.message || 'Worker terminó inesperadamente', {
-        phase: 'read',
-      })
-      void logError({
-        level: 'error',
-        context: 'parser',
-        message: err.message,
-        stack: e.error instanceof Error ? e.error.stack : undefined,
-        meta: { phase: 'read', worker: 'parser', fileName: file.name },
-      })
-      reject(err)
-    }
-    worker.postMessage({ fileBuffer: buffer, fileName: file.name }, [buffer])
-  })
+  }
+
+  // Unreachable: the loop either returns or throws.
+  throw new ParseError('Parser worker no respondió tras reintentos', { phase: 'read' })
 }
