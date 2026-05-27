@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { LegalLayout } from './LegalLayout'
 import { useSettings } from '../lib/SettingsContext'
-import type { Theme } from '../lib/settings'
+import type { NumberLocale, Theme } from '../lib/settings'
 
 interface SettingsPageProps {
   onNav: (route: string) => void
@@ -35,6 +35,29 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
                 { value: 'high-contrast', label: 'Alto contraste', hint: 'Negro/blanco' },
               ]}
               name="theme"
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            label="Formato de números"
+            description="Define el separador de miles y el decimal usados en gráficos, estadísticas y comparativas."
+          >
+            <SelectControl<NumberLocale>
+              value={settings.numberLocale}
+              onChange={(v) => update('numberLocale', v)}
+              options={[
+                { value: 'es-ES', label: 'Español (1.234,5)' },
+                { value: 'en-US', label: 'English US (1,234.5)' },
+                { value: 'de-DE', label: 'Deutsch (1.234,5)' },
+                { value: 'fr-FR', label: 'Français (1 234,5)' },
+                { value: 'pt-PT', label: 'Português (1 234,5)' },
+              ]}
+            />
+            <SamplePreview
+              label="Ejemplo"
+              value={(1234567.89).toLocaleString(settings.numberLocale, {
+                maximumFractionDigits: 1,
+              })}
             />
           </SettingsRow>
         </div>
@@ -78,6 +101,86 @@ function SettingsRow({ label, description, children }: SettingsRowProps): JSX.El
       </div>
       <div>{children}</div>
     </section>
+  )
+}
+
+interface SelectOption<T extends string> {
+  value: T
+  label: string
+}
+
+interface SelectControlProps<T extends string> {
+  value: T
+  onChange: (value: T) => void
+  options: ReadonlyArray<SelectOption<T>>
+}
+
+function SelectControl<T extends string>({
+  value,
+  onChange,
+  options,
+}: SelectControlProps<T>): JSX.Element {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as T)}
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border-strong)',
+        color: 'var(--ink)',
+        padding: '8px 12px',
+        fontSize: 13,
+        fontFamily: 'inherit',
+        cursor: 'pointer',
+        minWidth: 220,
+      }}
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+interface SamplePreviewProps {
+  label: string
+  value: string
+}
+
+function SamplePreview({ label, value }: SamplePreviewProps): JSX.Element {
+  return (
+    <div
+      style={{
+        marginTop: 10,
+        display: 'inline-flex',
+        alignItems: 'baseline',
+        gap: 10,
+        padding: '6px 12px',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        fontSize: 12,
+      }}
+    >
+      <span
+        style={{
+          color: 'var(--muted)',
+          fontFamily: 'var(--font-mono, monospace)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          fontSize: 10,
+        }}
+      >
+        {label}
+      </span>
+      <span
+        className="font-mono"
+        style={{ color: 'var(--ink)', fontFamily: 'var(--font-mono, monospace)' }}
+      >
+        {value}
+      </span>
+    </div>
   )
 }
 
