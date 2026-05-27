@@ -103,6 +103,8 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
             </button>
           </div>
 
+          <EmbedSnippet link={link} />
+
           {qrDataUrl && (
             <div
               style={{
@@ -163,6 +165,77 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
       )}
 
       {error && <p className="mt-4 text-coral">{error}</p>}
+    </div>
+  )
+}
+
+interface EmbedSnippetProps {
+  link: string
+}
+
+function EmbedSnippet({ link }: EmbedSnippetProps): JSX.Element {
+  const embedUrl = link.replace('/d/', '/embed/')
+  const html = `<iframe src="${embedUrl}" width="100%" height="640" style="border:0" loading="lazy"></iframe>`
+  return (
+    <div
+      style={{
+        marginTop: 24,
+        paddingTop: 24,
+        borderTop: '1px dashed var(--border)',
+      }}
+    >
+      <p
+        style={{
+          fontSize: 12,
+          color: 'var(--muted)',
+          fontFamily: 'var(--font-mono, monospace)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          margin: 0,
+        }}
+      >
+        Embebido en otra web
+      </p>
+      <p style={{ fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.5, marginTop: 8 }}>
+        La ruta <code>/embed/&lt;slug&gt;</code> renderiza el dashboard sin barra superior ni
+        bandejas flotantes. Pega este snippet en tu HTML.
+      </p>
+      <code
+        className="font-mono"
+        style={{
+          display: 'block',
+          padding: '10px 12px',
+          background: 'var(--surface-2, rgba(255,255,255,0.04))',
+          border: '1px solid var(--border)',
+          fontSize: 11,
+          color: 'var(--ink-2)',
+          marginTop: 8,
+          wordBreak: 'break-all',
+          whiteSpace: 'pre-wrap',
+        }}
+      >
+        {html}
+      </code>
+      <button
+        type="button"
+        onClick={() => {
+          void navigator.clipboard.writeText(html)
+          pushToast('Snippet copiado.', 'success', 3000)
+        }}
+        style={{
+          marginTop: 10,
+          background: 'transparent',
+          color: 'var(--sky)',
+          border: '1px solid var(--sky)',
+          padding: '6px 12px',
+          fontSize: 12,
+          fontWeight: 600,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}
+      >
+        Copiar snippet
+      </button>
     </div>
   )
 }
