@@ -20,6 +20,16 @@ interface ChartBarProps {
   limit?: number
   /** Height in px for vertical mode, ignored for horizontal. */
   height?: number
+  /** Accessible description. If omitted, one is derived from the data. */
+  ariaLabel?: string
+}
+
+function defaultBarAria(bars: Bar[]): string {
+  if (bars.length === 0) return 'Gráfico de barras vacío.'
+  const max = Math.max(...bars.map((b) => b.value))
+  const min = Math.min(...bars.map((b) => b.value))
+  const top = bars.reduce((a, b) => (b.value > a.value ? b : a))
+  return `Gráfico de barras con ${bars.length} categorías. Valor máximo ${fmtNumber(max)} en "${top.label}", mínimo ${fmtNumber(min)}.`
 }
 
 /**
@@ -34,14 +44,16 @@ export function ChartBar({
   footer,
   limit,
   height = 220,
+  ariaLabel,
 }: ChartBarProps): JSX.Element {
   const visible = limit ? bars.slice(0, limit) : bars
   const stroke = `var(--${accent})`
+  const label = ariaLabel ?? defaultBarAria(visible)
 
   if (orientation === 'vertical') {
     const max = Math.max(...visible.map((b) => b.value), 1)
     return (
-      <div>
+      <div role="img" aria-label={label}>
         <div
           style={{
             display: 'flex',
@@ -107,7 +119,11 @@ export function ChartBar({
   // Horizontal
   const mx = Math.max(...visible.map((b) => b.value), 1)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div
+      role="img"
+      aria-label={label}
+      style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+    >
       {visible.map((b, i) => (
         <div
           key={i}

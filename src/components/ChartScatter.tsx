@@ -12,6 +12,19 @@ interface ChartScatterProps {
   height?: number
   xLabel?: string
   yLabel?: string
+  /** Accessible description. If omitted, one is derived from the data. */
+  ariaLabel?: string
+}
+
+function defaultScatterAria(
+  points: ScatterPoint[],
+  xLabel?: string,
+  yLabel?: string,
+): string {
+  if (points.length === 0) return 'Diagrama de dispersión vacío.'
+  const cross =
+    xLabel && yLabel ? ` cruzando ${yLabel} (Y) frente a ${xLabel} (X)` : ''
+  return `Diagrama de dispersión con ${points.length} puntos${cross}.`
 }
 
 /**
@@ -23,6 +36,7 @@ export function ChartScatter({
   height = 280,
   xLabel,
   yLabel,
+  ariaLabel,
 }: ChartScatterProps): JSX.Element | null {
   if (!points || points.length === 0) return null
   const xs = points.map((p) => p.x)
@@ -47,13 +61,18 @@ export function ChartScatter({
     return pad.t + innerH - ((y - yMin) / yRange) * innerH
   }
 
+  const label = ariaLabel ?? defaultScatterAria(points, xLabel, yLabel)
+
   return (
     <div>
       <svg
         viewBox={`0 0 ${w} ${height}`}
         preserveAspectRatio="none"
         style={{ width: '100%', height, display: 'block' }}
+        role="img"
+        aria-label={label}
       >
+        <title>{label}</title>
         {/* grid lines */}
         {[0.25, 0.5, 0.75].map((p, i) => (
           <line
