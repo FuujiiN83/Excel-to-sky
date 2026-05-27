@@ -70,6 +70,51 @@ function post(response: ParseResponse): void {
 }
 
 /**
+ * Pick the most likely header row out of the first N rows (#2). Spreadsheets
+ * exported from BI tools or surveys often start with a title row, a few
+ * blank rows or a metadata block before the actual header. We score each
+ * candidate row on:
+ *   - count of non-empty cells (more = better)
+ *   - share of cells that look like labels (string, not numeric)
+ *   - cell uniqueness (headers are usually distinct)
+ * and return the index of the winning row. Rows above it are discarded.
+ *
+ * Returns 0 when the first row already looks like a header (no penalty for
+ * the common, well-formed case).
+ */
+const HEADER_SCAN_DEPTH = 5
+function detectHeaderRow(grid: unknown[][]): number {
+  if (grid.length === 0) return 0
+  const limit = Math.min(HEADER_SCAN_DEPTH, grid.length)
+
+  // Quick-out: the first row is "good enough" — at least 2 non-empty cells
+  // and no numeric majority. Skip scanning to keep typical files cheap.
+  const first = grid[0] ?? []
+  const firstNonEmpty = first.filter((v) => v != null && String(v).trim() !== '').length
+  const firstNumeric = first.filter((v) => typeof v === 'number').length
+  if (firstNonEmpty >= 2 && firstNumeric < firstNonEmpty / 2) return 0
+
+  let bestRow = 0
+  let bestScore = -Infinity
+  for (let r = 0; r < limit; r++) {
+    const row = grid[r] ?? []
+    const nonEmpty = row.filter((v) => v != null && String(v).trim() !== '')
+    if (nonEmpty.length === 0) continue
+    const stringCells = nonEmpty.filter((v) => typeof v !== 'number').length
+    const unique = new Set(nonEmpty.map((v) => String(v).trim().toLowerCase())).size
+    // Weights chosen so that string-cell share dominates, with breadth +
+    // uniqueness as tiebreakers. Numeric-heavy rows score low because they
+    // probably hold data, not labels.
+    const score = stringCells * 3 + nonEmpty.length + unique
+    if (score > bestScore) {
+      bestScore = score
+      bestRow = r
+    }
+  }
+  return bestRow
+}
+
+/**
  * Copy the top-left value of every merge range into the other cells of the
  * range (#3). XLSX/ODS sheets store merges in `sheet['!merges']` and leave
  * the non-anchor cells empty, which would otherwise produce blank columns or
@@ -174,14 +219,18 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     return
   }
 
-  const headerRow = grid[0]
-  const dataRows = grid.slice(1)
+  // Find the header row (#2). When the spreadsheet starts with a title or
+  // metadata block, the first non-decorative row is detected and used; any
+  // rows above it are discarded.
+  const headerRowIndex = detectHeaderRow(grid)
+  const headerRow = grid[headerRowIndex]
+  const dataRows = grid.slice(headerRowIndex + 1)
 
   if (dataRows.length === 0) {
     post({
       ok: false,
       phase: 'row',
-      row: 2,
+      row: headerRowIndex + 2,
       error: `La hoja "${sheetName}" tiene cabecera pero ninguna fila de datos.`,
     })
     return
@@ -200,7 +249,7 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
       post({
         ok: false,
         phase: 'header',
-        row: 1,
+        row: headerRowIndex + 1,
         column: `Col ${colName(i)}`,
         error: `La cabecera de la columna ${colName(i)} está vacía. Asigna un nombre y vuelve a subir.`,
       })
@@ -210,7 +259,7 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
       post({
         ok: false,
         phase: 'header',
-        row: 1,
+        row: headerRowIndex + 1,
         column: h,
         error: `La cabecera "${h}" aparece dos veces (columna ${colName(i)}). Renombra una de las dos.`,
       })
@@ -276,8 +325,10 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
       post({
         ok: false,
         phase: 'row',
-        row: r + 2, // header is Excel row 1, dataRows[0] is Excel row 2
-        error: `Error procesando la fila ${r + 2}: ${err instanceof Error ? err.message : 'desconocido'}.`,
+        // dataRows[0] sits immediately after the detected header row; +2
+        // converts a 0-indexed offset to a 1-indexed Excel row number.
+        row: headerRowIndex + r + 2,
+        error: `Error procesando la fila ${headerRowIndex + r + 2}: ${err instanceof Error ? err.message : 'desconocido'}.`,
       })
       return
     }
