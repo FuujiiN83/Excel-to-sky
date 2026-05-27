@@ -4,6 +4,7 @@ import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import { StatCard, MiniSpark } from '../components/StatCard'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
 import { AnimatedNumber } from '../components/AnimatedNumber'
+import { ExportMenu } from '../components/ExportMenu'
 
 interface DashboardPageProps {
   dataset: Dataset
@@ -133,6 +134,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
             >
               Comparar columnas
             </button>
+            <ExportMenu dataset={dataset} />
             <button
               onClick={onShare}
               style={{

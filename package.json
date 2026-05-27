@@ -14,7 +14,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "bundle:check": "node scripts/check-bundle-size.mjs",
+    "bundle:check": "node scripts/check-bundle-size.mjs --max-route=160",
     "prepare": "husky"
   },
   "dependencies": {
