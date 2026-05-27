@@ -151,6 +151,18 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
           </SettingsRow>
 
           <SettingsRow
+            label="Modo solo-local"
+            description="Oculta toda la interfaz de compartir. Útil para sesiones con datos sensibles donde quieres asegurarte de que nada sale del navegador, ni siquiera por accidente."
+            tooltip="Esto desactiva los botones de 'Compartir' y la ruta /share. Los dashboards que ya hayas creado siguen siendo accesibles por su enlace público hasta que caduquen — esta opción solo previene crear nuevos."
+          >
+            <ToggleControl
+              checked={settings.localOnly}
+              onChange={(v) => update('localOnly', v)}
+              label={settings.localOnly ? 'Activado' : 'Desactivado'}
+            />
+          </SettingsRow>
+
+          <SettingsRow
             label="Gráfico por defecto"
             description="Forma de gráfico preferida para cada tipo de columna. 'Auto' deja que la app elija la más apropiada según la forma de los datos."
             tooltip="Tu elección guía a Excel to Sky; el motor siempre podrá ofrecer un gráfico alternativo si la forma del dato no encaja con el preferido (por ejemplo, intentar 'mapa' en una columna sin coordenadas detectadas)."
