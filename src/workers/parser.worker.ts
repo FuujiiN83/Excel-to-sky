@@ -5,6 +5,8 @@ import type { Dataset, Column, CellValue, ColumnType } from '../types/dataset'
 export interface ParseRequest {
   fileBuffer: ArrayBuffer
   fileName: string
+  /** Zero-based index into workbook.SheetNames. Defaults to 0 if omitted. */
+  sheetIndex?: number
 }
 
 /** Per-column hints surfaced alongside the Dataset (#17). */
@@ -21,6 +23,10 @@ export interface ParseSuccess {
   ok: true
   dataset: Dataset
   warnings?: ColumnWarning[]
+  /** All sheet names in the workbook (in their original order). Only set when the workbook has more than one sheet. */
+  sheetNames?: string[]
+  /** Zero-based index of the sheet that was actually parsed. */
+  sheetIndex: number
 }
 export type ParsePhase = 'read' | 'sheet' | 'header' | 'row' | 'type-detect'
 export interface ParseError {
@@ -64,7 +70,7 @@ function post(response: ParseResponse): void {
 }
 
 self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
-  const { fileBuffer, fileName } = event.data
+  const { fileBuffer, fileName, sheetIndex: requestedIndex = 0 } = event.data
 
   let wb: XLSX.WorkBook
   try {
@@ -87,11 +93,16 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   if (wb.Props) wb.Props = {}
   if (wb.Custprops) wb.Custprops = {}
 
-  const sheetName = wb.SheetNames[0]
-  if (!sheetName) {
+  const sheetNames = wb.SheetNames
+  if (sheetNames.length === 0) {
     post({ ok: false, phase: 'sheet', error: 'El libro no contiene ninguna hoja.' })
     return
   }
+  // Multi-sheet (#1): caller can request any sheet by index; defaults to 0.
+  // Out-of-range requests are clamped rather than rejected so a stale picker
+  // value can't crash the worker.
+  const sheetIndex = Math.min(Math.max(0, requestedIndex), sheetNames.length - 1)
+  const sheetName = sheetNames[sheetIndex]
   const sheet = wb.Sheets[sheetName]
   if (!sheet) {
     post({
@@ -247,5 +258,11 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
     rows,
     createdAt: new Date().toISOString(),
   }
-  post({ ok: true, dataset, warnings: warnings.length > 0 ? warnings : undefined })
+  post({
+    ok: true,
+    dataset,
+    warnings: warnings.length > 0 ? warnings : undefined,
+    sheetNames: sheetNames.length > 1 ? sheetNames : undefined,
+    sheetIndex,
+  })
 })
