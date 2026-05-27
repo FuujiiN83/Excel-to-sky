@@ -1,7 +1,61 @@
 import type { ColumnType } from '../types/dataset'
 
-const TRUE_VALUES = new Set(['true', '1', 'sí', 'si', 'yes', 'y', 'verdadero'])
-const FALSE_VALUES = new Set(['false', '0', 'no', 'n', 'falso'])
+// Boolean variants (#33). Covers Spanish, English, Italian, French, German,
+// Portuguese plus check-mark glyphs and the common 0/1 pair. detectBoolean
+// trims + lowercases the input, so the set entries are all lowercase.
+const TRUE_VALUES = new Set([
+  'true',
+  '1',
+  // ES / IT
+  'sí',
+  'si',
+  'verdadero',
+  'verdad',
+  'vero',
+  // EN
+  'yes',
+  'y',
+  't',
+  // FR
+  'oui',
+  'vrai',
+  // DE
+  'ja',
+  'wahr',
+  // PT
+  'sim',
+  // glyphs
+  '✓',
+  '✔',
+])
+const FALSE_VALUES = new Set([
+  'false',
+  '0',
+  // ES / IT
+  'no',
+  'n',
+  'falso',
+  // EN
+  'f',
+  // FR
+  'non',
+  'faux',
+  // DE
+  'nein',
+  'falsch',
+  // PT
+  'não',
+  'nao',
+  // glyphs
+  '✗',
+  '✘',
+  '×',
+])
+
+// Currency symbols stripped during numeric detection (#21). Includes the
+// pre-existing big four (€$£¥) plus krona/koruna (kr), ruble, shekel, won,
+// rupee, real (R$), zloty, franc.
+const CURRENCY_STRIP = /(?:R\$|kr|zł|CHF|CHF\.|[€$£¥₽₪₩₹])/gi
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T.*)?$/
 const DMY = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
@@ -19,7 +73,12 @@ export function detectBoolean(raw: string): boolean | null {
 
 export function detectNumber(raw: string): number | null {
   if (!raw) return null
-  let s = raw.trim().replace(/[€$£¥\s]/g, '')
+  // Strip leading/trailing whitespace, currency symbols and thin spaces (NBSP).
+  let s = raw
+    .trim()
+    .replace(CURRENCY_STRIP, '')
+    .replace(/[\s\u00A0]/g, '')
+  if (!s) return null
   const lastComma = s.lastIndexOf(',')
   const lastDot = s.lastIndexOf('.')
   if (lastComma !== -1 && lastDot !== -1) {
