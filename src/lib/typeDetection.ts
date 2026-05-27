@@ -422,6 +422,25 @@ registerSubtypeDetector({
   },
 })
 
+// ---------- Detector: postal code (#29) ----------
+// Covers ES (5 digits), US (5 or 9-digit ZIP+4), UK (alphanumeric like
+// 'SW1A 1AA'), FR (5 digits, same as ES — order matters for first match),
+// DE (5 digits, same as ES). Numeric forms collapse into one regex; the
+// UK pattern is tried separately because of its mixed alphanumeric shape.
+// Detector also rejects values that pass detectNumber as currency-ish
+// because '12345' alone is too ambiguous unless the header hints — we
+// rely on the header bias by gating `appliesTo` on number / text.
+const POSTAL_NUMERIC = /^\d{5}(?:-\d{4})?$/ // ES/FR/DE/US ZIP+4
+const POSTAL_UK = /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i
+registerSubtypeDetector({
+  name: 'postal-code',
+  appliesTo: ['text', 'category', 'number'],
+  test: (v) => {
+    const s = v.trim()
+    return POSTAL_NUMERIC.test(s) || POSTAL_UK.test(s)
+  },
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
