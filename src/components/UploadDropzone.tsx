@@ -39,6 +39,16 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
         if (f) void handleFile(f)
       }}
       onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          inputRef.current?.click()
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label="Zona para soltar tu Excel o CSV. Pulsa Enter para abrir el selector de archivos."
+      aria-busy={busy}
       style={{
         padding: 6,
         borderRadius: 0,
@@ -47,7 +57,8 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
           : 'rgba(255,255,255,0.025)',
         boxShadow: `0 0 0 1px ${hover ? 'var(--border-strong)' : 'var(--border)'}`,
         cursor: 'pointer',
-        transition: 'background 320ms cubic-bezier(0.32,0.72,0,1), box-shadow 320ms cubic-bezier(0.32,0.72,0,1)',
+        transition:
+          'background 320ms cubic-bezier(0.32,0.72,0,1), box-shadow 320ms cubic-bezier(0.32,0.72,0,1)',
       }}
     >
       <div
@@ -83,7 +94,16 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
             boxShadow: 'inset 0 0 0 1px var(--border)',
           }}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="17 8 12 3 7 8" />
             <line x1="12" y1="3" x2="12" y2="15" />
@@ -111,9 +131,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
         >
           .xlsx · .xls · .csv · .ods · hasta 10 MB
         </p>
-        {error && (
-          <p style={{ color: 'var(--coral)', fontSize: 13, marginTop: 16 }}>{error}</p>
-        )}
+        {error && <p style={{ color: 'var(--coral)', fontSize: 13, marginTop: 16 }}>{error}</p>}
       </div>
     </div>
   )
