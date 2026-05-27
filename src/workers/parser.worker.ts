@@ -9,6 +9,62 @@ export interface ParseRequest {
   sheetIndex?: number
 }
 
+const CSV_EXTENSIONS = ['.csv', '.tsv', '.txt']
+
+/**
+ * Decode an ArrayBuffer to a string, preferring UTF-8 but transparently
+ * falling back to Latin-1 when the data isn't valid UTF-8 (#7). Excel
+ * still emits Latin-1 CSVs by default on Spanish Windows, so this avoids
+ * the "Duración → DuraciÃ³n" garbling chain at the source instead of
+ * relying on the post-hoc fixMojibake() heuristic.
+ *
+ * Strips a leading UTF-8 BOM when present.
+ */
+function decodeCsvBuffer(buffer: ArrayBuffer): string {
+  // UTF-8 BOM: EF BB BF → strip and trust UTF-8.
+  const view = new Uint8Array(buffer)
+  if (view.length >= 3 && view[0] === 0xef && view[1] === 0xbb && view[2] === 0xbf) {
+    return new TextDecoder('utf-8').decode(view.subarray(3))
+  }
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(view)
+  } catch {
+    return new TextDecoder('windows-1252').decode(view)
+  }
+}
+
+/**
+ * Pick the most likely field separator out of comma/semicolon/tab/pipe
+ * (#6). Scores each candidate by the number of first-line occurrences that
+ * survive when the same count is seen across the next few lines — a
+ * consistent column count beats a higher raw frequency, since stray commas
+ * inside cells would otherwise win for tab-separated files.
+ */
+function detectCsvDelimiter(text: string): ',' | ';' | '\t' | '|' {
+  const candidates = [',', ';', '\t', '|'] as const
+  const lines = text
+    .split(/\r?\n/)
+    .filter((l) => l.trim() !== '')
+    .slice(0, 5)
+  if (lines.length === 0) return ','
+
+  let bestDelim: (typeof candidates)[number] = ','
+  let bestScore = -Infinity
+  for (const d of candidates) {
+    const counts = lines.map((l) => (l.match(new RegExp(`\\${d}`, 'g')) ?? []).length)
+    const first = counts[0]
+    if (first === 0) continue
+    // Reward delimiters whose count is stable across the sample lines.
+    const consistent = counts.filter((n) => n === first).length
+    const score = first * 10 + consistent
+    if (score > bestScore) {
+      bestScore = score
+      bestDelim = d
+    }
+  }
+  return bestDelim
+}
+
 /** Per-column hints surfaced alongside the Dataset (#17). */
 export interface ColumnWarning {
   columnKey: string
@@ -177,9 +233,21 @@ function expandMergedCells(sheet: XLSX.WorkSheet): void {
 self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   const { fileBuffer, fileName, sheetIndex: requestedIndex = 0 } = event.data
 
+  // CSV / TSV / TXT files get a pre-decode pass so we can recover from
+  // Latin-1 source files (#7) and pick the right field separator (#6)
+  // before handing the data to the XLSX library.
+  const lowerName = fileName.toLowerCase()
+  const isCsvLike = CSV_EXTENSIONS.some((ext) => lowerName.endsWith(ext))
+
   let wb: XLSX.WorkBook
   try {
-    wb = XLSX.read(fileBuffer, { type: 'array', cellDates: true, codepage: 65001 })
+    if (isCsvLike) {
+      const text = decodeCsvBuffer(fileBuffer)
+      const delim = detectCsvDelimiter(text)
+      wb = XLSX.read(text, { type: 'string', cellDates: true, FS: delim })
+    } else {
+      wb = XLSX.read(fileBuffer, { type: 'array', cellDates: true, codepage: 65001 })
+    }
   } catch (err) {
     post({
       ok: false,
