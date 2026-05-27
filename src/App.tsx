@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { TopBar } from './components/TopBar'
 import { FloatingDock } from './components/FloatingDock'
+import { CookieBanner } from './components/CookieBanner'
+import { NetworkErrorBanner } from './components/NetworkErrorBanner'
 import { SAMPLE_DATASETS } from './samples'
 import type { Dataset } from './types/dataset'
 import { UploadPage } from './pages/UploadPage'
@@ -13,6 +15,7 @@ import { LandingPage } from './pages/LandingPage'
 import { FaqPage } from './pages/FaqPage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { TermsPage } from './pages/TermsPage'
+import { BugReportPage } from './pages/BugReportPage'
 import { loadSharedDashboard } from './lib/shareApi'
 import { saveLocalDashboard, touchLocalDashboard } from './lib/localDb'
 import { isSupabaseConfigured } from './lib/supabase'
@@ -30,6 +33,7 @@ type RouteName =
   | 'faq'
   | 'privacy'
   | 'terms'
+  | 'report'
   | 'dev_insights'
 
 interface Route {
@@ -60,6 +64,7 @@ export default function App(): JSX.Element {
     else if (path === '/faq') setRoute({ name: 'faq' })
     else if (path === '/privacy') setRoute({ name: 'privacy' })
     else if (path === '/terms') setRoute({ name: 'terms' })
+    else if (path === '/report') setRoute({ name: 'report' })
     else if (path === '/dev/insights') setRoute({ name: 'dev_insights' })
   }, [])
 
@@ -98,13 +103,14 @@ export default function App(): JSX.Element {
   useEffect(() => {
     if (!import.meta.env.DEV) return
     if (!hasUploaded) return
-    void analyzeDataset(dataset).then((report) => {
-      // eslint-disable-next-line no-console
-      console.log('[insights]', report)
-    }).catch((e: unknown) => {
-      // eslint-disable-next-line no-console
-      console.error('[insights] failed:', e)
-    })
+    void analyzeDataset(dataset)
+      .then((report) => {
+        // eslint-disable-next-line no-console
+        console.log('[insights]', report)
+      })
+      .catch((e: unknown) => {
+        console.error('[insights] failed:', e)
+      })
   }, [dataset, hasUploaded])
 
   const isUpload = route.name === 'upload'
@@ -114,6 +120,7 @@ export default function App(): JSX.Element {
     route.name === 'faq' ||
     route.name === 'privacy' ||
     route.name === 'terms' ||
+    route.name === 'report' ||
     route.name === 'dev_insights'
 
   if (isStandalone) {
@@ -123,7 +130,10 @@ export default function App(): JSX.Element {
         {route.name === 'faq' && <FaqPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'privacy' && <PrivacyPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'terms' && <TermsPage onNav={(n) => nav(n as RouteName)} />}
+        {route.name === 'report' && <BugReportPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'dev_insights' && <InsightsWorkbench />}
+        <CookieBanner onLearnMore={() => nav('privacy')} />
+        <NetworkErrorBanner />
       </div>
     )
   }
@@ -132,12 +142,7 @@ export default function App(): JSX.Element {
     <div>
       {isUpload ? (
         <>
-          <TopBar
-            current={null}
-            onNav={() => {}}
-            dataset={null}
-            hideNav
-          />
+          <TopBar current={null} onNav={() => {}} dataset={null} hideNav />
           <UploadPage
             onParsed={(ds) => {
               loadDataset(ds)
@@ -200,6 +205,8 @@ export default function App(): JSX.Element {
       {(!isUpload || hasUploaded) && (
         <FloatingDock route={route} onNav={(n) => nav(n as RouteName)} />
       )}
+      <CookieBanner onLearnMore={() => nav('privacy')} />
+      <NetworkErrorBanner />
     </div>
   )
 }

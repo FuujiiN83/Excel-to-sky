@@ -4,7 +4,7 @@ const TRUE_VALUES = new Set(['true', '1', 'sí', 'si', 'yes', 'y', 'verdadero'])
 const FALSE_VALUES = new Set(['false', '0', 'no', 'n', 'falso'])
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T.*)?$/
-const DMY = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/
+const DMY = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/
 
 const THRESHOLD = 0.8
 const CATEGORY_MAX_RATIO = 0.05

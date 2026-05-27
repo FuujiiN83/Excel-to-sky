@@ -1,3 +1,5 @@
+import { Footer } from '../components/Footer'
+
 interface LandingPageProps {
   onNav: (route: string) => void
 }
@@ -160,8 +162,8 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
               maxWidth: 480,
             }}
           >
-            Sube un Excel. Te devolvemos un dashboard navegable con stats,
-            gráficos y un link para compartir. Cero instalación. Cero cuenta.
+            Sube un Excel. Te devolvemos un dashboard navegable con stats, gráficos y un link para
+            compartir. Cero instalación. Cero cuenta.
           </p>
 
           <div style={{ display: 'flex', gap: 0, marginTop: 40, alignItems: 'stretch' }}>
@@ -237,7 +239,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
           }}
         >
           <BackgroundGrid />
-          <DashboardMockup />
+          <AnimatedHeroDemo />
           <CornerTicks position="tr" />
           <CornerTicks position="br" />
         </div>
@@ -278,12 +280,11 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
             color: 'var(--ink)',
           }}
         >
-          Los datos no deberían vivir en pestañas con 70 columnas.
-          Deberían contarte algo en cuanto los abres.
+          Los datos no deberían vivir en pestañas con 70 columnas. Deberían contarte algo en cuanto
+          los abres.
           <span style={{ color: 'var(--muted)' }}>
             {' '}
-            Por eso construimos esto: un puente entre tu hoja y la respuesta
-            que ya tenía dentro.
+            Por eso construimos esto: un puente entre tu hoja y la respuesta que ya tenía dentro.
           </span>
         </p>
       </section>
@@ -405,6 +406,220 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
         </div>
       </section>
 
+      {/* FEATURES GRID */}
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+          padding: '120px 64px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: 80,
+            marginBottom: 56,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              paddingTop: 12,
+            }}
+          >
+            [03] Funcionalidades
+          </div>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: '-0.035em',
+              margin: 0,
+            }}
+          >
+            Lo que hace
+            <br />
+            <span style={{ color: 'var(--muted)' }}>por debajo del capó.</span>
+          </h2>
+        </div>
+
+        <FeatureGrid />
+      </section>
+
+      {/* COMPARISON */}
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+          padding: '120px 64px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: 80,
+            marginBottom: 56,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              paddingTop: 12,
+            }}
+          >
+            [04] Comparación
+          </div>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: '-0.035em',
+              margin: 0,
+            }}
+          >
+            Frente al resto,
+            <br />
+            <span style={{ color: 'var(--muted)' }}>desde la privacidad.</span>
+          </h2>
+        </div>
+
+        <ComparisonTable />
+
+        <p
+          style={{
+            fontSize: 12,
+            color: 'var(--muted)',
+            marginTop: 24,
+            maxWidth: 760,
+            lineHeight: 1.55,
+          }}
+        >
+          Comparativa basada en la documentación pública de cada producto a fecha de hoy. “Parcial”
+          indica que la característica existe pero requiere un plan de pago, depende de la región
+          del workspace o tiene restricciones no triviales.
+        </p>
+      </section>
+
+      {/* PRIVACY GUARANTEE */}
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+          padding: '120px 64px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: 80,
+            marginBottom: 56,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              paddingTop: 12,
+            }}
+          >
+            [05] Garantía
+          </div>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: '-0.035em',
+              margin: 0,
+            }}
+          >
+            Tus datos no salen
+            <br />
+            <span style={{ color: 'var(--muted)' }}>de tu navegador.</span>
+          </h2>
+        </div>
+
+        <PrivacyDiagram />
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            borderTop: '1px solid var(--border)',
+            marginTop: 56,
+          }}
+        >
+          {[
+            {
+              label: '01 — Parseo',
+              body: 'El Excel se abre y procesa en memoria, dentro de un Web Worker. Nunca se sube a un servidor para leerlo.',
+            },
+            {
+              label: '02 — Análisis',
+              body: 'Tipos de columna, estadísticas, gráficos e insights se calculan localmente. No hay llamadas a APIs externas ni LLMs.',
+            },
+            {
+              label: '03 — Compartir',
+              body: 'Sólo si pulsas “Compartir” y aceptas explícitamente, copiamos un snapshot a Supabase (UE) para generar un enlace público.',
+            },
+          ].map((item, i) => (
+            <div
+              key={item.label}
+              style={{
+                padding: '32px 24px',
+                borderRight: i < 2 ? '1px solid var(--border)' : 'none',
+                borderBottom: '1px solid var(--border)',
+              }}
+            >
+              <div
+                className="font-mono"
+                style={{
+                  fontSize: 11,
+                  letterSpacing: '0.18em',
+                  color: 'var(--sky)',
+                  fontWeight: 600,
+                  marginBottom: 12,
+                }}
+              >
+                {item.label}
+              </div>
+              <p
+                style={{
+                  fontSize: 14,
+                  color: 'var(--ink-2)',
+                  lineHeight: 1.6,
+                  margin: 0,
+                }}
+              >
+                {item.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* FAQ */}
       <section
         style={{
@@ -432,7 +647,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
               paddingTop: 12,
             }}
           >
-            [03] Preguntas
+            [06] Preguntas
           </div>
           <h2
             className="font-display"
@@ -449,10 +664,22 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
         </div>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
           {[
-            ['¿Tengo que registrarme?', 'No. Cero cuentas, cero emails. Empiezas a usarlo en el segundo siguiente al click.'],
-            ['¿Mis datos son privados?', 'El parseo es local en tu navegador. Sólo se sube si tú pulsas "Compartir". Caducan a los 90 días si nadie los abre.'],
-            ['¿Cuánto cuesta?', 'Es gratis. La app se sostiene con publicidad mostrada solo en la portada y el dashboard, no en la vista compartida.'],
-            ['¿Qué archivos acepta?', '.xlsx, .xls, .csv y .ods, hasta 10 MB. Para archivos mayores conviene exportar a CSV.'],
+            [
+              '¿Tengo que registrarme?',
+              'No. Cero cuentas, cero emails. Empiezas a usarlo en el segundo siguiente al click.',
+            ],
+            [
+              '¿Mis datos son privados?',
+              'El parseo es local en tu navegador. Sólo se sube si tú pulsas "Compartir". Caducan a los 90 días si nadie los abre.',
+            ],
+            [
+              '¿Cuánto cuesta?',
+              'Es gratis. La app se sostiene con publicidad mostrada solo en la portada y el dashboard, no en la vista compartida.',
+            ],
+            [
+              '¿Qué archivos acepta?',
+              '.xlsx, .xls, .csv y .ods, hasta 10 MB. Para archivos mayores conviene exportar a CSV.',
+            ],
           ].map(([q, a]) => (
             <li
               key={q}
@@ -542,7 +769,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
             marginBottom: 24,
           }}
         >
-          [04] Empezar
+          [07] Empezar
         </div>
         <h2
           className="font-display"
@@ -597,46 +824,22 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer
-        style={{
-          padding: '40px 64px',
-          borderTop: '1px solid var(--border)',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr 1fr',
-          gap: 40,
-          fontSize: 12,
-          color: 'var(--muted)',
-        }}
-      >
-        <div>
-          <div
-            className="font-display"
-            style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 600, letterSpacing: '-0.02em' }}
-          >
-            EXCEL—SKY
-          </div>
-          <div style={{ marginTop: 12, fontSize: 11 }}>v0.5 · beta</div>
-        </div>
-        <FooterCol title="Producto">
-          <FooterLink onClick={() => onNav('upload')}>App</FooterLink>
-          <FooterLink onClick={() => onNav('faq')}>FAQ</FooterLink>
-        </FooterCol>
-        <FooterCol title="Legal">
-          <FooterLink onClick={() => onNav('privacy')}>Privacidad</FooterLink>
-          <FooterLink onClick={() => onNav('terms')}>Términos</FooterLink>
-        </FooterCol>
-        <div style={{ textAlign: 'right' }}>
-          © {new Date().getFullYear()} · Hecho en España
-        </div>
-      </footer>
+      <Footer onNav={onNav} />
     </div>
   )
 }
 
 // ---------- Subcomponents ----------
 
-function Stat({ label, value, caption }: { label: string; value: string; caption: string }): JSX.Element {
+function Stat({
+  label,
+  value,
+  caption,
+}: {
+  label: string
+  value: string
+  caption: string
+}): JSX.Element {
   return (
     <div>
       <div
@@ -651,7 +854,13 @@ function Stat({ label, value, caption }: { label: string; value: string; caption
       </div>
       <div
         className="font-display"
-        style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.025em', marginTop: 6, color: 'var(--ink)' }}
+        style={{
+          fontSize: 26,
+          fontWeight: 600,
+          letterSpacing: '-0.025em',
+          marginTop: 6,
+          color: 'var(--ink)',
+        }}
       >
         {value}
       </div>
@@ -685,6 +894,523 @@ function CornerTicks({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }): JSX
   )
 }
 
+interface Feature {
+  title: string
+  body: string
+  icon: JSX.Element
+}
+
+function FeatureGrid(): JSX.Element {
+  const features: ReadonlyArray<Feature> = [
+    {
+      title: 'Parseo local',
+      body: 'Excel, CSV, TSV y ODS leídos en un Web Worker dentro de tu navegador. No hay subida implícita.',
+      icon: <IconFile />,
+    },
+    {
+      title: '16 insights estadísticos',
+      body: 'Outliers, correlaciones, gaps temporales, disparidad entre grupos, calidad de datos y más.',
+      icon: <IconSparkles />,
+    },
+    {
+      title: 'Detección automática de tipos',
+      body: 'Números, monedas, fechas, categorías, geo, booleanos, texto. Inferidos en milisegundos.',
+      icon: <IconScan />,
+    },
+    {
+      title: 'Sin registro',
+      body: 'Cero cuentas, cero emails. Abres la URL, sueltas el archivo, ya estás dentro.',
+      icon: <IconNoAccount />,
+    },
+    {
+      title: 'Compartir con un click',
+      body: 'Enlace público con identificador aleatorio de 12 caracteres. Caduca a los 90 días sin visitas.',
+      icon: <IconLink />,
+    },
+    {
+      title: 'Comparación entre versiones',
+      body: 'Sube dos archivos y ve qué columnas crecen, decrecen o desaparecen entre ambos.',
+      icon: <IconCompare />,
+    },
+    {
+      title: 'UI nunca bloquea',
+      body: 'Parseo y análisis viven en Web Workers separados. Scrolleas mientras se computa.',
+      icon: <IconCpu />,
+    },
+    {
+      title: 'Gráficos SVG custom',
+      body: 'Sin librerías pesadas. Cada chart es SVG plano, rinde rápido y se imprime nítido.',
+      icon: <IconChart />,
+    },
+    {
+      title: 'Sin LLM',
+      body: 'Motor de heurísticas estadísticas deterministas. Cero coste de API, salida reproducible.',
+      icon: <IconBrainOff />,
+    },
+    {
+      title: 'Borrado on-demand',
+      body: 'Cada dashboard compartido lleva un deleteToken local. Tú decides cuándo desaparece.',
+      icon: <IconTrash />,
+    },
+  ]
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        borderTop: '1px solid var(--border)',
+        borderLeft: '1px solid var(--border)',
+      }}
+    >
+      {features.map((f) => (
+        <div
+          key={f.title}
+          style={{
+            padding: '28px 24px',
+            borderRight: '1px solid var(--border)',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            minHeight: 200,
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              display: 'grid',
+              placeItems: 'center',
+              color: 'var(--sky)',
+            }}
+            aria-hidden
+          >
+            {f.icon}
+          </div>
+          <h3
+            className="font-display"
+            style={{
+              fontSize: 17,
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+              margin: 0,
+              color: 'var(--ink)',
+            }}
+          >
+            {f.title}
+          </h3>
+          <p
+            style={{
+              fontSize: 13,
+              color: 'var(--ink-2)',
+              lineHeight: 1.55,
+              margin: 0,
+            }}
+          >
+            {f.body}
+          </p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const ICON_STROKE = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.6,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+}
+
+function IconFile(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M7 3h8l4 4v14H7z" />
+      <path d="M15 3v4h4" />
+      <path d="M10 12h6M10 16h6" />
+    </svg>
+  )
+}
+
+function IconSparkles(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M12 3l1.7 4.5L18 9l-4.3 1.5L12 15l-1.7-4.5L6 9l4.3-1.5z" />
+      <path d="M19 14l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" />
+    </svg>
+  )
+}
+
+function IconScan(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4" />
+      <path d="M8 12h8" />
+    </svg>
+  )
+}
+
+function IconNoAccount(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <circle cx="12" cy="9" r="3" />
+      <path d="M5 20a7 7 0 0114 0" />
+      <path d="M4 4l16 16" />
+    </svg>
+  )
+}
+
+function IconLink(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1.5 1.5" />
+      <path d="M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1.5-1.5" />
+    </svg>
+  )
+}
+
+function IconCompare(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M9 3v18M15 3v18" />
+      <path d="M5 7l4-4 4 4M19 17l-4 4-4-4" />
+    </svg>
+  )
+}
+
+function IconCpu(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <rect x="6" y="6" width="12" height="12" rx="1" />
+      <rect x="9" y="9" width="6" height="6" />
+      <path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3" />
+    </svg>
+  )
+}
+
+function IconChart(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M4 20h16" />
+      <path d="M7 16v-4M12 16V8M17 16v-6" />
+    </svg>
+  )
+}
+
+function IconBrainOff(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M9 5a3 3 0 013 0 3 3 0 013 0v0a3 3 0 011.5 5.5A3 3 0 0114 16h-4a3 3 0 01-1.5-5.5A3 3 0 019 5z" />
+      <path d="M4 4l16 16" />
+    </svg>
+  )
+}
+
+function IconTrash(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M4 7h16" />
+      <path d="M9 7V4h6v3" />
+      <path d="M6 7l1 13h10l1-13" />
+    </svg>
+  )
+}
+
+type ComparisonCell = 'yes' | 'no' | 'partial'
+
+interface ComparisonRow {
+  label: string
+  values: [ComparisonCell, ComparisonCell, ComparisonCell, ComparisonCell]
+}
+
+function ComparisonTable(): JSX.Element {
+  const tools = ['Excel to Sky', 'Google Sheets', 'Power BI', 'Looker Studio']
+
+  const rows: ReadonlyArray<ComparisonRow> = [
+    {
+      label: 'Datos procesados en tu navegador',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+    {
+      label: 'Sin cuenta para usar',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+    {
+      label: 'Funciona offline tras la primera carga',
+      values: ['yes', 'partial', 'partial', 'no'],
+    },
+    {
+      label: 'Sin tracking analítico propio',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+    {
+      label: 'Compartir sin login del visitante',
+      values: ['yes', 'partial', 'partial', 'yes'],
+    },
+    {
+      label: 'Gratis sin límite de usuarios',
+      values: ['yes', 'yes', 'no', 'yes'],
+    },
+    {
+      label: 'Datos alojados en la UE por defecto',
+      values: ['yes', 'partial', 'partial', 'partial'],
+    },
+    {
+      label: 'Sin LLM analizando tus datos',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+  ]
+
+  return (
+    <div
+      style={{
+        overflowX: 'auto',
+        border: '1px solid var(--border)',
+        background: 'rgba(255,255,255,0.012)',
+      }}
+    >
+      <table
+        style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          fontSize: 13,
+          minWidth: 720,
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={thFirst}>Característica</th>
+            {tools.map((tool, i) => (
+              <th key={tool} style={i === 0 ? thBrand : th}>
+                {tool}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label}>
+              <td style={tdLabel}>{row.label}</td>
+              {row.values.map((cell, i) => (
+                <td key={i} style={i === 0 ? tdBrand : td}>
+                  <ComparisonMark cell={cell} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function ComparisonMark({ cell }: { cell: ComparisonCell }): JSX.Element {
+  if (cell === 'yes') {
+    return (
+      <span style={{ color: 'var(--mint)', fontSize: 16, fontWeight: 600 }} aria-label="Sí">
+        ✓
+      </span>
+    )
+  }
+  if (cell === 'partial') {
+    return (
+      <span
+        style={{
+          color: 'var(--amber, #F7B955)',
+          fontSize: 13,
+          fontWeight: 500,
+          letterSpacing: '0.02em',
+        }}
+        aria-label="Parcial"
+      >
+        Parcial
+      </span>
+    )
+  }
+  return (
+    <span style={{ color: 'var(--muted)', fontSize: 16, fontWeight: 400 }} aria-label="No">
+      ✗
+    </span>
+  )
+}
+
+const thBase = {
+  padding: '16px 18px',
+  textAlign: 'left' as const,
+  fontSize: 10,
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase' as const,
+  fontWeight: 600,
+  color: 'var(--muted)',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.02)',
+}
+
+const thFirst = {
+  ...thBase,
+  width: '34%',
+}
+
+const th = {
+  ...thBase,
+  textAlign: 'center' as const,
+  width: '16.5%',
+}
+
+const thBrand = {
+  ...th,
+  color: 'var(--sky)',
+  background: 'rgba(77,158,250,0.06)',
+}
+
+const tdLabel = {
+  padding: '14px 18px',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  color: 'var(--ink-2)',
+  fontSize: 13,
+}
+
+const td = {
+  padding: '14px 18px',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  textAlign: 'center' as const,
+}
+
+const tdBrand = {
+  ...td,
+  background: 'rgba(77,158,250,0.04)',
+}
+
+function PrivacyDiagram(): JSX.Element {
+  return (
+    <div
+      style={{
+        border: '1px solid var(--border)',
+        background: 'rgba(255,255,255,0.012)',
+        padding: '40px 32px',
+        position: 'relative',
+      }}
+    >
+      <svg
+        viewBox="0 0 800 220"
+        role="img"
+        aria-label="Diagrama: Excel → navegador local → dashboard. Sin paso por servidor."
+        style={{ width: '100%', height: 'auto', display: 'block' }}
+      >
+        {/* connecting line */}
+        <line
+          x1="140"
+          y1="110"
+          x2="660"
+          y2="110"
+          stroke="var(--border-strong)"
+          strokeWidth="1"
+          strokeDasharray="4 4"
+        />
+
+        {/* Excel node */}
+        <g transform="translate(40,60)">
+          <rect
+            width="100"
+            height="100"
+            fill="rgba(255,255,255,0.04)"
+            stroke="var(--border-strong)"
+          />
+          <text
+            x="50"
+            y="40"
+            textAnchor="middle"
+            fontSize="10"
+            fontFamily="var(--font-mono, monospace)"
+            fill="var(--muted)"
+            letterSpacing="2"
+          >
+            EXCEL
+          </text>
+          <text x="50" y="68" textAnchor="middle" fontSize="22" fontWeight="600" fill="var(--ink)">
+            .xlsx
+          </text>
+          <text x="50" y="86" textAnchor="middle" fontSize="10" fill="var(--muted)">
+            tu archivo
+          </text>
+        </g>
+
+        {/* Browser (local) node */}
+        <g transform="translate(310,40)">
+          <rect width="180" height="140" fill="rgba(46,107,255,0.06)" stroke="var(--sky)" />
+          <text
+            x="90"
+            y="34"
+            textAnchor="middle"
+            fontSize="10"
+            fontFamily="var(--font-mono, monospace)"
+            fill="var(--sky)"
+            letterSpacing="2"
+          >
+            TU NAVEGADOR
+          </text>
+          <text x="90" y="68" textAnchor="middle" fontSize="20" fontWeight="600" fill="var(--ink)">
+            100% local
+          </text>
+          <text x="90" y="92" textAnchor="middle" fontSize="11" fill="var(--ink-2)">
+            parseo · stats · gráficos
+          </text>
+          <text x="90" y="112" textAnchor="middle" fontSize="11" fill="var(--ink-2)">
+            insights · render
+          </text>
+        </g>
+
+        {/* Dashboard node */}
+        <g transform="translate(660,60)">
+          <rect
+            width="100"
+            height="100"
+            fill="rgba(255,255,255,0.04)"
+            stroke="var(--border-strong)"
+          />
+          <text
+            x="50"
+            y="40"
+            textAnchor="middle"
+            fontSize="10"
+            fontFamily="var(--font-mono, monospace)"
+            fill="var(--muted)"
+            letterSpacing="2"
+          >
+            DASHBOARD
+          </text>
+          <text x="50" y="68" textAnchor="middle" fontSize="22" fontWeight="600" fill="var(--ink)">
+            ↗
+          </text>
+          <text x="50" y="86" textAnchor="middle" fontSize="10" fill="var(--muted)">
+            navegable
+          </text>
+        </g>
+
+        {/* Crossed-out cloud (no server) */}
+        <g transform="translate(330,180)">
+          <text
+            x="70"
+            y="10"
+            textAnchor="middle"
+            fontSize="10"
+            fontFamily="var(--font-mono, monospace)"
+            fill="var(--muted)"
+            letterSpacing="2"
+          >
+            ✕ NUNCA PASA POR UN SERVIDOR
+          </text>
+        </g>
+      </svg>
+    </div>
+  )
+}
+
 function BackgroundGrid({ faint = false }: { faint?: boolean }): JSX.Element {
   const stroke = faint ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.05)'
   return (
@@ -708,41 +1434,118 @@ function BackgroundGrid({ faint = false }: { faint?: boolean }): JSX.Element {
   )
 }
 
-function FooterCol({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
+// ---------- Hero visual: looping upload -> dashboard demo ----------
+
+function AnimatedHeroDemo(): JSX.Element {
   return (
-    <div>
-      <div
-        style={{
-          fontSize: 10,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: 'var(--muted)',
-          marginBottom: 12,
-        }}
-      >
-        {title}
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: 560,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+      }}
+      role="img"
+      aria-label="Demostración animada: archivo Excel cargándose y transformándose en un dashboard."
+    >
+      <div className="ee-hero-dashboard" style={{ width: '100%' }}>
+        <DashboardMockup />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{children}</div>
+      <div
+        className="ee-hero-overlay"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+        }}
+        aria-hidden
+      >
+        <UploadStageVisual />
+      </div>
     </div>
   )
 }
 
-function FooterLink({ onClick, children }: { onClick: () => void; children: React.ReactNode }): JSX.Element {
+function UploadStageVisual(): JSX.Element {
   return (
-    <button
-      onClick={onClick}
+    <div
       style={{
-        background: 'transparent',
-        border: 'none',
-        color: 'var(--ink-2)',
-        fontSize: 12,
-        padding: 0,
-        textAlign: 'left',
-        cursor: 'pointer',
+        background: 'var(--surface, rgba(20,22,28,0.92))',
+        boxShadow: '0 0 0 1px var(--border-strong), 0 24px 48px -16px rgba(0,0,0,0.6)',
+        padding: '24px 28px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 18,
+        width: 'min(360px, 88%)',
       }}
     >
-      {children}
-    </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div
+          aria-hidden
+          style={{
+            width: 40,
+            height: 50,
+            background: 'rgba(94, 226, 192, 0.12)',
+            boxShadow: '0 0 0 1px var(--border-strong)',
+            display: 'grid',
+            placeItems: 'center',
+            color: 'var(--mint)',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+          }}
+        >
+          XLSX
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div
+            className="font-display"
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            VENTAS_2026_Q1.XLSX
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: 'var(--muted)',
+              fontFamily: 'var(--font-mono, monospace)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            parseando · local
+          </div>
+        </div>
+      </div>
+      <div
+        style={{
+          height: 3,
+          background: 'rgba(255,255,255,0.08)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="ee-hero-progress"
+          style={{
+            height: '100%',
+            width: '100%',
+            background: 'var(--sky)',
+          }}
+        />
+      </div>
+    </div>
   )
 }
 
@@ -827,7 +1630,11 @@ function DashboardMockup(): JSX.Element {
         >
           Ingresos por semana
         </div>
-        <svg viewBox="0 0 320 140" style={{ width: '100%', height: 120 }} preserveAspectRatio="none">
+        <svg
+          viewBox="0 0 320 140"
+          style={{ width: '100%', height: 120 }}
+          preserveAspectRatio="none"
+        >
           <defs>
             <linearGradient id="ee-area" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="var(--sky)" stopOpacity="0.35" />
@@ -835,7 +1642,15 @@ function DashboardMockup(): JSX.Element {
             </linearGradient>
           </defs>
           {[28, 56, 84, 112].map((y) => (
-            <line key={y} x1="0" x2="320" y1={y} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+            <line
+              key={y}
+              x1="0"
+              x2="320"
+              y1={y}
+              y2={y}
+              stroke="rgba(255,255,255,0.04)"
+              strokeWidth="1"
+            />
           ))}
           <path
             d="M 0 100 L 32 86 L 64 92 L 96 70 L 128 78 L 160 58 L 192 64 L 224 40 L 256 48 L 288 28 L 320 36 L 320 140 L 0 140 Z"
@@ -872,13 +1687,18 @@ function DashboardMockup(): JSX.Element {
           >
             Top categorías
           </div>
-          {([
-            ['Madrid', 92, 'sky'],
-            ['Barcelona', 74, 'plum'],
-            ['Valencia', 51, 'mint'],
-            ['Sevilla', 36, 'sky'],
-          ] as const).map(([name, pct, accent]) => (
-            <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          {(
+            [
+              ['Madrid', 92, 'sky'],
+              ['Barcelona', 74, 'plum'],
+              ['Valencia', 51, 'mint'],
+              ['Sevilla', 36, 'sky'],
+            ] as const
+          ).map(([name, pct, accent]) => (
+            <div
+              key={name}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}
+            >
               <div style={{ fontSize: 10, color: 'var(--ink-2)', width: 64 }}>{name}</div>
               <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.04)' }}>
                 <div
@@ -915,7 +1735,13 @@ function DashboardMockup(): JSX.Element {
           </div>
           <div
             className="font-display"
-            style={{ fontSize: 32, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.035em', lineHeight: 1 }}
+            style={{
+              fontSize: 32,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              letterSpacing: '-0.035em',
+              lineHeight: 1,
+            }}
           >
             32.4×
           </div>
@@ -971,7 +1797,15 @@ function DashboardMockup(): JSX.Element {
   )
 }
 
-function MockStat({ label, value, accent }: { label: string; value: string; accent: string }): JSX.Element {
+function MockStat({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: string
+  accent: string
+}): JSX.Element {
   return (
     <div
       style={{
@@ -992,7 +1826,13 @@ function MockStat({ label, value, accent }: { label: string; value: string; acce
       </div>
       <div
         className="font-display"
-        style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.025em', marginTop: 4 }}
+        style={{
+          fontSize: 18,
+          fontWeight: 600,
+          color: 'var(--ink)',
+          letterSpacing: '-0.025em',
+          marginTop: 4,
+        }}
       >
         {value}
       </div>
