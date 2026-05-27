@@ -19,7 +19,10 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
   let degraded = false
 
   for (const h of HEURISTICS) {
-    if (Date.now() - t0 > TIMEOUT_MS) { degraded = true; break }
+    if (Date.now() - t0 > TIMEOUT_MS) {
+      degraded = true
+      break
+    }
     try {
       if (!h.applies(dataset, summary)) continue
       const results = h.detect(dataset, summary, ctx)
@@ -34,7 +37,7 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
   for (const f of collected) f.score = scoreOne(f, dataset.rows.length, 0)
 
   // Sort by raw score desc, then by id for determinism
-  collected.sort((a, b) => (b.score - a.score) || a.id.localeCompare(b.id))
+  collected.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
 
   // Apply diversity penalty in ranking order, re-score
   const typeCounter = new Map<FindingType, number>()
@@ -47,7 +50,7 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
   }
 
   // Final sort with penalties applied
-  collected.sort((a, b) => (b.score - a.score) || a.id.localeCompare(b.id))
+  collected.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
 
   // Filter min-score, cap
   const minScore = options.minScore ?? DEFAULTS.minScore

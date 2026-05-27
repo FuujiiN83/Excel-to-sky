@@ -24,12 +24,12 @@ The shape of the result, defined in [`types.ts`](./types.ts):
 
 ```ts
 interface InsightReport {
-  summary: DatasetSummary           // top-level metadata about the dataset
-  findings: Finding[]               // ranked, deduped, capped by maxFindings
+  summary: DatasetSummary // top-level metadata about the dataset
+  findings: Finding[] // ranked, deduped, capped by maxFindings
   byColumn: Record<string, Finding[]>
   byType: Record<FindingType, Finding[]>
   runtimeMs: number
-  degraded?: boolean                // true when the runner had to skip work to stay within budget
+  degraded?: boolean // true when the runner had to skip work to stay within budget
 }
 ```
 
@@ -55,7 +55,7 @@ src/lib/insights/
     ├── …                # 14 more, one per FindingType
 ```
 
-The runner imports `HEURISTICS` from `./heuristics/index.ts` and calls each one. Order of registration is *not* the order they are surfaced — the scoring stage re-ranks everything.
+The runner imports `HEURISTICS` from `./heuristics/index.ts` and calls each one. Order of registration is _not_ the order they are surfaced — the scoring stage re-ranks everything.
 
 ## The `Heuristic` interface
 

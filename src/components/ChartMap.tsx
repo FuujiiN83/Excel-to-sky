@@ -14,6 +14,19 @@ interface ChartMapProps {
   /** "world" renders 2:1 aspect (default), "iberia" renders 1:1. */
   mode?: 'world' | 'iberia'
   maxValue?: number
+  /** Accessible description. If omitted, one is derived from the data. */
+  ariaLabel?: string
+}
+
+function defaultMapAria(locations: MapLocation[], mode: 'world' | 'iberia'): string {
+  if (locations.length === 0) return 'Mapa vacío.'
+  const scope = mode === 'world' ? 'mundial' : 'de la península Ibérica'
+  const named = locations
+    .slice(0, 5)
+    .map((l) => l.name)
+    .join(', ')
+  const suffix = locations.length > 5 ? ` y ${locations.length - 5} más` : ''
+  return `Mapa ${scope} con ${locations.length} ubicaciones: ${named}${suffix}.`
 }
 
 /**
@@ -59,12 +72,16 @@ export function ChartMap({
   accent = 'sky',
   mode = 'world',
   maxValue,
+  ariaLabel,
 }: ChartMapProps): JSX.Element {
   const stroke = `var(--${accent})`
   const max = maxValue || Math.max(...locations.map((l) => l.value || 1), 1)
+  const label = ariaLabel ?? defaultMapAria(locations, mode)
 
   return (
     <div
+      role="img"
+      aria-label={label}
       style={{
         position: 'relative',
         width: '100%',

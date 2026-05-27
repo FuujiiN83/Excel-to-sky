@@ -14,7 +14,7 @@ We considered four options for that "something":
 3. **Cloudflare Workers + D1/R2.** Edge-fast, cheap, but D1 is still maturing and we did not want SQL-via-fetch for this size.
 4. **Supabase.** Postgres + Edge Functions (Deno) + JS SDK, with a generous free tier, an EU region, and the option to self-host the entire stack later.
 
-The same conversation also asked: should we use Supabase for *anything else*? Anonymous user identity? Quotas? Telemetry? Comments on dashboards? The answer turned into a separate constraint: **no.**
+The same conversation also asked: should we use Supabase for _anything else_? Anonymous user identity? Quotas? Telemetry? Comments on dashboards? The answer turned into a separate constraint: **no.**
 
 ## Decision
 
@@ -46,5 +46,5 @@ Anything outside that list — anonymous user identity, analytics, telemetry, co
 ## Compliance and follow-ups
 
 - All new server-side functionality goes via Supabase, or via a supersession ADR.
-- If a use case appears that requires identity (e.g. a paid plan, an admin dashboard for the operator), it can be added *alongside* Supabase, but the **default share flow must remain account-less**.
+- If a use case appears that requires identity (e.g. a paid plan, an admin dashboard for the operator), it can be added _alongside_ Supabase, but the **default share flow must remain account-less**.
 - Logging in edge functions is allowed but must redact dataset content; only metadata (slug, IP truncated, timing) is acceptable in logs.

@@ -125,16 +125,16 @@ This was the most consequential early decision. The insights engine is **pure de
 4. **Determinism.** Two visitors of the same shared dashboard must see the same findings in the same order, forever. That is much harder with non-deterministic generation.
 5. **Inspectability.** A heuristic is a function. A model is an opaque artifact. When something looks wrong on a real spreadsheet, you want to read code, not poke a prompt.
 
-Where the LLM is genuinely useful — phrasing narrative connective tissue, picking a headline, finding an analogy — it can be re-introduced *strictly on top of* the statistical layer once the narrative renderer (sub-project #3) is in place, and only if it can run with consent and on hashed/redacted summaries. That is a future ADR.
+Where the LLM is genuinely useful — phrasing narrative connective tissue, picking a headline, finding an analogy — it can be re-introduced _strictly on top of_ the statistical layer once the narrative renderer (sub-project #3) is in place, and only if it can run with consent and on hashed/redacted summaries. That is a future ADR.
 
 ## Storage model
 
 There are exactly two places where data lives:
 
-| Where | What | Why |
-|---|---|---|
-| **Browser IndexedDB** (`localDb.ts`) | Datasets the user has opened, dashboard metadata (slug + deleteToken), settings. | Lets us reopen recent dashboards without re-uploading, and stores the deleteToken needed to remove shared dashboards. |
-| **Supabase Postgres** (only via `shareApi.ts`) | Public-shared dashboards. Schema: `id`, `slug`, `data`, `deleteTokenHash`, `createdAt`, `lastViewedAt`. | Required to serve a public URL. Region UE only. |
+| Where                                          | What                                                                                                    | Why                                                                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Browser IndexedDB** (`localDb.ts`)           | Datasets the user has opened, dashboard metadata (slug + deleteToken), settings.                        | Lets us reopen recent dashboards without re-uploading, and stores the deleteToken needed to remove shared dashboards. |
+| **Supabase Postgres** (only via `shareApi.ts`) | Public-shared dashboards. Schema: `id`, `slug`, `data`, `deleteTokenHash`, `createdAt`, `lastViewedAt`. | Required to serve a public URL. Region UE only.                                                                       |
 
 No third place. If you are tempted to add `localStorage` for anything other than tiny UI preferences (e.g. the cookie banner's dismissed flag), think twice — IndexedDB is the canonical store.
 

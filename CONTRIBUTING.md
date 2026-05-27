@@ -34,13 +34,13 @@ Without `.env.local` the app still works fully — the "Share" UI just stays dis
 
 ### Common commands
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Vite dev server on `http://localhost:5173`. |
-| `npm run build` | Type-check (`tsc -b`) and produce a production build in `dist/`. |
-| `npm run preview` | Serve the production build locally on `:5173`. |
-| `npm run lint` | Type-check with `tsc --noEmit` (no separate linter step yet). |
-| `npm run test` | Run unit tests via Vitest. The suite is small — see the [testing decision in ARCHITECTURE.md](./ARCHITECTURE.md). |
+| Command           | What it does                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`     | Vite dev server on `http://localhost:5173`.                                                                       |
+| `npm run build`   | Type-check (`tsc -b`) and produce a production build in `dist/`.                                                  |
+| `npm run preview` | Serve the production build locally on `:5173`.                                                                    |
+| `npm run lint`    | Type-check with `tsc --noEmit` (no separate linter step yet).                                                     |
+| `npm run test`    | Run unit tests via Vitest. The suite is small — see the [testing decision in ARCHITECTURE.md](./ARCHITECTURE.md). |
 
 ### Developer-only routes
 
@@ -48,7 +48,7 @@ Without `.env.local` the app still works fully — the "Share" UI just stays dis
 
 ## Project layout
 
-A short overview is in the README under *Repository layout*. The deeper map (data flow, module boundaries, why a worker) lives in [ARCHITECTURE.md](./ARCHITECTURE.md). If you are adding a new statistical heuristic, read [`src/lib/insights/README.md`](./src/lib/insights/README.md) first — there is a concrete checklist there.
+A short overview is in the README under _Repository layout_. The deeper map (data flow, module boundaries, why a worker) lives in [ARCHITECTURE.md](./ARCHITECTURE.md). If you are adding a new statistical heuristic, read [`src/lib/insights/README.md`](./src/lib/insights/README.md) first — there is a concrete checklist there.
 
 ## Branching and commits
 

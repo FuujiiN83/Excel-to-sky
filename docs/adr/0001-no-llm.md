@@ -13,7 +13,7 @@ When we started designing the analysis engine in May 2026, we had three plausibl
 2. **LLM-assisted.** Compute findings statistically, then call an LLM to narrate them or to choose which to show.
 3. **Statistical-only.** Compute findings via deterministic heuristics. No model anywhere in the path.
 
-We chose option (3) for the foundational engine. Option (2) is *not* permanently ruled out, but it is deferred until the narrative renderer is built, and only if it can run on hashed/redacted summaries with explicit user consent — at which point it will get its own ADR.
+We chose option (3) for the foundational engine. Option (2) is _not_ permanently ruled out, but it is deferred until the narrative renderer is built, and only if it can run on hashed/redacted summaries with explicit user consent — at which point it will get its own ADR.
 
 ## Decision
 

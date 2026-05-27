@@ -63,3 +63,45 @@
 .density-compact { --pad: 14px; --pad-lg: 18px; --gap: 10px; }
 .density-cozy    { --pad: 18px; --pad-lg: 24px; --gap: 14px; }
 .density-airy    { --pad: 24px; --pad-lg: 34px; --gap: 20px; }
+
+/* High-contrast theme variant: pure black/white surfaces, opaque borders,
+ * fully-saturated low-luma accents. Apply by adding .theme-high-contrast
+ * to the <html> or any container element. */
+.theme-high-contrast {
+  --bg: #000000;
+  --bg-mesh: none;
+  --surface: #000000;
+  --surface-2: #0A0A0A;
+  --border: rgba(255, 255, 255, 0.5);
+  --border-strong: rgba(255, 255, 255, 0.85);
+  --ink: #FFFFFF;
+  --ink-2: #FFFFFF;
+  --muted: #CCCCCC;
+  --muted-2: #999999;
+  --sky: #66CCFF;
+  --sky-soft: rgba(102, 204, 255, 0.3);
+  --mint: #00FF99;
+  --mint-soft: rgba(0, 255, 153, 0.3);
+  --coral: #FF6666;
+  --coral-soft: rgba(255, 102, 102, 0.3);
+  --plum: #CC99FF;
+  --plum-soft: rgba(204, 153, 255, 0.3);
+  --amber: #FFCC33;
+  --amber-soft: rgba(255, 204, 51, 0.3);
+  --rose: #FF99CC;
+  --rose-soft: rgba(255, 153, 204, 0.3);
+  --lime: #CCFF66;
+  --lime-soft: rgba(204, 255, 102, 0.3);
+}
+
+/* Auto-apply a stricter contrast palette when the OS reports prefers-contrast: more.
+ * This is additive: just bumps the borders and muted text without going full
+ * pure-black; users who want the full variant can still toggle .theme-high-contrast. */
+@media (prefers-contrast: more) {
+  :root {
+    --border: rgba(255, 255, 255, 0.25);
+    --border-strong: rgba(255, 255, 255, 0.55);
+    --muted: #B0B0BC;
+    --muted-2: #80808A;
+  }
+}

@@ -57,8 +57,8 @@ export function CookieBanner({ onLearnMore }: CookieBannerProps): JSX.Element | 
       }}
     >
       <div style={{ flex: 1, color: 'var(--ink-2)' }}>
-        <strong style={{ color: 'var(--ink)' }}>Excel to Sky no usa cookies.</strong>{' '}
-        Tu archivo se procesa en tu navegador y nada se envía al servidor por defecto.{' '}
+        <strong style={{ color: 'var(--ink)' }}>Excel to Sky no usa cookies.</strong> Tu archivo se
+        procesa en tu navegador y nada se envía al servidor por defecto.{' '}
         <button
           onClick={onLearnMore}
           style={{

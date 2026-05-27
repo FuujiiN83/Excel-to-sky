@@ -11,6 +11,19 @@ interface ChartLineProps {
   height?: number
   /** Show x-axis labels under the chart. */
   showLabels?: boolean
+  /** Accessible description. If omitted, one is derived from the data. */
+  ariaLabel?: string
+}
+
+function defaultLineAria(points: LinePoint[]): string {
+  if (points.length === 0) return 'Gráfico de líneas vacío.'
+  const ys = points.map((p) => p.y)
+  const first = ys[0]
+  const last = ys[ys.length - 1]
+  const max = Math.max(...ys)
+  const min = Math.min(...ys)
+  const trend = last > first ? 'al alza' : last < first ? 'a la baja' : 'estable'
+  return `Gráfico de líneas con ${points.length} puntos, tendencia ${trend}. Inicio ${first}, fin ${last}, máximo ${max}, mínimo ${min}.`
 }
 
 /**
@@ -22,6 +35,7 @@ export function ChartLine({
   accent = 'sky',
   height = 200,
   showLabels = true,
+  ariaLabel,
 }: ChartLineProps): JSX.Element | null {
   if (!points || points.length === 0) return null
   const max = Math.max(...points.map((p) => p.y), 1)
@@ -36,6 +50,7 @@ export function ChartLine({
   const area = `${path} L ${w} ${height} L 0 ${height} Z`
   const stroke = `var(--${accent})`
   const gradId = `chart-line-grad-${accent}`
+  const label = ariaLabel ?? defaultLineAria(points)
 
   return (
     <div>
@@ -43,7 +58,10 @@ export function ChartLine({
         viewBox={`0 0 ${w} ${height}`}
         preserveAspectRatio="none"
         style={{ width: '100%', height, display: 'block' }}
+        role="img"
+        aria-label={label}
       >
+        <title>{label}</title>
         <defs>
           <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor={stroke} stopOpacity="0.30" />

@@ -77,10 +77,9 @@ export function FaqPage({ onNav }: FaqPageProps): JSX.Element {
   return (
     <LegalLayout title="Preguntas frecuentes" onNav={onNav}>
       <p>
-        Aquí respondemos a las dudas más habituales sobre Excel to Sky: cómo
-        funciona, qué pasa con tus datos, política de retención y cómo
-        contactarnos. Si tu pregunta no aparece, escríbenos a{' '}
-        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+        Aquí respondemos a las dudas más habituales sobre Excel to Sky: cómo funciona, qué pasa con
+        tus datos, política de retención y cómo contactarnos. Si tu pregunta no aparece, escríbenos
+        a <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
       </p>
       <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 24 }}>
         {QA.map((item) => (
@@ -101,7 +100,15 @@ export function FaqPage({ onNav }: FaqPageProps): JSX.Element {
           </section>
         ))}
       </div>
-      <div style={{ marginTop: 40, padding: 20, borderRadius: 0, background: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div
+        style={{
+          marginTop: 40,
+          padding: 20,
+          borderRadius: 0,
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+        }}
+      >
         <strong>¿Listo para empezar?</strong>{' '}
         <button
           onClick={() => onNav('upload')}

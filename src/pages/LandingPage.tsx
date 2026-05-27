@@ -162,8 +162,8 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
               maxWidth: 480,
             }}
           >
-            Sube un Excel. Te devolvemos un dashboard navegable con stats,
-            gráficos y un link para compartir. Cero instalación. Cero cuenta.
+            Sube un Excel. Te devolvemos un dashboard navegable con stats, gráficos y un link para
+            compartir. Cero instalación. Cero cuenta.
           </p>
 
           <div style={{ display: 'flex', gap: 0, marginTop: 40, alignItems: 'stretch' }}>
@@ -280,12 +280,11 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
             color: 'var(--ink)',
           }}
         >
-          Los datos no deberían vivir en pestañas con 70 columnas.
-          Deberían contarte algo en cuanto los abres.
+          Los datos no deberían vivir en pestañas con 70 columnas. Deberían contarte algo en cuanto
+          los abres.
           <span style={{ color: 'var(--muted)' }}>
             {' '}
-            Por eso construimos esto: un puente entre tu hoja y la respuesta
-            que ya tenía dentro.
+            Por eso construimos esto: un puente entre tu hoja y la respuesta que ya tenía dentro.
           </span>
         </p>
       </section>
@@ -511,10 +510,9 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
             lineHeight: 1.55,
           }}
         >
-          Comparativa basada en la documentación pública de cada producto a fecha
-          de hoy. “Parcial” indica que la característica existe pero requiere un
-          plan de pago, depende de la región del workspace o tiene restricciones
-          no triviales.
+          Comparativa basada en la documentación pública de cada producto a fecha de hoy. “Parcial”
+          indica que la característica existe pero requiere un plan de pago, depende de la región
+          del workspace o tiene restricciones no triviales.
         </p>
       </section>
 
@@ -666,10 +664,22 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
         </div>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
           {[
-            ['¿Tengo que registrarme?', 'No. Cero cuentas, cero emails. Empiezas a usarlo en el segundo siguiente al click.'],
-            ['¿Mis datos son privados?', 'El parseo es local en tu navegador. Sólo se sube si tú pulsas "Compartir". Caducan a los 90 días si nadie los abre.'],
-            ['¿Cuánto cuesta?', 'Es gratis. La app se sostiene con publicidad mostrada solo en la portada y el dashboard, no en la vista compartida.'],
-            ['¿Qué archivos acepta?', '.xlsx, .xls, .csv y .ods, hasta 10 MB. Para archivos mayores conviene exportar a CSV.'],
+            [
+              '¿Tengo que registrarme?',
+              'No. Cero cuentas, cero emails. Empiezas a usarlo en el segundo siguiente al click.',
+            ],
+            [
+              '¿Mis datos son privados?',
+              'El parseo es local en tu navegador. Sólo se sube si tú pulsas "Compartir". Caducan a los 90 días si nadie los abre.',
+            ],
+            [
+              '¿Cuánto cuesta?',
+              'Es gratis. La app se sostiene con publicidad mostrada solo en la portada y el dashboard, no en la vista compartida.',
+            ],
+            [
+              '¿Qué archivos acepta?',
+              '.xlsx, .xls, .csv y .ods, hasta 10 MB. Para archivos mayores conviene exportar a CSV.',
+            ],
           ].map(([q, a]) => (
             <li
               key={q}
@@ -821,7 +831,15 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
 
 // ---------- Subcomponents ----------
 
-function Stat({ label, value, caption }: { label: string; value: string; caption: string }): JSX.Element {
+function Stat({
+  label,
+  value,
+  caption,
+}: {
+  label: string
+  value: string
+  caption: string
+}): JSX.Element {
   return (
     <div>
       <div
@@ -836,7 +854,13 @@ function Stat({ label, value, caption }: { label: string; value: string; caption
       </div>
       <div
         className="font-display"
-        style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.025em', marginTop: 6, color: 'var(--ink)' }}
+        style={{
+          fontSize: 26,
+          fontWeight: 600,
+          letterSpacing: '-0.025em',
+          marginTop: 6,
+          color: 'var(--ink)',
+        }}
       >
         {value}
       </div>
@@ -1291,7 +1315,12 @@ function PrivacyDiagram(): JSX.Element {
 
         {/* Excel node */}
         <g transform="translate(40,60)">
-          <rect width="100" height="100" fill="rgba(255,255,255,0.04)" stroke="var(--border-strong)" />
+          <rect
+            width="100"
+            height="100"
+            fill="rgba(255,255,255,0.04)"
+            stroke="var(--border-strong)"
+          />
           <text
             x="50"
             y="40"
@@ -1338,7 +1367,12 @@ function PrivacyDiagram(): JSX.Element {
 
         {/* Dashboard node */}
         <g transform="translate(660,60)">
-          <rect width="100" height="100" fill="rgba(255,255,255,0.04)" stroke="var(--border-strong)" />
+          <rect
+            width="100"
+            height="100"
+            fill="rgba(255,255,255,0.04)"
+            stroke="var(--border-strong)"
+          />
           <text
             x="50"
             y="40"
@@ -1369,7 +1403,7 @@ function PrivacyDiagram(): JSX.Element {
             fill="var(--muted)"
             letterSpacing="2"
           >
-            ✕  NUNCA PASA POR UN SERVIDOR
+            ✕ NUNCA PASA POR UN SERVIDOR
           </text>
         </g>
       </svg>
@@ -1596,7 +1630,11 @@ function DashboardMockup(): JSX.Element {
         >
           Ingresos por semana
         </div>
-        <svg viewBox="0 0 320 140" style={{ width: '100%', height: 120 }} preserveAspectRatio="none">
+        <svg
+          viewBox="0 0 320 140"
+          style={{ width: '100%', height: 120 }}
+          preserveAspectRatio="none"
+        >
           <defs>
             <linearGradient id="ee-area" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="var(--sky)" stopOpacity="0.35" />
@@ -1604,7 +1642,15 @@ function DashboardMockup(): JSX.Element {
             </linearGradient>
           </defs>
           {[28, 56, 84, 112].map((y) => (
-            <line key={y} x1="0" x2="320" y1={y} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+            <line
+              key={y}
+              x1="0"
+              x2="320"
+              y1={y}
+              y2={y}
+              stroke="rgba(255,255,255,0.04)"
+              strokeWidth="1"
+            />
           ))}
           <path
             d="M 0 100 L 32 86 L 64 92 L 96 70 L 128 78 L 160 58 L 192 64 L 224 40 L 256 48 L 288 28 L 320 36 L 320 140 L 0 140 Z"
@@ -1641,13 +1687,18 @@ function DashboardMockup(): JSX.Element {
           >
             Top categorías
           </div>
-          {([
-            ['Madrid', 92, 'sky'],
-            ['Barcelona', 74, 'plum'],
-            ['Valencia', 51, 'mint'],
-            ['Sevilla', 36, 'sky'],
-          ] as const).map(([name, pct, accent]) => (
-            <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          {(
+            [
+              ['Madrid', 92, 'sky'],
+              ['Barcelona', 74, 'plum'],
+              ['Valencia', 51, 'mint'],
+              ['Sevilla', 36, 'sky'],
+            ] as const
+          ).map(([name, pct, accent]) => (
+            <div
+              key={name}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}
+            >
               <div style={{ fontSize: 10, color: 'var(--ink-2)', width: 64 }}>{name}</div>
               <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.04)' }}>
                 <div
@@ -1684,7 +1735,13 @@ function DashboardMockup(): JSX.Element {
           </div>
           <div
             className="font-display"
-            style={{ fontSize: 32, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.035em', lineHeight: 1 }}
+            style={{
+              fontSize: 32,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              letterSpacing: '-0.035em',
+              lineHeight: 1,
+            }}
           >
             32.4×
           </div>
@@ -1740,7 +1797,15 @@ function DashboardMockup(): JSX.Element {
   )
 }
 
-function MockStat({ label, value, accent }: { label: string; value: string; accent: string }): JSX.Element {
+function MockStat({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: string
+  accent: string
+}): JSX.Element {
   return (
     <div
       style={{
@@ -1761,7 +1826,13 @@ function MockStat({ label, value, accent }: { label: string; value: string; acce
       </div>
       <div
         className="font-display"
-        style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.025em', marginTop: 4 }}
+        style={{
+          fontSize: 18,
+          fontWeight: 600,
+          color: 'var(--ink)',
+          letterSpacing: '-0.025em',
+          marginTop: 4,
+        }}
       >
         {value}
       </div>

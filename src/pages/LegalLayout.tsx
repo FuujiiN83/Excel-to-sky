@@ -45,9 +45,15 @@ export function LegalLayout({ title, onNav, children }: LegalLayoutProps): JSX.E
           Excel<span style={{ color: '#2E6BFF' }}>→</span>Sky
         </button>
         <nav style={{ display: 'flex', gap: 18, fontSize: 13 }}>
-          <button onClick={() => onNav('faq')} style={navBtn}>FAQ</button>
-          <button onClick={() => onNav('privacy')} style={navBtn}>Privacidad</button>
-          <button onClick={() => onNav('terms')} style={navBtn}>Términos</button>
+          <button onClick={() => onNav('faq')} style={navBtn}>
+            FAQ
+          </button>
+          <button onClick={() => onNav('privacy')} style={navBtn}>
+            Privacidad
+          </button>
+          <button onClick={() => onNav('terms')} style={navBtn}>
+            Términos
+          </button>
           <button
             onClick={() => onNav('upload')}
             style={{
@@ -85,9 +91,7 @@ export function LegalLayout({ title, onNav, children }: LegalLayoutProps): JSX.E
         >
           {title}
         </h1>
-        <div style={{ fontSize: 16, lineHeight: 1.65, color: 'var(--ink-2)' }}>
-          {children}
-        </div>
+        <div style={{ fontSize: 16, lineHeight: 1.65, color: 'var(--ink-2)' }}>{children}</div>
       </main>
 
       <Footer onNav={onNav} />

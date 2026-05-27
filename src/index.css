@@ -3,8 +3,15 @@
 @tailwind components;
 @tailwind utilities;
 
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; min-height: 100%; }
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
 body {
   font-family: var(--font-ui);
   background: var(--bg);
@@ -13,63 +20,182 @@ body {
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: "ss01", "cv11";
+  font-feature-settings: 'ss01', 'cv11';
   min-height: 100vh;
 }
-button { cursor: pointer; }
+button {
+  cursor: pointer;
+}
+
+/* Focus indicators — keyboard-only via :focus-visible.
+ * Mouse clicks still don't show a ring; keyboard users always do. */
+*:focus {
+  outline: none;
+}
+*:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+}
 
 /* Selection */
-::selection { background: rgba(77, 158, 250, 0.35); color: var(--ink); }
+::selection {
+  background: rgba(77, 158, 250, 0.35);
+  color: var(--ink);
+}
 
 /* Scrollbars (webkit) */
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12); }
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
 
 /* Hairline ring helper */
-.hairline { box-shadow: 0 0 0 1px var(--border); }
+.hairline {
+  box-shadow: 0 0 0 1px var(--border);
+}
 
 /* Subtle animated entrance for top-level pages */
 @keyframes ee-fade-up {
-  from { opacity: 0; transform: translate3d(0, 12px, 0); filter: blur(6px); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
 }
-.ee-fade-in { animation: ee-fade-up 600ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+.ee-fade-in {
+  animation: ee-fade-up 600ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
 
 /* Hero animated demo: upload overlay -> dashboard reveal loop (10s) */
 @keyframes ee-hero-overlay {
-  0%   { opacity: 0; transform: translate3d(0, -12px, 0); }
-  5%   { opacity: 1; transform: translate3d(0, 0, 0); }
-  27%  { opacity: 1; transform: translate3d(0, 0, 0); }
-  35%  { opacity: 0; transform: translate3d(0, -8px, 0); }
-  100% { opacity: 0; transform: translate3d(0, -12px, 0); }
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -12px, 0);
+  }
+  5% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  27% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  35% {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -12px, 0);
+  }
 }
 
 @keyframes ee-hero-progress {
-  0%   { transform: scaleX(0); }
-  5%   { transform: scaleX(0); }
-  25%  { transform: scaleX(1); }
-  35%  { transform: scaleX(1); }
-  100% { transform: scaleX(1); }
+  0% {
+    transform: scaleX(0);
+  }
+  5% {
+    transform: scaleX(0);
+  }
+  25% {
+    transform: scaleX(1);
+  }
+  35% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(1);
+  }
 }
 
 @keyframes ee-hero-dashboard {
-  0%   { opacity: 0.15; filter: blur(6px); }
-  27%  { opacity: 0.15; filter: blur(6px); }
-  40%  { opacity: 1;    filter: blur(0); }
-  92%  { opacity: 1;    filter: blur(0); }
-  100% { opacity: 0.15; filter: blur(6px); }
+  0% {
+    opacity: 0.15;
+    filter: blur(6px);
+  }
+  27% {
+    opacity: 0.15;
+    filter: blur(6px);
+  }
+  40% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  92% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0.15;
+    filter: blur(6px);
+  }
 }
 
-.ee-hero-overlay   { animation: ee-hero-overlay   10s ease-in-out infinite; }
-.ee-hero-progress  { animation: ee-hero-progress  10s linear         infinite; transform-origin: left; }
-.ee-hero-dashboard { animation: ee-hero-dashboard 10s ease-in-out infinite; }
+.ee-hero-overlay {
+  animation: ee-hero-overlay 10s ease-in-out infinite;
+}
+.ee-hero-progress {
+  animation: ee-hero-progress 10s linear infinite;
+  transform-origin: left;
+}
+.ee-hero-dashboard {
+  animation: ee-hero-dashboard 10s ease-in-out infinite;
+}
 
+/* Reduced-motion: collapse every animation and transition to ~instant,
+ * disable smooth scroll, and pin the entrance fade-in. Component-specific
+ * pin states (e.g. the hero demo loop's resting opacity) layer on top below. */
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ee-fade-in {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
   .ee-hero-overlay,
   .ee-hero-progress,
-  .ee-hero-dashboard { animation: none; }
-  .ee-hero-overlay   { opacity: 0; }
-  .ee-hero-dashboard { opacity: 1; filter: none; }
+  .ee-hero-dashboard {
+    animation: none;
+  }
+  .ee-hero-overlay {
+    opacity: 0;
+  }
+  .ee-hero-dashboard {
+    opacity: 1;
+    filter: none;
+  }
 }

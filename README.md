@@ -97,16 +97,16 @@ supabase/
 
 Excel to Sky is being built as a sequence of eight self-contained sub-projects. Each one is shippable on its own; the final product is the composition of all of them.
 
-| # | Sub-project | Status |
-|---|---|---|
-| 1 | Insights engine (16 statistical heuristics) | **Done** |
-| 2 | Domain detection + vertical plug-ins (shifts, sales, HR…) | Planned |
-| 3 | Story composer (findings → scenes with narrative arc) | Planned |
-| 4 | Scrollytelling renderer | Planned |
-| 5 | Interactive exploration layer (drill-downs, filters) | Planned |
-| 6 | Time-travel comparison between dataset versions | Planned |
-| 7 | Advanced sharing (OG cards, PDF export, embeds, white-label) | Planned |
-| 8 | Live integrations (Google Sheets, Notion, Airtable) | Planned |
+| #   | Sub-project                                                  | Status   |
+| --- | ------------------------------------------------------------ | -------- |
+| 1   | Insights engine (16 statistical heuristics)                  | **Done** |
+| 2   | Domain detection + vertical plug-ins (shifts, sales, HR…)    | Planned  |
+| 3   | Story composer (findings → scenes with narrative arc)        | Planned  |
+| 4   | Scrollytelling renderer                                      | Planned  |
+| 5   | Interactive exploration layer (drill-downs, filters)         | Planned  |
+| 6   | Time-travel comparison between dataset versions              | Planned  |
+| 7   | Advanced sharing (OG cards, PDF export, embeds, white-label) | Planned  |
+| 8   | Live integrations (Google Sheets, Notion, Airtable)          | Planned  |
 
 ## License
 
