@@ -239,7 +239,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
           }}
         >
           <BackgroundGrid />
-          <DashboardMockup />
+          <AnimatedHeroDemo />
           <CornerTicks position="tr" />
           <CornerTicks position="br" />
         </div>
@@ -407,6 +407,117 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
         </div>
       </section>
 
+      {/* FEATURES GRID */}
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+          padding: '120px 64px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: 80,
+            marginBottom: 56,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              paddingTop: 12,
+            }}
+          >
+            [03] Funcionalidades
+          </div>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: '-0.035em',
+              margin: 0,
+            }}
+          >
+            Lo que hace
+            <br />
+            <span style={{ color: 'var(--muted)' }}>por debajo del capó.</span>
+          </h2>
+        </div>
+
+        <FeatureGrid />
+      </section>
+
+      {/* COMPARISON */}
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          width: '100%',
+          padding: '120px 64px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: 80,
+            marginBottom: 56,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              paddingTop: 12,
+            }}
+          >
+            [04] Comparación
+          </div>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(36px, 4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: '-0.035em',
+              margin: 0,
+            }}
+          >
+            Frente al resto,
+            <br />
+            <span style={{ color: 'var(--muted)' }}>desde la privacidad.</span>
+          </h2>
+        </div>
+
+        <ComparisonTable />
+
+        <p
+          style={{
+            fontSize: 12,
+            color: 'var(--muted)',
+            marginTop: 24,
+            maxWidth: 760,
+            lineHeight: 1.55,
+          }}
+        >
+          Comparativa basada en la documentación pública de cada producto a fecha
+          de hoy. “Parcial” indica que la característica existe pero requiere un
+          plan de pago, depende de la región del workspace o tiene restricciones
+          no triviales.
+        </p>
+      </section>
+
       {/* PRIVACY GUARANTEE */}
       <section
         style={{
@@ -434,7 +545,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
               paddingTop: 12,
             }}
           >
-            [03] Garantía
+            [05] Garantía
           </div>
           <h2
             className="font-display"
@@ -538,7 +649,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
               paddingTop: 12,
             }}
           >
-            [04] Preguntas
+            [06] Preguntas
           </div>
           <h2
             className="font-display"
@@ -648,7 +759,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
             marginBottom: 24,
           }}
         >
-          [05] Empezar
+          [07] Empezar
         </div>
         <h2
           className="font-display"
@@ -757,6 +868,398 @@ function CornerTicks({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }): JSX
       }}
     />
   )
+}
+
+interface Feature {
+  title: string
+  body: string
+  icon: JSX.Element
+}
+
+function FeatureGrid(): JSX.Element {
+  const features: ReadonlyArray<Feature> = [
+    {
+      title: 'Parseo local',
+      body: 'Excel, CSV, TSV y ODS leídos en un Web Worker dentro de tu navegador. No hay subida implícita.',
+      icon: <IconFile />,
+    },
+    {
+      title: '16 insights estadísticos',
+      body: 'Outliers, correlaciones, gaps temporales, disparidad entre grupos, calidad de datos y más.',
+      icon: <IconSparkles />,
+    },
+    {
+      title: 'Detección automática de tipos',
+      body: 'Números, monedas, fechas, categorías, geo, booleanos, texto. Inferidos en milisegundos.',
+      icon: <IconScan />,
+    },
+    {
+      title: 'Sin registro',
+      body: 'Cero cuentas, cero emails. Abres la URL, sueltas el archivo, ya estás dentro.',
+      icon: <IconNoAccount />,
+    },
+    {
+      title: 'Compartir con un click',
+      body: 'Enlace público con identificador aleatorio de 12 caracteres. Caduca a los 90 días sin visitas.',
+      icon: <IconLink />,
+    },
+    {
+      title: 'Comparación entre versiones',
+      body: 'Sube dos archivos y ve qué columnas crecen, decrecen o desaparecen entre ambos.',
+      icon: <IconCompare />,
+    },
+    {
+      title: 'UI nunca bloquea',
+      body: 'Parseo y análisis viven en Web Workers separados. Scrolleas mientras se computa.',
+      icon: <IconCpu />,
+    },
+    {
+      title: 'Gráficos SVG custom',
+      body: 'Sin librerías pesadas. Cada chart es SVG plano, rinde rápido y se imprime nítido.',
+      icon: <IconChart />,
+    },
+    {
+      title: 'Sin LLM',
+      body: 'Motor de heurísticas estadísticas deterministas. Cero coste de API, salida reproducible.',
+      icon: <IconBrainOff />,
+    },
+    {
+      title: 'Borrado on-demand',
+      body: 'Cada dashboard compartido lleva un deleteToken local. Tú decides cuándo desaparece.',
+      icon: <IconTrash />,
+    },
+  ]
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        borderTop: '1px solid var(--border)',
+        borderLeft: '1px solid var(--border)',
+      }}
+    >
+      {features.map((f) => (
+        <div
+          key={f.title}
+          style={{
+            padding: '28px 24px',
+            borderRight: '1px solid var(--border)',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            minHeight: 200,
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              display: 'grid',
+              placeItems: 'center',
+              color: 'var(--sky)',
+            }}
+            aria-hidden
+          >
+            {f.icon}
+          </div>
+          <h3
+            className="font-display"
+            style={{
+              fontSize: 17,
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+              margin: 0,
+              color: 'var(--ink)',
+            }}
+          >
+            {f.title}
+          </h3>
+          <p
+            style={{
+              fontSize: 13,
+              color: 'var(--ink-2)',
+              lineHeight: 1.55,
+              margin: 0,
+            }}
+          >
+            {f.body}
+          </p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const ICON_STROKE = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.6,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+}
+
+function IconFile(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M7 3h8l4 4v14H7z" />
+      <path d="M15 3v4h4" />
+      <path d="M10 12h6M10 16h6" />
+    </svg>
+  )
+}
+
+function IconSparkles(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M12 3l1.7 4.5L18 9l-4.3 1.5L12 15l-1.7-4.5L6 9l4.3-1.5z" />
+      <path d="M19 14l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" />
+    </svg>
+  )
+}
+
+function IconScan(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4" />
+      <path d="M8 12h8" />
+    </svg>
+  )
+}
+
+function IconNoAccount(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <circle cx="12" cy="9" r="3" />
+      <path d="M5 20a7 7 0 0114 0" />
+      <path d="M4 4l16 16" />
+    </svg>
+  )
+}
+
+function IconLink(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1.5 1.5" />
+      <path d="M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1.5-1.5" />
+    </svg>
+  )
+}
+
+function IconCompare(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M9 3v18M15 3v18" />
+      <path d="M5 7l4-4 4 4M19 17l-4 4-4-4" />
+    </svg>
+  )
+}
+
+function IconCpu(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <rect x="6" y="6" width="12" height="12" rx="1" />
+      <rect x="9" y="9" width="6" height="6" />
+      <path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3" />
+    </svg>
+  )
+}
+
+function IconChart(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M4 20h16" />
+      <path d="M7 16v-4M12 16V8M17 16v-6" />
+    </svg>
+  )
+}
+
+function IconBrainOff(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M9 5a3 3 0 013 0 3 3 0 013 0v0a3 3 0 011.5 5.5A3 3 0 0114 16h-4a3 3 0 01-1.5-5.5A3 3 0 019 5z" />
+      <path d="M4 4l16 16" />
+    </svg>
+  )
+}
+
+function IconTrash(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" width={24} height={24} {...ICON_STROKE}>
+      <path d="M4 7h16" />
+      <path d="M9 7V4h6v3" />
+      <path d="M6 7l1 13h10l1-13" />
+    </svg>
+  )
+}
+
+type ComparisonCell = 'yes' | 'no' | 'partial'
+
+interface ComparisonRow {
+  label: string
+  values: [ComparisonCell, ComparisonCell, ComparisonCell, ComparisonCell]
+}
+
+function ComparisonTable(): JSX.Element {
+  const tools = ['Excel to Sky', 'Google Sheets', 'Power BI', 'Looker Studio']
+
+  const rows: ReadonlyArray<ComparisonRow> = [
+    {
+      label: 'Datos procesados en tu navegador',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+    {
+      label: 'Sin cuenta para usar',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+    {
+      label: 'Funciona offline tras la primera carga',
+      values: ['yes', 'partial', 'partial', 'no'],
+    },
+    {
+      label: 'Sin tracking analítico propio',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+    {
+      label: 'Compartir sin login del visitante',
+      values: ['yes', 'partial', 'partial', 'yes'],
+    },
+    {
+      label: 'Gratis sin límite de usuarios',
+      values: ['yes', 'yes', 'no', 'yes'],
+    },
+    {
+      label: 'Datos alojados en la UE por defecto',
+      values: ['yes', 'partial', 'partial', 'partial'],
+    },
+    {
+      label: 'Sin LLM analizando tus datos',
+      values: ['yes', 'no', 'no', 'no'],
+    },
+  ]
+
+  return (
+    <div
+      style={{
+        overflowX: 'auto',
+        border: '1px solid var(--border)',
+        background: 'rgba(255,255,255,0.012)',
+      }}
+    >
+      <table
+        style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          fontSize: 13,
+          minWidth: 720,
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={thFirst}>Característica</th>
+            {tools.map((tool, i) => (
+              <th key={tool} style={i === 0 ? thBrand : th}>
+                {tool}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label}>
+              <td style={tdLabel}>{row.label}</td>
+              {row.values.map((cell, i) => (
+                <td key={i} style={i === 0 ? tdBrand : td}>
+                  <ComparisonMark cell={cell} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function ComparisonMark({ cell }: { cell: ComparisonCell }): JSX.Element {
+  if (cell === 'yes') {
+    return (
+      <span style={{ color: 'var(--mint)', fontSize: 16, fontWeight: 600 }} aria-label="Sí">
+        ✓
+      </span>
+    )
+  }
+  if (cell === 'partial') {
+    return (
+      <span
+        style={{
+          color: 'var(--amber, #F7B955)',
+          fontSize: 13,
+          fontWeight: 500,
+          letterSpacing: '0.02em',
+        }}
+        aria-label="Parcial"
+      >
+        Parcial
+      </span>
+    )
+  }
+  return (
+    <span style={{ color: 'var(--muted)', fontSize: 16, fontWeight: 400 }} aria-label="No">
+      ✗
+    </span>
+  )
+}
+
+const thBase = {
+  padding: '16px 18px',
+  textAlign: 'left' as const,
+  fontSize: 10,
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase' as const,
+  fontWeight: 600,
+  color: 'var(--muted)',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  background: 'rgba(255,255,255,0.02)',
+}
+
+const thFirst = {
+  ...thBase,
+  width: '34%',
+}
+
+const th = {
+  ...thBase,
+  textAlign: 'center' as const,
+  width: '16.5%',
+}
+
+const thBrand = {
+  ...th,
+  color: 'var(--sky)',
+  background: 'rgba(77,158,250,0.06)',
+}
+
+const tdLabel = {
+  padding: '14px 18px',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  color: 'var(--ink-2)',
+  fontSize: 13,
+}
+
+const td = {
+  padding: '14px 18px',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  textAlign: 'center' as const,
+}
+
+const tdBrand = {
+  ...td,
+  background: 'rgba(77,158,250,0.04)',
 }
 
 function PrivacyDiagram(): JSX.Element {
@@ -894,6 +1397,121 @@ function BackgroundGrid({ faint = false }: { faint?: boolean }): JSX.Element {
       </defs>
       <rect width="100%" height="100%" fill="url(#ee-grid)" />
     </svg>
+  )
+}
+
+// ---------- Hero visual: looping upload -> dashboard demo ----------
+
+function AnimatedHeroDemo(): JSX.Element {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: 560,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+      }}
+      role="img"
+      aria-label="Demostración animada: archivo Excel cargándose y transformándose en un dashboard."
+    >
+      <div className="ee-hero-dashboard" style={{ width: '100%' }}>
+        <DashboardMockup />
+      </div>
+      <div
+        className="ee-hero-overlay"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+        }}
+        aria-hidden
+      >
+        <UploadStageVisual />
+      </div>
+    </div>
+  )
+}
+
+function UploadStageVisual(): JSX.Element {
+  return (
+    <div
+      style={{
+        background: 'var(--surface, rgba(20,22,28,0.92))',
+        boxShadow: '0 0 0 1px var(--border-strong), 0 24px 48px -16px rgba(0,0,0,0.6)',
+        padding: '24px 28px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 18,
+        width: 'min(360px, 88%)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div
+          aria-hidden
+          style={{
+            width: 40,
+            height: 50,
+            background: 'rgba(94, 226, 192, 0.12)',
+            boxShadow: '0 0 0 1px var(--border-strong)',
+            display: 'grid',
+            placeItems: 'center',
+            color: 'var(--mint)',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+          }}
+        >
+          XLSX
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div
+            className="font-display"
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            VENTAS_2026_Q1.XLSX
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: 'var(--muted)',
+              fontFamily: 'var(--font-mono, monospace)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            parseando · local
+          </div>
+        </div>
+      </div>
+      <div
+        style={{
+          height: 3,
+          background: 'rgba(255,255,255,0.08)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="ee-hero-progress"
+          style={{
+            height: '100%',
+            width: '100%',
+            background: 'var(--sky)',
+          }}
+        />
+      </div>
+    </div>
   )
 }
 
