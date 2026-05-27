@@ -1,4 +1,4 @@
-import type { ColumnType } from '../types/dataset'
+import type { ColumnSubtype, ColumnType } from '../types/dataset'
 
 // Boolean variants (#33). Covers Spanish, English, Italian, French, German,
 // Portuguese plus check-mark glyphs and the common 0/1 pair. detectBoolean
@@ -310,4 +310,197 @@ export function inferColumnTypeDetailed(
     mixed,
     secondary: mixed ? topOther?.k : undefined,
   }
+}
+
+// ---------- Subtype detection (#22 #23 #24 #25 #26 #27 #28 #29 #30 #37) ----------
+
+/**
+ * Threshold above which a subtype detector wins. Higher than the base-type
+ * THRESHOLD (0.8) because subtypes describe content shape, not coarse class:
+ * if 90% of the column reads as email, the remaining 10% is almost always
+ * dirty data of the same shape, not a different subtype.
+ */
+const SUBTYPE_THRESHOLD = 0.9
+
+interface SubtypeDetector {
+  readonly name: ColumnSubtype
+  /** Optional gate on the base type. */
+  readonly appliesTo: ReadonlyArray<ColumnType>
+  /** Returns true when `value` matches this subtype. */
+  readonly test: (value: string) => boolean
+}
+
+/** Registered subtype detectors. First registered with ≥SUBTYPE_THRESHOLD wins. */
+const SUBTYPE_DETECTORS: SubtypeDetector[] = []
+
+export function registerSubtypeDetector(detector: SubtypeDetector): void {
+  SUBTYPE_DETECTORS.push(detector)
+}
+
+// ---------- Detector: time-only (#22) ----------
+// HH:MM or HH:MM:SS, 24h or 12h with am/pm. Excludes ISO datetimes (those
+// are picked up by detectDate / the datetime-tz detector).
+const TIME_ONLY_RE = /^(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?(?:\s?[apAP]\.?\s?[mM]\.?)?$/
+registerSubtypeDetector({
+  name: 'time',
+  appliesTo: ['text', 'category'],
+  test: (v) => TIME_ONLY_RE.test(v.trim()),
+})
+
+// ---------- Detector: datetime with explicit timezone (#23) ----------
+// ISO-8601 datetime ending in Z or ±HH:MM offset. detectDate already accepts
+// these and types the column as 'date', so the detector applies on top.
+const DATETIME_TZ_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})$/
+registerSubtypeDetector({
+  name: 'datetime-tz',
+  appliesTo: ['date', 'text', 'category'],
+  test: (v) => DATETIME_TZ_RE.test(v.trim()),
+})
+
+// ---------- Detector: percentage (#24) ----------
+// Number ending in % (with optional spaces). Applies to number / currency
+// base types (the existing CURRENCY_STRIP doesn't strip %, so a column of
+// '12%', '37%' typically resolves to 'text'/'category'). Cover all four to
+// be safe — they're informational badges, not class changes.
+const PERCENT_RE = /^[+-]?(?:\d{1,3}(?:[.,]\d{3})*|\d+)(?:[.,]\d+)?\s*%$/
+registerSubtypeDetector({
+  name: 'percentage',
+  appliesTo: ['number', 'currency', 'text', 'category'],
+  test: (v) => PERCENT_RE.test(v.trim()),
+})
+
+// ---------- Detector: phone number (#25) ----------
+// E.164 ("+CC NNN…", up to 15 digits) or local separator-friendly forms
+// ("+34 600 123 456", "600-123-456", "(91) 555 1234"). At least 7 digits.
+const PHONE_RE = /^\+?(?:\d[\s\-./]?){6,15}\d$/
+registerSubtypeDetector({
+  name: 'phone',
+  // Phones tend to be picked up as text/category. Some short, hyphen-less
+  // local numbers also pass detectNumber, so include number too.
+  appliesTo: ['text', 'category', 'number'],
+  test: (v) => {
+    const s = v.trim()
+    if (!PHONE_RE.test(s)) return false
+    // Require at least 7 digits to avoid matching, e.g., "1-2-3".
+    return (s.match(/\d/g)?.length ?? 0) >= 7
+  },
+})
+
+// ---------- Detector: email address (#26) ----------
+// Pragmatic RFC-ish check: at least one char, @, domain with a dot, no
+// whitespace. Lowercased before matching so 'John@Example.com' is detected.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+registerSubtypeDetector({
+  name: 'email',
+  appliesTo: ['text', 'category'],
+  test: (v) => EMAIL_RE.test(v.trim().toLowerCase()),
+})
+
+// ---------- Detector: URL (#27) ----------
+// http(s):// or protocol-less www. prefixes. Trim only — case preserved
+// because URLs are case-insensitive only in the scheme + host.
+const URL_RE = /^(?:https?:\/\/|www\.)[^\s]+$/i
+registerSubtypeDetector({
+  name: 'url',
+  appliesTo: ['text', 'category'],
+  test: (v) => URL_RE.test(v.trim()),
+})
+
+// ---------- Detector: lat/lon coordinate pair (#28) ----------
+// "lat,lon" or "lat, lon" in a single cell with reasonable bounds:
+// -90..90 for latitude, -180..180 for longitude. Float allowed.
+const LATLON_RE = /^(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)$/
+registerSubtypeDetector({
+  name: 'latlon',
+  appliesTo: ['text', 'category', 'geo'],
+  test: (v) => {
+    const m = LATLON_RE.exec(v.trim())
+    if (!m) return false
+    const lat = Number(m[1])
+    const lon = Number(m[2])
+    return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180
+  },
+})
+
+// ---------- Detector: postal code (#29) ----------
+// Covers ES (5 digits), US (5 or 9-digit ZIP+4), UK (alphanumeric like
+// 'SW1A 1AA'), FR (5 digits, same as ES — order matters for first match),
+// DE (5 digits, same as ES). Numeric forms collapse into one regex; the
+// UK pattern is tried separately because of its mixed alphanumeric shape.
+// Detector also rejects values that pass detectNumber as currency-ish
+// because '12345' alone is too ambiguous unless the header hints — we
+// rely on the header bias by gating `appliesTo` on number / text.
+const POSTAL_NUMERIC = /^\d{5}(?:-\d{4})?$/ // ES/FR/DE/US ZIP+4
+const POSTAL_UK = /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i
+registerSubtypeDetector({
+  name: 'postal-code',
+  appliesTo: ['text', 'category', 'number'],
+  test: (v) => {
+    const s = v.trim()
+    return POSTAL_NUMERIC.test(s) || POSTAL_UK.test(s)
+  },
+})
+
+// ---------- Detector: UUID (#30) ----------
+// RFC 4122 hex with hyphens. Accepts any version (the version nibble is
+// not enforced because Excel exports of v7/ULID-shaped IDs are common).
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+registerSubtypeDetector({
+  name: 'uuid',
+  appliesTo: ['text', 'category'],
+  test: (v) => UUID_RE.test(v.trim()),
+})
+
+// ---------- Detector: Spanish DNI / NIE (#37) ----------
+// DNI: 8 digits + checksum letter. NIE: X/Y/Z + 7 digits + checksum letter
+// (X=0, Y=1, Z=2 prefix for the modulo calculation). The letter is the
+// lookup of (num % 23) in 'TRWAGMYFPDXBNJZSQVHLCKE'.
+const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE'
+const DNI_RE = /^(\d{8})([A-Z])$/
+const NIE_RE = /^([XYZ])(\d{7})([A-Z])$/
+registerSubtypeDetector({
+  name: 'dni-nie',
+  appliesTo: ['text', 'category'],
+  test: (v) => {
+    const s = v.trim().toUpperCase()
+    const dni = DNI_RE.exec(s)
+    if (dni) {
+      const num = Number(dni[1])
+      return DNI_LETTERS[num % 23] === dni[2]
+    }
+    const nie = NIE_RE.exec(s)
+    if (nie) {
+      const prefix = { X: '0', Y: '1', Z: '2' }[nie[1] as 'X' | 'Y' | 'Z']
+      const num = Number(prefix + nie[2])
+      return DNI_LETTERS[num % 23] === nie[3]
+    }
+    return false
+  },
+})
+
+/**
+ * Infer a specialized subtype for a column once its base type is known.
+ * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
+ *
+ * Subtypes are purely informational (badge label, format hints). They never
+ * change `Column.type`, so charts and stats keep working unmodified.
+ */
+export function detectSubtype(
+  rawValues: (string | null | undefined)[],
+  baseType: ColumnType,
+): ColumnSubtype | undefined {
+  const filtered = rawValues.filter((v): v is string => v != null && v !== '')
+  if (filtered.length === 0) return undefined
+  const sampled = sample(filtered)
+  const total = sampled.length
+
+  for (const det of SUBTYPE_DETECTORS) {
+    if (det.appliesTo.length > 0 && !det.appliesTo.includes(baseType)) continue
+    let hits = 0
+    for (const v of sampled) {
+      if (det.test(v)) hits++
+    }
+    if (hits / total >= SUBTYPE_THRESHOLD) return det.name
+  }
+  return undefined
 }

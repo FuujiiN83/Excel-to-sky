@@ -5,6 +5,7 @@ import { StatCard, MiniSpark } from '../components/StatCard'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
 import { AnimatedNumber } from '../components/AnimatedNumber'
 import { ExportMenu } from '../components/ExportMenu'
+import { SubtypeBadge } from '../components/SubtypeBadge'
 import { useSettings } from '../lib/SettingsContext'
 import { accentForPalette } from '../lib/palette'
 
@@ -326,14 +327,16 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
                   </div>
                 </div>
                 <div
-                  className="text-muted"
+                  className="text-muted flex items-center"
                   style={{
                     fontSize: 10,
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
                     fontWeight: 600,
+                    gap: 6,
                   }}
                 >
+                  {col.subtype && <SubtypeBadge subtype={col.subtype} />}
                   {col.type}
                 </div>
               </div>
