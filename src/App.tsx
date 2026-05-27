@@ -15,6 +15,7 @@ import { saveLocalDashboard, touchLocalDashboard } from './lib/localDb'
 import { isSupabaseConfigured } from './lib/supabase'
 import { analyzeDataset } from './lib/insights'
 import { useSettings } from './lib/SettingsContext'
+import { runWhenIdle } from './lib/idle'
 
 // Route-level code splitting (#176). Each page ships as its own chunk; the
 // main bundle now only contains the shell + the route registration.
@@ -178,14 +179,20 @@ export default function App(): JSX.Element {
     if (!import.meta.env.DEV) return
     if (!hasUploaded) return
     if (!settings.autoAnalyze) return
-    void analyzeDataset(dataset)
-      .then((report) => {
-        // eslint-disable-next-line no-console
-        console.log('[insights]', report)
-      })
-      .catch((e: unknown) => {
-        console.error('[insights] failed:', e)
-      })
+    // Defer the heavy insights run until the browser is idle so the dashboard
+    // mount completes first (#179). Up to 2 s wait before falling back to
+    // running anyway so we never starve the analysis indefinitely.
+    const idle = runWhenIdle(() => {
+      void analyzeDataset(dataset)
+        .then((report) => {
+          // eslint-disable-next-line no-console
+          console.log('[insights]', report)
+        })
+        .catch((e: unknown) => {
+          console.error('[insights] failed:', e)
+        })
+    }, 2000)
+    return () => idle.cancel()
   }, [dataset, hasUploaded, settings.autoAnalyze])
 
   const isUpload = route.name === 'upload'
