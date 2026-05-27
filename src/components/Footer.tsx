@@ -56,6 +56,7 @@ export function Footer({ onNav }: FooterProps): JSX.Element {
           <FooterAnchor href={GITHUB_URL} external>
             GitHub →
           </FooterAnchor>
+          <FooterLink onClick={() => onNav('report')}>Reportar bug →</FooterLink>
         </FooterCol>
       </div>
 
