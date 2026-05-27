@@ -1,3 +1,5 @@
+import { Footer } from '../components/Footer'
+
 interface LandingPageProps {
   onNav: (route: string) => void
 }
@@ -597,39 +599,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer
-        style={{
-          padding: '40px 64px',
-          borderTop: '1px solid var(--border)',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr 1fr',
-          gap: 40,
-          fontSize: 12,
-          color: 'var(--muted)',
-        }}
-      >
-        <div>
-          <div
-            className="font-display"
-            style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 600, letterSpacing: '-0.02em' }}
-          >
-            EXCEL—SKY
-          </div>
-          <div style={{ marginTop: 12, fontSize: 11 }}>v0.5 · beta</div>
-        </div>
-        <FooterCol title="Producto">
-          <FooterLink onClick={() => onNav('upload')}>App</FooterLink>
-          <FooterLink onClick={() => onNav('faq')}>FAQ</FooterLink>
-        </FooterCol>
-        <FooterCol title="Legal">
-          <FooterLink onClick={() => onNav('privacy')}>Privacidad</FooterLink>
-          <FooterLink onClick={() => onNav('terms')}>Términos</FooterLink>
-        </FooterCol>
-        <div style={{ textAlign: 'right' }}>
-          © {new Date().getFullYear()} · Hecho en España
-        </div>
-      </footer>
+      <Footer onNav={onNav} />
     </div>
   )
 }
@@ -705,44 +675,6 @@ function BackgroundGrid({ faint = false }: { faint?: boolean }): JSX.Element {
       </defs>
       <rect width="100%" height="100%" fill="url(#ee-grid)" />
     </svg>
-  )
-}
-
-function FooterCol({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
-  return (
-    <div>
-      <div
-        style={{
-          fontSize: 10,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: 'var(--muted)',
-          marginBottom: 12,
-        }}
-      >
-        {title}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{children}</div>
-    </div>
-  )
-}
-
-function FooterLink({ onClick, children }: { onClick: () => void; children: React.ReactNode }): JSX.Element {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        background: 'transparent',
-        border: 'none',
-        color: 'var(--ink-2)',
-        fontSize: 12,
-        padding: 0,
-        textAlign: 'left',
-        cursor: 'pointer',
-      }}
-    >
-      {children}
-    </button>
   )
 }
 
