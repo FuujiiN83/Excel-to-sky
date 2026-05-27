@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { TopBar } from './components/TopBar'
 import { FloatingDock } from './components/FloatingDock'
+import { CookieBanner } from './components/CookieBanner'
 import { SAMPLE_DATASETS } from './samples'
 import type { Dataset } from './types/dataset'
 import { UploadPage } from './pages/UploadPage'
@@ -124,6 +125,7 @@ export default function App(): JSX.Element {
         {route.name === 'privacy' && <PrivacyPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'terms' && <TermsPage onNav={(n) => nav(n as RouteName)} />}
         {route.name === 'dev_insights' && <InsightsWorkbench />}
+        <CookieBanner onLearnMore={() => nav('privacy')} />
       </div>
     )
   }
@@ -200,6 +202,7 @@ export default function App(): JSX.Element {
       {(!isUpload || hasUploaded) && (
         <FloatingDock route={route} onNav={(n) => nav(n as RouteName)} />
       )}
+      <CookieBanner onLearnMore={() => nav('privacy')} />
     </div>
   )
 }
