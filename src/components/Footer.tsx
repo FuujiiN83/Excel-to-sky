@@ -44,6 +44,7 @@ export function Footer({ onNav }: FooterProps): JSX.Element {
         <FooterCol title="Producto">
           <FooterLink onClick={() => onNav('upload')}>App</FooterLink>
           <FooterLink onClick={() => onNav('faq')}>FAQ</FooterLink>
+          <FooterLink onClick={() => onNav('settings')}>Configuración</FooterLink>
         </FooterCol>
 
         <FooterCol title="Legal">
