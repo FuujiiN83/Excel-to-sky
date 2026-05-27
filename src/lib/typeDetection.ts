@@ -347,6 +347,16 @@ registerSubtypeDetector({
   test: (v) => TIME_ONLY_RE.test(v.trim()),
 })
 
+// ---------- Detector: datetime with explicit timezone (#23) ----------
+// ISO-8601 datetime ending in Z or ±HH:MM offset. detectDate already accepts
+// these and types the column as 'date', so the detector applies on top.
+const DATETIME_TZ_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})$/
+registerSubtypeDetector({
+  name: 'datetime-tz',
+  appliesTo: ['date', 'text', 'category'],
+  test: (v) => DATETIME_TZ_RE.test(v.trim()),
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
