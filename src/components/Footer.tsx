@@ -1,3 +1,5 @@
+import { useT } from '../lib/i18n/useT'
+
 interface FooterProps {
   onNav: (route: string) => void
 }
@@ -6,6 +8,7 @@ const CONTACT_EMAIL = 'franosma83@gmail.com'
 const GITHUB_URL = 'https://github.com/FuujiiN83/Excel-to-sky'
 
 export function Footer({ onNav }: FooterProps): JSX.Element {
+  const t = useT()
   return (
     <footer
       style={{
@@ -41,23 +44,23 @@ export function Footer({ onNav }: FooterProps): JSX.Element {
           <div style={{ marginTop: 12, fontSize: 11 }}>v0.5 · beta</div>
         </div>
 
-        <FooterCol title="Producto">
-          <FooterLink onClick={() => onNav('upload')}>App</FooterLink>
-          <FooterLink onClick={() => onNav('faq')}>FAQ</FooterLink>
-          <FooterLink onClick={() => onNav('settings')}>Configuración</FooterLink>
+        <FooterCol title={t('footer.col.product')}>
+          <FooterLink onClick={() => onNav('upload')}>{t('footer.link.app')}</FooterLink>
+          <FooterLink onClick={() => onNav('faq')}>{t('footer.link.faq')}</FooterLink>
+          <FooterLink onClick={() => onNav('settings')}>{t('footer.link.settings')}</FooterLink>
         </FooterCol>
 
-        <FooterCol title="Legal">
-          <FooterLink onClick={() => onNav('privacy')}>Privacidad</FooterLink>
-          <FooterLink onClick={() => onNav('terms')}>Términos</FooterLink>
+        <FooterCol title={t('footer.col.legal')}>
+          <FooterLink onClick={() => onNav('privacy')}>{t('footer.link.privacy')}</FooterLink>
+          <FooterLink onClick={() => onNav('terms')}>{t('footer.link.terms')}</FooterLink>
         </FooterCol>
 
-        <FooterCol title="Contacto">
-          <FooterAnchor href={`mailto:${CONTACT_EMAIL}`}>Email →</FooterAnchor>
+        <FooterCol title={t('footer.col.contact')}>
+          <FooterAnchor href={`mailto:${CONTACT_EMAIL}`}>{t('footer.link.email')}</FooterAnchor>
           <FooterAnchor href={GITHUB_URL} external>
-            GitHub →
+            {t('footer.link.github')}
           </FooterAnchor>
-          <FooterLink onClick={() => onNav('report')}>Reportar bug →</FooterLink>
+          <FooterLink onClick={() => onNav('report')}>{t('footer.link.bug')}</FooterLink>
         </FooterCol>
       </div>
 
@@ -76,7 +79,7 @@ export function Footer({ onNav }: FooterProps): JSX.Element {
         }}
       >
         <div>© {new Date().getFullYear()} Excel to Sky</div>
-        <div>Hecho en España</div>
+        <div>{t('footer.madeIn')}</div>
       </div>
     </footer>
   )

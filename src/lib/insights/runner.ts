@@ -5,6 +5,7 @@ import { buildContext } from './context'
 import { buildSummary } from './summary'
 import { HEURISTICS } from './heuristics/index'
 import { deriveSeverity, diversityPenaltyFor, scoreOne } from './scoring'
+import { setInsightsLocale } from './i18n'
 
 const DEFAULTS = { maxFindings: 25, minScore: 0.15 } as const
 const HARD_CAP = 100
@@ -12,6 +13,9 @@ const TIMEOUT_MS = 5000
 
 export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = {}): InsightReport {
   const t0 = Date.now()
+  // Apply the caller-requested locale before any heuristic renders text.
+  // Default ('es') matches historical behaviour.
+  setInsightsLocale(options.locale === 'en' ? 'en' : 'es')
   const ctx = buildContext(dataset)
   const summary = buildSummary(dataset, ctx)
 

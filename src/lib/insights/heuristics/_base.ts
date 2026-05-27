@@ -4,7 +4,7 @@ import type { Finding, FindingData, FindingType } from '../types'
 import type { AnalysisContext } from '../context'
 import type { DatasetSummary } from '../types'
 import { hashPayload } from '../hash'
-import { render } from '../i18n/es'
+import { render } from '../i18n'
 
 export interface Heuristic {
   type: FindingType
@@ -26,7 +26,7 @@ export function makeFinding(args: {
     id,
     type: args.type,
     severity: 'info', // overridden by scoring stage
-    score: 0,         // filled by scoring stage
+    score: 0, // filled by scoring stage
     title: text.title,
     body: text.body,
     columns: args.columns,

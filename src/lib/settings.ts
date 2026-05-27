@@ -4,6 +4,7 @@ import type { ColumnType } from '../types/dataset'
 export type Theme = 'dark' | 'light' | 'high-contrast'
 export type NumberLocale = 'es-ES' | 'en-US' | 'de-DE' | 'fr-FR' | 'pt-PT'
 export type DateFormat = 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd'
+export type UiLocale = 'es' | 'en'
 
 /** Subset of ColumnType that the dashboard makes a chart for. */
 export type ChartableType = Extract<ColumnType, 'number' | 'currency' | 'category' | 'date' | 'geo'>
@@ -11,6 +12,7 @@ export type ChartShape = 'histogram' | 'bar' | 'line' | 'map' | 'auto'
 
 export interface Settings {
   theme: Theme
+  uiLocale: UiLocale
   numberLocale: NumberLocale
   dateFormat: DateFormat
   autoAnalyze: boolean
@@ -22,6 +24,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
+  uiLocale: 'es',
   numberLocale: 'es-ES',
   dateFormat: 'dd/mm/yyyy',
   autoAnalyze: true,
@@ -66,6 +69,7 @@ function mergeDefaults(stored: unknown): Settings {
   const s = stored as Partial<Settings>
   return {
     theme: validTheme(s.theme) ?? DEFAULT_SETTINGS.theme,
+    uiLocale: validUiLocale(s.uiLocale) ?? DEFAULT_SETTINGS.uiLocale,
     numberLocale: validLocale(s.numberLocale) ?? DEFAULT_SETTINGS.numberLocale,
     dateFormat: validDateFormat(s.dateFormat) ?? DEFAULT_SETTINGS.dateFormat,
     autoAnalyze: typeof s.autoAnalyze === 'boolean' ? s.autoAnalyze : DEFAULT_SETTINGS.autoAnalyze,
@@ -81,6 +85,9 @@ function mergeDefaults(stored: unknown): Settings {
 function validTheme(v: unknown): Theme | undefined {
   return v === 'dark' || v === 'light' || v === 'high-contrast' ? v : undefined
 }
+function validUiLocale(v: unknown): UiLocale | undefined {
+  return v === 'es' || v === 'en' ? v : undefined
+}
 function validLocale(v: unknown): NumberLocale | undefined {
   return v === 'es-ES' || v === 'en-US' || v === 'de-DE' || v === 'fr-FR' || v === 'pt-PT'
     ? v
@@ -94,9 +101,30 @@ export async function loadSettings(): Promise<Settings> {
   try {
     const d = await db()
     const stored = await d.get('kv', KEY)
-    return mergeDefaults(stored)
+    if (stored) return mergeDefaults(stored)
+    // First-load auto-detection (#206). Peek at navigator.language to seed
+    // uiLocale. We only do this when *nothing* is persisted yet, so a user
+    // who explicitly picked 'es' on a Chrome that reports 'en' doesn't get
+    // overridden on every visit.
+    const detected = detectInitialSettings()
+    if (detected) await saveSettings(detected)
+    return detected ?? DEFAULT_SETTINGS
   } catch {
     return DEFAULT_SETTINGS
+  }
+}
+
+function detectInitialSettings(): Settings | null {
+  if (typeof navigator === 'undefined') return null
+  const lang = (navigator.language || '').toLowerCase()
+  // Only flip to English when the browser explicitly reports it.
+  // Anything else falls back to the Spanish default (current product locale).
+  if (!lang.startsWith('en')) return null
+  return {
+    ...DEFAULT_SETTINGS,
+    uiLocale: 'en',
+    numberLocale: lang === 'en-gb' ? 'en-US' : 'en-US',
+    dateFormat: 'mm/dd/yyyy',
   }
 }
 

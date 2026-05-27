@@ -185,7 +185,7 @@ export default function App(): JSX.Element {
     // mount completes first (#179). Up to 2 s wait before falling back to
     // running anyway so we never starve the analysis indefinitely.
     const idle = runWhenIdle(() => {
-      void analyzeDataset(dataset)
+      void analyzeDataset(dataset, { locale: settings.uiLocale })
         .then((report) => {
           // eslint-disable-next-line no-console
           console.log('[insights]', report)
@@ -195,7 +195,7 @@ export default function App(): JSX.Element {
         })
     }, 2000)
     return () => idle.cancel()
-  }, [dataset, hasUploaded, settings.autoAnalyze])
+  }, [dataset, hasUploaded, settings.autoAnalyze, settings.uiLocale])
 
   const isUpload = route.name === 'upload'
   const isPublic = route.name === 'public'
