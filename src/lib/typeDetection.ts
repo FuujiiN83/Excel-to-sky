@@ -357,6 +357,18 @@ registerSubtypeDetector({
   test: (v) => DATETIME_TZ_RE.test(v.trim()),
 })
 
+// ---------- Detector: percentage (#24) ----------
+// Number ending in % (with optional spaces). Applies to number / currency
+// base types (the existing CURRENCY_STRIP doesn't strip %, so a column of
+// '12%', '37%' typically resolves to 'text'/'category'). Cover all four to
+// be safe — they're informational badges, not class changes.
+const PERCENT_RE = /^[+-]?(?:\d{1,3}(?:[.,]\d{3})*|\d+)(?:[.,]\d+)?\s*%$/
+registerSubtypeDetector({
+  name: 'percentage',
+  appliesTo: ['number', 'currency', 'text', 'category'],
+  test: (v) => PERCENT_RE.test(v.trim()),
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
