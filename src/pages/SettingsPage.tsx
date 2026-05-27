@@ -1,8 +1,25 @@
 import type { ReactNode } from 'react'
 import { LegalLayout } from './LegalLayout'
 import { useSettings } from '../lib/SettingsContext'
-import type { DateFormat, NumberLocale, Theme } from '../lib/settings'
+import type { ChartShape, ChartableType, DateFormat, NumberLocale, Theme } from '../lib/settings'
 import { fmtDate } from '../lib/stats'
+
+const CHARTABLE_TYPES: ReadonlyArray<{ key: ChartableType; label: string; options: ChartShape[] }> =
+  [
+    { key: 'number', label: 'Numérico', options: ['auto', 'histogram', 'bar', 'line'] },
+    { key: 'currency', label: 'Moneda', options: ['auto', 'histogram', 'bar', 'line'] },
+    { key: 'category', label: 'Categórico', options: ['auto', 'bar'] },
+    { key: 'date', label: 'Fecha', options: ['auto', 'line', 'bar'] },
+    { key: 'geo', label: 'Geográfico', options: ['auto', 'map', 'bar'] },
+  ]
+
+const CHART_SHAPE_LABEL: Record<ChartShape, string> = {
+  auto: 'Auto (recomendado)',
+  histogram: 'Histograma',
+  bar: 'Barras',
+  line: 'Línea',
+  map: 'Mapa',
+}
 
 interface SettingsPageProps {
   onNav: (route: string) => void
@@ -77,9 +94,56 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
             />
             <SamplePreview label="Hoy" value={fmtDate(new Date())} />
           </SettingsRow>
+
+          <SettingsRow
+            label="Gráfico por defecto"
+            description="Forma de gráfico preferida para cada tipo de columna. 'Auto' deja que la app elija la más apropiada según la forma de los datos."
+          >
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr',
+                gap: '10px 16px',
+                alignItems: 'center',
+                maxWidth: 520,
+              }}
+            >
+              {CHARTABLE_TYPES.map((t) => (
+                <ChartTypeRow
+                  key={t.key}
+                  label={t.label}
+                  value={settings.defaultChartType[t.key]}
+                  options={t.options}
+                  onChange={(v) =>
+                    update('defaultChartType', { ...settings.defaultChartType, [t.key]: v })
+                  }
+                />
+              ))}
+            </div>
+          </SettingsRow>
         </div>
       )}
     </LegalLayout>
+  )
+}
+
+interface ChartTypeRowProps {
+  label: string
+  value: ChartShape
+  options: ReadonlyArray<ChartShape>
+  onChange: (v: ChartShape) => void
+}
+
+function ChartTypeRow({ label, value, options, onChange }: ChartTypeRowProps): JSX.Element {
+  return (
+    <>
+      <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>{label}</span>
+      <SelectControl<ChartShape>
+        value={value}
+        onChange={onChange}
+        options={options.map((o) => ({ value: o, label: CHART_SHAPE_LABEL[o] }))}
+      />
+    </>
   )
 }
 
