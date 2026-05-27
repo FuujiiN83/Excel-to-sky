@@ -3,6 +3,7 @@ import { TopBar } from './components/TopBar'
 import { FloatingDock } from './components/FloatingDock'
 import { CookieBanner } from './components/CookieBanner'
 import { NetworkErrorBanner } from './components/NetworkErrorBanner'
+import { ShortcutCheatsheet } from './components/ShortcutCheatsheet'
 import { SAMPLE_DATASETS } from './samples'
 import type { Dataset } from './types/dataset'
 import { UploadPage } from './pages/UploadPage'
@@ -48,6 +49,7 @@ export default function App(): JSX.Element {
   const { settings } = useSettings()
   const [route, setRoute] = useState<Route>({ name: 'landing' })
   const [dataset, setDataset] = useState<Dataset>(SAMPLE_DATASETS.personas)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [hasUploaded, setHasUploaded] = useState(false)
 
   function nav(name: RouteName, extras: Partial<Route> = {}): void {
@@ -93,6 +95,21 @@ export default function App(): JSX.Element {
       .catch((err) => {
         console.error(err)
       })
+  }, [])
+
+  // Global "?" shortcut to open the keyboard cheatsheet. Ignored while the user
+  // is typing into an input / textarea / contenteditable so we don't hijack text.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent): void {
+      if (e.key !== '?') return
+      const t = e.target as HTMLElement | null
+      const tag = t?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || t?.isContentEditable) return
+      e.preventDefault()
+      setShortcutsOpen((o) => !o)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
   }, [])
 
   // Auto-pick first column for detail if not chosen — mirrors legacy app.jsx behaviour.
@@ -142,6 +159,7 @@ export default function App(): JSX.Element {
         {route.name === 'dev_insights' && <InsightsWorkbench />}
         <CookieBanner onLearnMore={() => nav('privacy')} />
         <NetworkErrorBanner />
+        <ShortcutCheatsheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       </div>
     )
   }
@@ -215,6 +233,7 @@ export default function App(): JSX.Element {
       )}
       <CookieBanner onLearnMore={() => nav('privacy')} />
       <NetworkErrorBanner />
+      <ShortcutCheatsheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
   )
 }
