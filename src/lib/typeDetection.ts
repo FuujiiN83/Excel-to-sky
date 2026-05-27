@@ -406,6 +406,22 @@ registerSubtypeDetector({
   test: (v) => URL_RE.test(v.trim()),
 })
 
+// ---------- Detector: lat/lon coordinate pair (#28) ----------
+// "lat,lon" or "lat, lon" in a single cell with reasonable bounds:
+// -90..90 for latitude, -180..180 for longitude. Float allowed.
+const LATLON_RE = /^(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)$/
+registerSubtypeDetector({
+  name: 'latlon',
+  appliesTo: ['text', 'category', 'geo'],
+  test: (v) => {
+    const m = LATLON_RE.exec(v.trim())
+    if (!m) return false
+    const lat = Number(m[1])
+    const lon = Number(m[2])
+    return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180
+  },
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
