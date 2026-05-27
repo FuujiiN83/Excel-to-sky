@@ -239,7 +239,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
           }}
         >
           <BackgroundGrid />
-          <DashboardMockup />
+          <AnimatedHeroDemo />
           <CornerTicks position="tr" />
           <CornerTicks position="br" />
         </div>
@@ -1397,6 +1397,121 @@ function BackgroundGrid({ faint = false }: { faint?: boolean }): JSX.Element {
       </defs>
       <rect width="100%" height="100%" fill="url(#ee-grid)" />
     </svg>
+  )
+}
+
+// ---------- Hero visual: looping upload -> dashboard demo ----------
+
+function AnimatedHeroDemo(): JSX.Element {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: 560,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+      }}
+      role="img"
+      aria-label="Demostración animada: archivo Excel cargándose y transformándose en un dashboard."
+    >
+      <div className="ee-hero-dashboard" style={{ width: '100%' }}>
+        <DashboardMockup />
+      </div>
+      <div
+        className="ee-hero-overlay"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+        }}
+        aria-hidden
+      >
+        <UploadStageVisual />
+      </div>
+    </div>
+  )
+}
+
+function UploadStageVisual(): JSX.Element {
+  return (
+    <div
+      style={{
+        background: 'var(--surface, rgba(20,22,28,0.92))',
+        boxShadow: '0 0 0 1px var(--border-strong), 0 24px 48px -16px rgba(0,0,0,0.6)',
+        padding: '24px 28px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 18,
+        width: 'min(360px, 88%)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div
+          aria-hidden
+          style={{
+            width: 40,
+            height: 50,
+            background: 'rgba(94, 226, 192, 0.12)',
+            boxShadow: '0 0 0 1px var(--border-strong)',
+            display: 'grid',
+            placeItems: 'center',
+            color: 'var(--mint)',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+          }}
+        >
+          XLSX
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div
+            className="font-display"
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            VENTAS_2026_Q1.XLSX
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: 'var(--muted)',
+              fontFamily: 'var(--font-mono, monospace)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            parseando · local
+          </div>
+        </div>
+      </div>
+      <div
+        style={{
+          height: 3,
+          background: 'rgba(255,255,255,0.08)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="ee-hero-progress"
+          style={{
+            height: '100%',
+            width: '100%',
+            background: 'var(--sky)',
+          }}
+        />
+      </div>
+    </div>
   )
 }
 
