@@ -187,20 +187,11 @@ export function UploadPage({
               <button
                 key={ds.id}
                 onClick={() => onUseSample(ds.id)}
-                className="bg-surface border border-border flex flex-col text-left"
+                className="ets-card-hover bg-surface border border-border flex flex-col text-left"
                 style={{
                   borderRadius: 0,
                   padding: 16,
                   gap: 6,
-                  transition: 'all .15s ease',
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-strong)'
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border)'
-                  e.currentTarget.style.transform = 'translateY(0)'
                 }}
               >
                 <div style={{ fontSize: 20 }}>📊</div>
@@ -252,7 +243,7 @@ export function UploadPage({
                     onClick={() => {
                       window.location.pathname = `/d/${d.slug}`
                     }}
-                    className="w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
+                    className="ets-card-hover w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
                     style={{
                       width: '100%',
                       textAlign: 'left',
@@ -300,7 +291,7 @@ export function UploadPage({
                     onClick={() => {
                       window.location.pathname = `/d/${d.slug}`
                     }}
-                    className="w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
+                    className="ets-card-hover w-full text-left rounded border border-border p-3 hover:border-ink transition-colors"
                     style={{
                       width: '100%',
                       textAlign: 'left',

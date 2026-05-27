@@ -107,6 +107,31 @@ textarea:focus-visible,
   box-shadow: 0 0 0 1px var(--border);
 }
 
+/* Subtle hover lift for interactive card surfaces. Apply with `.ets-card-hover`
+ * on any element that should react to pointer hover with a tiny scale +
+ * stronger border. Keeps border-radius at 0 (no rounded shift, since the
+ * theme is rectangular by design). prefers-reduced-motion strips the
+ * transform but keeps the colour change. */
+.ets-card-hover {
+  transition:
+    transform 220ms cubic-bezier(0.32, 0.72, 0, 1),
+    border-color 160ms ease,
+    box-shadow 220ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+.ets-card-hover:hover,
+.ets-card-hover:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.55);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ets-card-hover:hover,
+  .ets-card-hover:focus-visible {
+    transform: none;
+  }
+}
+
 /* Subtle animated entrance for top-level pages */
 @keyframes ee-fade-up {
   from {
