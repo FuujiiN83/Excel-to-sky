@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { Accent, Column, Dataset } from '../types/dataset'
 import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import type { ColumnAnalysis } from '../lib/stats'
@@ -22,7 +22,11 @@ function pickAccent(col: Column): Accent {
 export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
   const { dataset, columnKey, onPickColumn, onBack } = props
   const col = dataset.columns.find((c) => c.key === columnKey) || dataset.columns[0]
-  const analysis = useMemo(() => analyzeColumn(dataset, col.key), [dataset, col.key])
+  const [bins, setBins] = useState<number>(10)
+  const analysis = useMemo(
+    () => analyzeColumn(dataset, col.key, { bins }),
+    [dataset, col.key, bins],
+  )
 
   const isNum = col.type === 'number' || col.type === 'currency'
   const isDate = col.type === 'date'
@@ -128,7 +132,15 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
         </div>
       </div>
 
-      {isNum && <NumberDetail analysis={analysis} col={col} accent={accent} />}
+      {isNum && (
+        <NumberDetail
+          analysis={analysis}
+          col={col}
+          accent={accent}
+          bins={bins}
+          onBinsChange={setBins}
+        />
+      )}
       {isCat && <CategoryDetail analysis={analysis} col={col} accent={accent} isGeo={isGeo} />}
       {isDate && <DateDetail analysis={analysis} col={col} accent={accent} />}
     </div>
@@ -143,7 +155,18 @@ interface DetailViewProps {
   accent: Accent
 }
 
-function NumberDetail({ analysis, col, accent }: DetailViewProps): JSX.Element {
+interface NumberDetailProps extends DetailViewProps {
+  bins: number
+  onBinsChange: (n: number) => void
+}
+
+function NumberDetail({
+  analysis,
+  col,
+  accent,
+  bins,
+  onBinsChange,
+}: NumberDetailProps): JSX.Element {
   const histogram = analysis.histogram || []
   const histogramBars = histogram.map((b) => ({
     label: String(Math.round(b.lo)),
@@ -199,6 +222,32 @@ function NumberDetail({ analysis, col, accent }: DetailViewProps): JSX.Element {
           title="Distribución"
           sub={`${histogram.length} intervalos · ${fmtNumber(analysis.count)} valores`}
         >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 12,
+              fontSize: 11,
+              fontFamily: 'var(--font-mono, monospace)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+            }}
+          >
+            <label htmlFor={`hist-bins-${col.key}`}>Intervalos</label>
+            <input
+              id={`hist-bins-${col.key}`}
+              type="range"
+              min={5}
+              max={50}
+              step={5}
+              value={bins}
+              onChange={(e) => onBinsChange(Number(e.target.value))}
+              style={{ flex: 1, accentColor: 'var(--sky)' }}
+            />
+            <span style={{ color: 'var(--ink)', minWidth: 28, textAlign: 'right' }}>{bins}</span>
+          </div>
           <ChartBar
             bars={histogramBars}
             accent={accent}
