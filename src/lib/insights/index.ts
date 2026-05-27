@@ -22,7 +22,6 @@ export async function analyzeDataset(
   const { signal, ...workerOpts } = options
 
   if (!WORKERS_SUPPORTED) {
-    // eslint-disable-next-line no-console
     console.warn('[insights] Web Workers not supported; falling back to main thread')
     return runSync(dataset, workerOpts)
   }
