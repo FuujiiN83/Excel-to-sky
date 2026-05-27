@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Footer } from '../components/Footer'
 
 interface LegalLayoutProps {
   title: string
@@ -89,27 +90,7 @@ export function LegalLayout({ title, onNav, children }: LegalLayoutProps): JSX.E
         </div>
       </main>
 
-      <footer
-        className="border-t border-border text-muted"
-        style={{
-          padding: '24px 32px',
-          borderTop: '1px solid var(--border)',
-          fontSize: 12,
-          display: 'flex',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 12,
-          color: 'var(--ink-2)',
-        }}
-      >
-        <div>© {new Date().getFullYear()} Excel to Sky</div>
-        <div style={{ display: 'flex', gap: 16 }}>
-          <button onClick={() => onNav('faq')} style={footerBtn}>FAQ</button>
-          <button onClick={() => onNav('privacy')} style={footerBtn}>Privacidad</button>
-          <button onClick={() => onNav('terms')} style={footerBtn}>Términos</button>
-          <button onClick={() => onNav('upload')} style={footerBtn}>App</button>
-        </div>
-      </footer>
+      <Footer onNav={onNav} />
     </div>
   )
 }
@@ -121,14 +102,4 @@ const navBtn = {
   color: 'inherit',
   fontSize: 13,
   padding: 0,
-} as const
-
-const footerBtn = {
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-  color: 'inherit',
-  fontSize: 12,
-  padding: 0,
-  textDecoration: 'underline',
 } as const
