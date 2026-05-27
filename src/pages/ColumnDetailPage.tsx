@@ -7,6 +7,8 @@ import { ChartBar } from '../components/ChartBar'
 import { ChartLine } from '../components/ChartLine'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
 import { ChartExportButton } from '../components/ChartExportButton'
+import { useSettings } from '../lib/SettingsContext'
+import { accentForPalette } from '../lib/palette'
 
 interface ColumnDetailPageProps {
   dataset: Dataset
@@ -15,12 +17,14 @@ interface ColumnDetailPageProps {
   onBack: () => void
 }
 
-function pickAccent(col: Column): Accent {
+function naturalAccent(col: Column): Accent {
   return col.color || 'sky'
 }
 
 export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
   const { dataset, columnKey, onPickColumn, onBack } = props
+  const { settings } = useSettings()
+  const pickAccent = (col: Column): Accent => accentForPalette(settings.palette, naturalAccent(col))
   const col = dataset.columns.find((c) => c.key === columnKey) || dataset.columns[0]
   const [bins, setBins] = useState<number>(10)
   const analysis = useMemo(

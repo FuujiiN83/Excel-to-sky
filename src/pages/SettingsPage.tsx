@@ -7,6 +7,7 @@ import type {
   DateFormat,
   Density,
   NumberLocale,
+  Palette,
   Theme,
   UiLocale,
 } from '../lib/settings'
@@ -183,6 +184,24 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
                 { value: 'airy', label: 'Airy' },
               ]}
               name="density"
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            label="Paleta de gráficos"
+            description="Color principal que usan las barras, líneas y stats. 'Mixto' rota los acentos por tipo de columna (azul para números, morado para categorías…)."
+          >
+            <RadioGroup<Palette>
+              value={settings.palette}
+              onChange={(v) => update('palette', v)}
+              options={[
+                { value: 'mixed', label: 'Mixto', hint: 'Por defecto' },
+                { value: 'sky', label: 'Azul' },
+                { value: 'mint', label: 'Menta' },
+                { value: 'plum', label: 'Ciruela' },
+                { value: 'amber', label: 'Ámbar' },
+              ]}
+              name="palette"
             />
           </SettingsRow>
 

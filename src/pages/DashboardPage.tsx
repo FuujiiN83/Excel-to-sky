@@ -5,6 +5,8 @@ import { StatCard, MiniSpark } from '../components/StatCard'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
 import { AnimatedNumber } from '../components/AnimatedNumber'
 import { ExportMenu } from '../components/ExportMenu'
+import { useSettings } from '../lib/SettingsContext'
+import { accentForPalette } from '../lib/palette'
 
 interface DashboardPageProps {
   dataset: Dataset
@@ -24,12 +26,14 @@ const ACCENT_BY_TYPE: Record<string, Accent> = {
   boolean: 'plum',
 }
 
-function pickAccent(col: Column): Accent {
+function naturalAccent(col: Column): Accent {
   return col.color || ACCENT_BY_TYPE[col.type] || 'sky'
 }
 
 export function DashboardPage(props: DashboardPageProps): JSX.Element {
   const { dataset, onColumnClick, onCompare, onShare, isPublic } = props
+  const { settings } = useSettings()
+  const pickAccent = (col: Column): Accent => accentForPalette(settings.palette, naturalAccent(col))
 
   // Group columns by type. Cached by dataset identity so we don't re-walk all
   // columns on every render (e.g. when an unrelated prop changes upstream).

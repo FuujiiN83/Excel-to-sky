@@ -6,6 +6,7 @@ export type NumberLocale = 'es-ES' | 'en-US' | 'de-DE' | 'fr-FR' | 'pt-PT'
 export type DateFormat = 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd'
 export type UiLocale = 'es' | 'en'
 export type Density = 'compact' | 'cozy' | 'airy'
+export type Palette = 'mixed' | 'sky' | 'mint' | 'plum' | 'amber'
 
 /** Subset of ColumnType that the dashboard makes a chart for. */
 export type ChartableType = Extract<ColumnType, 'number' | 'currency' | 'category' | 'date' | 'geo'>
@@ -22,6 +23,8 @@ export interface Settings {
   localOnly: boolean
   /** Spacing density applied to the dashboard surfaces. */
   density: Density
+  /** Colour palette applied to charts and stats. 'mixed' rotates the existing accents. */
+  palette: Palette
   defaultChartType: Record<ChartableType, ChartShape>
 }
 
@@ -34,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   largeText: false,
   localOnly: false,
   density: 'cozy',
+  palette: 'mixed',
   defaultChartType: {
     number: 'auto',
     currency: 'auto',
@@ -80,6 +84,7 @@ function mergeDefaults(stored: unknown): Settings {
     largeText: typeof s.largeText === 'boolean' ? s.largeText : DEFAULT_SETTINGS.largeText,
     localOnly: typeof s.localOnly === 'boolean' ? s.localOnly : DEFAULT_SETTINGS.localOnly,
     density: validDensity(s.density) ?? DEFAULT_SETTINGS.density,
+    palette: validPalette(s.palette) ?? DEFAULT_SETTINGS.palette,
     defaultChartType: {
       ...DEFAULT_SETTINGS.defaultChartType,
       ...(s.defaultChartType ?? {}),
@@ -103,6 +108,11 @@ function validDateFormat(v: unknown): DateFormat | undefined {
 }
 function validDensity(v: unknown): Density | undefined {
   return v === 'compact' || v === 'cozy' || v === 'airy' ? v : undefined
+}
+function validPalette(v: unknown): Palette | undefined {
+  return v === 'mixed' || v === 'sky' || v === 'mint' || v === 'plum' || v === 'amber'
+    ? v
+    : undefined
 }
 
 export async function loadSettings(): Promise<Settings> {
