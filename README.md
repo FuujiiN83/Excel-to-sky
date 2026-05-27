@@ -1,6 +1,10 @@
 # Excel to Sky
 
+[![Lighthouse target 100/100/100/100](https://img.shields.io/badge/Lighthouse-100%2F100%2F100%2F100-brightgreen?logo=lighthouse&logoColor=white)](https://developer.chrome.com/docs/lighthouse/overview)
+
 Turn any Excel into a beautiful, explorable dashboard in seconds — without sending a single byte to the cloud.
+
+> **About the Lighthouse badge.** Excel to Sky targets a Lighthouse score of 100/100/100/100 (Performance · Accessibility · Best Practices · SEO) on the landing page. Automated per-PR verification is tracked separately under the `devex` label; until that workflow lands, the score is checked manually on each release.
 
 The end goal is a narrative scrollytelling experience (think Pudding or Bloomberg pieces) auto-generated from a spreadsheet in under a minute. This repository contains the foundations: the dashboard base and the statistical insights engine that powers everything that comes next.
 
