@@ -48,9 +48,13 @@ export function StoryPage(props: StoryPageProps): JSX.Element {
         if (cancelled) return
         const labels: Record<string, string> = {}
         for (const c of props.dataset!.columns) labels[c.key] = c.label
+        // The story composer only has Spanish and English transition pools
+        // today; other UI locales fall back to Spanish until per-language
+        // composers exist.
+        const composerLocale = settings.uiLocale === 'en' ? 'en' : 'es'
         const story = compose(
           buildComposeInput(report, props.dataset!.id, props.dataset!.label, labels),
-          settings.uiLocale,
+          composerLocale,
         )
         setComposed(story)
       })

@@ -1,10 +1,11 @@
 import { openDB, type IDBPDatabase } from 'idb'
 import type { ColumnType } from '../types/dataset'
+import type { UiLocale } from './i18n'
 
 export type Theme = 'dark' | 'light' | 'system' | 'high-contrast'
 export type NumberLocale = 'es-ES' | 'en-US' | 'de-DE' | 'fr-FR' | 'pt-PT'
 export type DateFormat = 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd'
-export type UiLocale = 'es' | 'en'
+export type { UiLocale }
 export type Density = 'compact' | 'cozy' | 'airy'
 export type Palette = 'mixed' | 'sky' | 'mint' | 'plum' | 'amber'
 
@@ -96,7 +97,8 @@ function validTheme(v: unknown): Theme | undefined {
   return v === 'dark' || v === 'light' || v === 'system' || v === 'high-contrast' ? v : undefined
 }
 function validUiLocale(v: unknown): UiLocale | undefined {
-  return v === 'es' || v === 'en' ? v : undefined
+  if (v === 'es' || v === 'en' || v === 'fr' || v === 'de' || v === 'pt' || v === 'it') return v
+  return undefined
 }
 function validLocale(v: unknown): NumberLocale | undefined {
   return v === 'es-ES' || v === 'en-US' || v === 'de-DE' || v === 'fr-FR' || v === 'pt-PT'

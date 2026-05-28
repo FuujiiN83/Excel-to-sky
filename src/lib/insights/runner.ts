@@ -15,6 +15,9 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
   const t0 = Date.now()
   // Apply the caller-requested locale before any heuristic renders text.
   // Default ('es') matches historical behaviour.
+  // Only Spanish + English templates exist for the insights engine today;
+  // other UI locales fall back to Spanish (the base language) until we
+  // translate the per-finding render templates.
   setInsightsLocale(options.locale === 'en' ? 'en' : 'es')
   const weights = resolveWeights(options.weights)
   const ctx = buildContext(dataset)
