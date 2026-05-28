@@ -34,6 +34,8 @@ interface ChartBarProps {
    * would otherwise produce a chart with missing bars.
    */
   logScale?: boolean
+  /** Click handler that fires with the clicked bar's label — used for cross-filtering (#143). */
+  onBarClick?: (label: string) => void
 }
 
 const SORT_OPTIONS: ReadonlyArray<{ value: BarSort; label: string }> = [
@@ -80,6 +82,7 @@ export function ChartBar({
   ariaLabel,
   showSort = false,
   logScale = false,
+  onBarClick,
 }: ChartBarProps): JSX.Element {
   const [sort, setSort] = useState<BarSort>('incoming')
   if (!bars || bars.length === 0) return <ChartEmptyState kind="bar" height={height} />
@@ -176,11 +179,14 @@ export function ChartBar({
       {visible.map((b, i) => (
         <div
           key={i}
+          onClick={onBarClick ? () => onBarClick(b.label) : undefined}
+          title={onBarClick ? `Filtrar por ${b.label}` : undefined}
           style={{
             display: 'grid',
             gridTemplateColumns: '120px 1fr 48px',
             gap: 12,
             alignItems: 'center',
+            cursor: onBarClick ? 'pointer' : 'default',
           }}
         >
           <div

@@ -19,7 +19,7 @@ import { isSupabaseConfigured } from './lib/supabase'
 import { analyzeDataset } from './lib/insights'
 import { useSettings } from './lib/SettingsContext'
 import { runWhenIdle } from './lib/idle'
-import { saveSnapshot } from './lib/snapshots'
+import { listSnapshots, saveSnapshot } from './lib/snapshots'
 
 // Route-level code splitting (#176). Each page ships as its own chunk; the
 // main bundle now only contains the shell + the route registration.
@@ -119,6 +119,30 @@ export default function App(): JSX.Element {
   function nav(name: RouteName, extras: Partial<Route> = {}): void {
     setRoute({ name, ...extras })
     window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+
+  async function offerRestoreThenLoad(ds: Dataset): Promise<Dataset> {
+    // Snapshot auto-restore (#143 follow-up). If we already have a snapshot
+    // of this dataset id, surface a confirm dialog. The user can pick the
+    // saved version (handy after accidental column drops) or the fresh
+    // upload. Best-effort; on any failure we fall through with the fresh one.
+    try {
+      const snapshots = await listSnapshots(ds.id)
+      if (snapshots.length === 0) return ds
+      const latest = snapshots[0]
+      if (latest.rowCount === ds.rows.length && latest.columnCount === ds.columns.length) {
+        return ds
+      }
+      const ok = await confirm({
+        title: '¿Recuperar el snapshot anterior?',
+        body: `Detectamos un dashboard previo de "${latest.label}" guardado el ${new Date(latest.createdAt).toLocaleString('es-ES')} con ${latest.rowCount.toLocaleString('es-ES')} filas. El archivo recién subido tiene ${ds.rows.length.toLocaleString('es-ES')}. ¿Quieres trabajar con el snapshot previo?`,
+        confirmLabel: 'Usar snapshot',
+        cancelLabel: 'Usar archivo nuevo',
+      })
+      return ok ? latest.dataset : ds
+    } catch {
+      return ds
+    }
   }
 
   function loadDataset(ds: Dataset): void {
@@ -300,7 +324,8 @@ export default function App(): JSX.Element {
                     })
                     if (!ok) return
                   }
-                  loadDataset(ds)
+                  const chosen = await offerRestoreThenLoad(ds)
+                  loadDataset(chosen)
                   nav('dashboard')
                 }}
                 onUseSample={async (id) => {
@@ -315,6 +340,8 @@ export default function App(): JSX.Element {
                     })
                     if (!ok) return
                   }
+                  // Samples never auto-restore — their content is fixed, so a
+                  // saved snapshot would be identical.
                   loadDataset(next)
                   nav('dashboard')
                 }}
