@@ -102,6 +102,7 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
               options={[
                 { value: 'dark', label: 'Oscuro', hint: 'Por defecto' },
                 { value: 'light', label: 'Claro' },
+                { value: 'system', label: 'Sistema', hint: 'Sigue tu SO' },
                 { value: 'high-contrast', label: 'Alto contraste', hint: 'Negro/blanco' },
               ]}
               name="theme"

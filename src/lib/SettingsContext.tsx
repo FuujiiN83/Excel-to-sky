@@ -14,9 +14,19 @@ function applyTheme(theme: Theme): void {
   if (typeof document === 'undefined') return
   const cls = document.documentElement.classList
   cls.remove('theme-light', 'theme-high-contrast')
-  if (theme === 'light') cls.add('theme-light')
-  else if (theme === 'high-contrast') cls.add('theme-high-contrast')
+  const resolved = theme === 'system' ? resolveSystemTheme() : theme
+  if (resolved === 'light') cls.add('theme-light')
+  else if (resolved === 'high-contrast') cls.add('theme-high-contrast')
   // 'dark' is the default, no class needed.
+}
+
+/**
+ * Resolve 'system' to the OS preference at call time. Falls back to 'dark' when
+ * the platform exposes no matchMedia (older browsers, headless test runs).
+ */
+function resolveSystemTheme(): Theme {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 'dark'
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
 }
 
 interface SettingsContextValue {
@@ -49,8 +59,16 @@ export function SettingsProvider({ children }: ProviderProps): JSX.Element {
   }, [])
 
   // Apply theme imperatively whenever it changes (after load + on every update).
+  // For 'system', also listen to OS-level prefers-color-scheme changes so the
+  // app re-themes live when the user flips their OS appearance.
   useEffect(() => {
     applyTheme(settings.theme)
+    if (settings.theme !== 'system') return
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const mq = window.matchMedia('(prefers-color-scheme: light)')
+    const handler = (): void => applyTheme('system')
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
   }, [settings.theme])
 
   // Pipe the locale into the stats module so every fmt* helper picks it up.
