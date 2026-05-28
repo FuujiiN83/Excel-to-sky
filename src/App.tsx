@@ -379,6 +379,7 @@ export default function App(): JSX.Element {
                   onShare={settings.localOnly ? () => {} : () => nav('share')}
                   onStory={() => nav('story')}
                   onSnapshots={() => nav('snapshots')}
+                  onReplaceDataset={loadDataset}
                 />
               )}
               {route.name === 'detail' && route.columnKey && (

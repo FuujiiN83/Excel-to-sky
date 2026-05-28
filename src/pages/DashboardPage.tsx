@@ -14,6 +14,7 @@ import { accentForPalette } from '../lib/palette'
 import { FilterProvider, useDashboardFilters } from '../lib/filterContext'
 import { equalsFilter } from '../lib/filters'
 import { FilterBreadcrumbs } from '../components/FilterBreadcrumbs'
+import { detectWidePattern, unpivotDataset } from '../lib/unpivot'
 
 interface DashboardPageProps {
   dataset: Dataset
@@ -22,6 +23,7 @@ interface DashboardPageProps {
   onShare: () => void
   onStory?: () => void
   onSnapshots?: () => void
+  onReplaceDataset?: (ds: Dataset) => void
   isPublic?: boolean
 }
 
@@ -51,7 +53,17 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
 }
 
 function DashboardBody(props: DashboardPageProps): JSX.Element {
-  const { dataset, onColumnClick, onCompare, onShare, onStory, onSnapshots, isPublic } = props
+  const {
+    dataset,
+    onColumnClick,
+    onCompare,
+    onShare,
+    onStory,
+    onSnapshots,
+    onReplaceDataset,
+    isPublic,
+  } = props
+  const wideDetection = useMemo(() => detectWidePattern(dataset), [dataset])
   const { filters, add, remove, clear, undo, redo, canUndo, canRedo, apply } = useDashboardFilters()
   // Cross-filtering applies the active filter chain to the dataset before any
   // downstream component touches it. Analyses, sparklines, geo strip and the
@@ -275,6 +287,57 @@ function DashboardBody(props: DashboardPageProps): JSX.Element {
         )}
       </div>
 
+      {wideDetection && onReplaceDataset && !isPublic && (
+        <div
+          role="status"
+          style={{
+            marginBottom: 14,
+            padding: '12px 14px',
+            border: '1px solid var(--sky)',
+            background: 'rgba(77,158,250,0.06)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span
+              className="font-mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                color: 'var(--sky)',
+              }}
+            >
+              Formato ancho detectado
+            </span>
+            <span style={{ fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.5 }}>
+              {wideDetection.meltColumns.length} columnas ({wideDetection.pattern}) parecen valores
+              en vez de dimensiones. Convertir a formato largo desbloquea series temporales,
+              agregados cruzados y mejores insights.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => onReplaceDataset(unpivotDataset(dataset, wideDetection))}
+            style={{
+              background: 'var(--ink)',
+              color: 'var(--bg)',
+              border: 'none',
+              padding: '8px 14px',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Convertir a formato largo
+          </button>
+        </div>
+      )}
       <FilterBreadcrumbs filters={filters} onRemove={remove} onClear={clear} />
       {(canUndo || canRedo) && filters.length === 0 && (
         <div
