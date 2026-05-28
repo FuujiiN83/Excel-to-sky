@@ -27,6 +27,12 @@ interface ChartBarProps {
   /** Render a small toolbar with a sort selector. Defaults to false to keep
    *  cards quiet; the column-detail page opts in. */
   showSort?: boolean
+  /**
+   * Vertical mode only: render the value axis on a log10 scale (#77). Silently
+   * falls back to linear when any bar value is ≤ 0 — log of zero or negatives
+   * would otherwise produce a chart with missing bars.
+   */
+  logScale?: boolean
 }
 
 const SORT_OPTIONS: ReadonlyArray<{ value: BarSort; label: string }> = [
@@ -72,6 +78,7 @@ export function ChartBar({
   height = 220,
   ariaLabel,
   showSort = false,
+  logScale = false,
 }: ChartBarProps): JSX.Element {
   const [sort, setSort] = useState<BarSort>('incoming')
   const sorted = applySort(bars, sort)
@@ -82,7 +89,15 @@ export function ChartBar({
   const toolbar = showSort ? <SortToolbar sort={sort} onChange={setSort} /> : null
 
   if (orientation === 'vertical') {
-    const max = Math.max(...visible.map((b) => b.value), 1)
+    // Log scale needs every bar value > 0. When any is ≤ 0 we silently fall
+    // back to linear to avoid the disappearing-bar trap.
+    const useLog = logScale && visible.every((b) => b.value > 0)
+    const scaledValues = visible.map((b) =>
+      useLog ? Math.log10(Math.max(b.value, Number.MIN_VALUE)) : b.value,
+    )
+    const scaledMax = Math.max(...scaledValues, 1)
+    const scaledMin = useLog ? Math.min(...scaledValues, 0) : 0
+    const scaledRange = scaledMax - scaledMin || 1
     return (
       <div role="img" aria-label={label}>
         {toolbar}
@@ -95,37 +110,40 @@ export function ChartBar({
             padding: '0 0 8px',
           }}
         >
-          {visible.map((b, i) => (
-            <div
-              key={i}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
+          {visible.map((b, i) => {
+            const pct = ((scaledValues[i] - scaledMin) / scaledRange) * 100
+            return (
               <div
+                key={i}
                 style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
-                  color: 'var(--muted)',
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 6,
                 }}
               >
-                {b.value}
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 11,
+                    color: 'var(--muted)',
+                  }}
+                >
+                  {b.value}
+                </div>
+                <div
+                  style={{
+                    width: '100%',
+                    height: `${Math.max(2, pct)}%`,
+                    background: `linear-gradient(180deg, ${stroke}, color-mix(in oklab, ${stroke} 70%, white))`,
+                    borderRadius: 0,
+                    transition: 'height .4s cubic-bezier(.2,.8,.2,1)',
+                  }}
+                />
               </div>
-              <div
-                style={{
-                  width: '100%',
-                  height: `${Math.max(2, (b.value / max) * 100)}%`,
-                  background: `linear-gradient(180deg, ${stroke}, color-mix(in oklab, ${stroke} 70%, white))`,
-                  borderRadius: 0,
-                  transition: 'height .4s cubic-bezier(.2,.8,.2,1)',
-                }}
-              />
-            </div>
-          ))}
+            )
+          })}
         </div>
         {footer && (
           <div

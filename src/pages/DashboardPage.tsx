@@ -52,6 +52,24 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
     [dataset],
   )
 
+  // Row-order numeric values per column, capped to keep the sparkline cheap on
+  // very wide datasets. Used by the per-card header sparklines (#71).
+  const sparkSeriesByKey = useMemo(() => {
+    const map = new Map<string, number[]>()
+    const MAX = 200
+    const stride = Math.max(1, Math.ceil(dataset.rows.length / MAX))
+    for (const col of dataset.columns) {
+      if (col.type !== 'number' && col.type !== 'currency') continue
+      const series: number[] = []
+      for (let i = 0; i < dataset.rows.length; i += stride) {
+        const v = Number(dataset.rows[i][col.key])
+        if (Number.isFinite(v)) series.push(v)
+      }
+      if (series.length >= 2) map.set(col.key, series)
+    }
+    return map
+  }, [dataset])
+
   // Index analyses by column key so per-column lookups inside the JSX become
   // O(1) instead of an Array.find walk over every column on every render.
   const analysisByKey = useMemo(() => {
@@ -325,6 +343,19 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
                   <div className="text-ink" style={{ fontWeight: 600, fontSize: 15 }}>
                     {col.label}
                   </div>
+                  {isNum && sparkSeriesByKey.has(col.key) && (
+                    <div
+                      aria-hidden
+                      style={{ width: 56, marginLeft: 4, opacity: 0.7 }}
+                      title="Tendencia por orden de fila"
+                    >
+                      <MiniSpark
+                        values={sparkSeriesByKey.get(col.key) ?? []}
+                        accent={accent}
+                        height={18}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div
                   className="text-muted flex items-center"
