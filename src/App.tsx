@@ -19,6 +19,7 @@ import { isSupabaseConfigured } from './lib/supabase'
 import { analyzeDataset } from './lib/insights'
 import { useSettings } from './lib/SettingsContext'
 import { runWhenIdle } from './lib/idle'
+import { saveSnapshot } from './lib/snapshots'
 
 // Route-level code splitting (#176). Each page ships as its own chunk; the
 // main bundle now only contains the shell + the route registration.
@@ -51,6 +52,9 @@ const SettingsPage = lazy(() =>
   import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 )
 const StoryPage = lazy(() => import('./pages/StoryPage').then((m) => ({ default: m.StoryPage })))
+const SnapshotsPage = lazy(() =>
+  import('./pages/SnapshotsPage').then((m) => ({ default: m.SnapshotsPage })),
+)
 const InsightsWorkbench = lazy(() =>
   import('./dev/InsightsWorkbench').then((m) => ({ default: m.InsightsWorkbench })),
 )
@@ -98,6 +102,7 @@ type RouteName =
   | 'settings'
   | 'dev_insights'
   | 'story'
+  | 'snapshots'
 
 interface Route {
   name: RouteName
@@ -119,6 +124,11 @@ export default function App(): JSX.Element {
   function loadDataset(ds: Dataset): void {
     setDataset(ds)
     setHasUploaded(true)
+    // Snapshot every load (#153). Per-dataset cap inside saveSnapshot auto-prunes
+    // the oldest entries so the local store never grows unbounded.
+    void saveSnapshot(ds).catch(() => {
+      // Best-effort — IndexedDB failures shouldn't break the upload flow.
+    })
   }
 
   function updateColumn(columnKey: string, patch: Partial<Dataset['columns'][number]>): void {
@@ -341,6 +351,7 @@ export default function App(): JSX.Element {
                   onCompare={() => nav('compare')}
                   onShare={settings.localOnly ? () => {} : () => nav('share')}
                   onStory={() => nav('story')}
+                  onSnapshots={() => nav('snapshots')}
                 />
               )}
               {route.name === 'detail' && route.columnKey && (
@@ -357,6 +368,9 @@ export default function App(): JSX.Element {
               )}
               {route.name === 'story' && (
                 <StoryPage dataset={dataset} onExit={() => nav('dashboard')} />
+              )}
+              {route.name === 'snapshots' && (
+                <SnapshotsPage dataset={dataset} onBack={() => nav('dashboard')} />
               )}
               {route.name === 'share' && !settings.localOnly && (
                 <SharePage
