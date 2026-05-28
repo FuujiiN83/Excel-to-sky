@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import type { ReactNode } from 'react'
 import type { Accent } from '../types/dataset'
 
@@ -151,6 +152,10 @@ interface MiniSparkProps {
 }
 
 export function MiniSpark({ values, accent = 'sky', height = 36 }: MiniSparkProps): JSX.Element {
+  // useId must run unconditionally (Rules of Hooks), so it precedes the
+  // empty-values early return. Colons from the generated id are stripped so
+  // the value is safe inside an SVG url(#...) reference.
+  const gradId = `spark-${useId().replace(/:/g, '')}`
   if (values.length === 0) {
     return <div style={{ height }} />
   }
@@ -172,15 +177,24 @@ export function MiniSpark({ values, accent = 'sky', height = 36 }: MiniSparkProp
       preserveAspectRatio="none"
       style={{ width: '100%', height, display: 'block' }}
     >
-      <path d={area} fill={stroke} opacity="0.15" />
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gradId})`} />
       <path
+        className="ets-spark-draw"
         d={path}
+        pathLength={1}
         fill="none"
         stroke={stroke}
         strokeWidth="2.4"
         strokeLinejoin="round"
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
+        style={{ filter: `drop-shadow(0 0 4px var(--${accent}))` }}
       />
     </svg>
   )

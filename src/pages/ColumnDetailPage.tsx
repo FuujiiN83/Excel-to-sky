@@ -68,16 +68,19 @@ export function ColumnDetailPage(props: ColumnDetailPageProps): JSX.Element {
       <div className="flex flex-wrap" style={{ gap: 8, marginBottom: 22 }}>
         <button
           onClick={onBack}
-          className="inline-flex items-center border border-border text-muted"
+          className="inline-flex items-center font-medium"
           style={{
-            background: 'transparent',
+            background: `var(--${accent}-soft)`,
+            color: `var(--${accent})`,
+            border: '1px solid var(--border-strong)',
             borderRadius: 0,
-            padding: '6px 10px',
-            fontSize: 12,
+            padding: '8px 14px',
+            fontSize: 13,
+            fontWeight: 600,
             gap: 6,
           }}
         >
-          ← Dashboard
+          ← Volver al dashboard
         </button>
         {dataset.columns.map((c) => {
           const active = c.key === col.key

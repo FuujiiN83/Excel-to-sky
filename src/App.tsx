@@ -117,9 +117,30 @@ export default function App(): JSX.Element {
   const [hasUploaded, setHasUploaded] = useState(false)
 
   function nav(name: RouteName, extras: Partial<Route> = {}): void {
-    setRoute({ name, ...extras })
+    const next: Route = { name, ...extras }
+    // Push the new screen onto the browser history so the back button (and
+    // mobile back gesture) returns to the previous screen instead of doing
+    // nothing — navigation used to be in-memory state only.
+    window.history.pushState({ route: next }, '')
+    setRoute(next)
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
+
+  // Seed the first history entry and restore the route on back/forward.
+  useEffect(() => {
+    window.history.replaceState({ route }, '')
+    const onPopState = (e: PopStateEvent): void => {
+      const restored = (e.state as { route?: Route } | null)?.route
+      if (restored) {
+        setRoute(restored)
+        window.scrollTo({ top: 0, behavior: 'instant' })
+      }
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+    // Run once on mount; `route` is intentionally read only for the initial seed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function offerRestoreThenLoad(ds: Dataset): Promise<Dataset> {
     // Snapshot auto-restore (#143 follow-up). If we already have a snapshot
