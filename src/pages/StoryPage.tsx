@@ -5,6 +5,7 @@ import { analyzeDataset } from '../lib/insights'
 import { buildComposeInput, compose } from '../lib/story/composer'
 import { useSettings } from '../lib/SettingsContext'
 import { SceneChart } from '../components/SceneChart'
+import { detectDomain } from '../lib/domains'
 
 /**
  * Scrollytelling renderer for a composed Story (sub-project #4).
@@ -53,8 +54,9 @@ export function StoryPage(props: StoryPageProps): JSX.Element {
         // today; other UI locales fall back to Spanish until per-language
         // composers exist.
         const composerLocale = settings.uiLocale === 'en' ? 'en' : 'es'
+        const domain = detectDomain(props.dataset!)
         const story = compose(
-          buildComposeInput(report, props.dataset!.id, props.dataset!.label, labels),
+          buildComposeInput(report, props.dataset!.id, props.dataset!.label, labels, domain),
           composerLocale,
         )
         setComposed(story)
