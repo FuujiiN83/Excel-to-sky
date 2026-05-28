@@ -15,6 +15,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "bundle:check": "node scripts/check-bundle-size.mjs --max-route=160",
+    "changelog": "node scripts/generate-changelog.mjs",
     "prepare": "husky"
   },
   "dependencies": {

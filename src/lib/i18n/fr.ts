@@ -1,0 +1,26 @@
+import type { Dictionary } from './index'
+
+export const fr: Dictionary = {
+  'topbar.share': 'Partager',
+  'topbar.nav.dashboard': 'Tableau de bord',
+  'topbar.nav.compare': 'Comparer',
+  'topbar.nav.columns': 'Colonnes',
+  'topbar.nav.share': 'Partager',
+  'footer.col.product': 'Produit',
+  'footer.col.legal': 'Mentions légales',
+  'footer.col.contact': 'Contact',
+  'footer.link.app': 'App',
+  'footer.link.faq': 'FAQ',
+  'footer.link.settings': 'Paramètres',
+  'footer.link.privacy': 'Confidentialité',
+  'footer.link.terms': 'Conditions',
+  'footer.link.email': 'Email →',
+  'footer.link.github': 'GitHub →',
+  'footer.link.bug': 'Signaler un bug →',
+  'footer.madeIn': 'Fabriqué en Espagne',
+  'common.cancel': 'Annuler',
+  'common.confirm': 'Confirmer',
+  'common.gotIt': 'Compris',
+  'common.openApp': "Ouvrir l'app →",
+  'common.close': 'Fermer',
+}

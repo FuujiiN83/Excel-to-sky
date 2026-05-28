@@ -390,7 +390,7 @@ export interface AnalyzeOptions {
   maxFindings?: number
   minScore?: number
   signal?: AbortSignal
-  locale?: 'es' | 'en'
+  locale?: 'es' | 'en' | 'fr' | 'de' | 'pt' | 'it'
   /** Override the default scoring weights (#107). Missing keys keep their defaults. */
   weights?: Partial<ScoringWeights>
 }

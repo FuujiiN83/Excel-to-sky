@@ -8,6 +8,7 @@ import {
   type Theme,
 } from './settings'
 import { setDateFormat, setNumberLocale } from './stats'
+import { isRTL } from './i18n'
 
 /** Removes existing theme classes and adds the one for the active theme. */
 function applyTheme(theme: Theme): void {
@@ -79,6 +80,16 @@ export function SettingsProvider({ children }: ProviderProps): JSX.Element {
   useEffect(() => {
     setDateFormat(settings.dateFormat)
   }, [settings.dateFormat])
+
+  // Reflect the UI locale on the document so screen readers and CSS that
+  // depends on :lang() / [dir] react correctly (#205). Direction switches
+  // to RTL automatically when an RTL locale lands in the registry; until
+  // then it stays LTR.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    document.documentElement.lang = settings.uiLocale
+    document.documentElement.dir = isRTL(settings.uiLocale) ? 'rtl' : 'ltr'
+  }, [settings.uiLocale])
 
   // Apply the large-text class on <html>. The actual scaling lives in index.css.
   useEffect(() => {

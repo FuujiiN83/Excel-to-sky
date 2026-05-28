@@ -48,9 +48,13 @@ export function StoryPage(props: StoryPageProps): JSX.Element {
         if (cancelled) return
         const labels: Record<string, string> = {}
         for (const c of props.dataset!.columns) labels[c.key] = c.label
+        // The story composer only has Spanish and English transition pools
+        // today; other UI locales fall back to Spanish until per-language
+        // composers exist.
+        const composerLocale = settings.uiLocale === 'en' ? 'en' : 'es'
         const story = compose(
           buildComposeInput(report, props.dataset!.id, props.dataset!.label, labels),
-          settings.uiLocale,
+          composerLocale,
         )
         setComposed(story)
       })
@@ -89,6 +93,36 @@ interface StoryViewProps {
 function StoryView({ story, onExit }: StoryViewProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [narrating, setNarrating] = useState(false)
+
+  // Audio narration via the Web Speech API (#140). Reading the active scene
+  // out loud whenever activeIndex changes — Spanish or English voice picked
+  // from the story locale. Calling cancel() between scenes prevents the
+  // browser from queueing utterances forever.
+  useEffect(() => {
+    if (!narrating) return
+    if (typeof window === 'undefined' || typeof window.speechSynthesis === 'undefined') return
+    const scene = story.scenes[activeIndex]
+    if (!scene) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(`${scene.title}. ${scene.body}`)
+    utterance.lang = story.locale === 'en' ? 'en-US' : 'es-ES'
+    utterance.rate = 1
+    utterance.pitch = 1
+    window.speechSynthesis.speak(utterance)
+    return () => {
+      window.speechSynthesis.cancel()
+    }
+  }, [narrating, activeIndex, story])
+
+  // Stop narration on unmount so the voice doesn't outlive the page.
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [])
   // Cumulative time the reader has spent past each scene boundary, used by
   // the progress rail to grow smoothly with scroll position.
   const cumulativeTimes = useMemo(() => {
@@ -165,6 +199,8 @@ function StoryView({ story, onExit }: StoryViewProps): JSX.Element {
         story={story}
         activeIndex={activeIndex}
         onExit={onExit}
+        narrating={narrating}
+        onToggleNarrating={() => setNarrating((n) => !n)}
         onSkipToClose={() =>
           scrollToScene(closingIndex >= 0 ? closingIndex : story.scenes.length - 1)
         }
@@ -189,9 +225,18 @@ interface HeaderProps {
   activeIndex: number
   onExit?: () => void
   onSkipToClose: () => void
+  narrating: boolean
+  onToggleNarrating: () => void
 }
 
-function Header({ story, activeIndex, onExit, onSkipToClose }: HeaderProps): JSX.Element {
+function Header({
+  story,
+  activeIndex,
+  onExit,
+  onSkipToClose,
+  narrating,
+  onToggleNarrating,
+}: HeaderProps): JSX.Element {
   const remaining = Math.max(
     0,
     story.scenes.slice(activeIndex).reduce((s, x) => s + x.readingTimeSec, 0),
@@ -250,6 +295,24 @@ function Header({ story, activeIndex, onExit, onSkipToClose }: HeaderProps): JSX
         </span>
       </div>
       <nav style={{ display: 'flex', gap: 10 }}>
+        <button
+          type="button"
+          onClick={onToggleNarrating}
+          aria-pressed={narrating}
+          title="Lee la escena actual en voz alta (Web Speech)"
+          style={{
+            background: narrating ? 'var(--sky)' : 'transparent',
+            border: `1px solid ${narrating ? 'var(--sky)' : 'var(--border-strong)'}`,
+            color: narrating ? 'var(--bg)' : 'var(--ink-2)',
+            padding: '6px 12px',
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          {narrating ? '⏸ Pausar voz' : '▶ Escuchar'}
+        </button>
         <button
           type="button"
           onClick={onSkipToClose}
