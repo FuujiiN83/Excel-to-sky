@@ -1,8 +1,8 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { Column, Dataset } from '../types/dataset'
 import { DashboardPage } from './DashboardPage'
 import { installOGImage } from '../lib/ogImage'
-import { loadShareOptions } from '../lib/shareOptions'
+import { hashPassword, loadShareOptions } from '../lib/shareOptions'
 
 interface PublicViewPageProps {
   dataset: Dataset
@@ -21,15 +21,29 @@ export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
     void installOGImage(dataset)
   }, [dataset])
 
-  // Load per-slug share options (#159 white-label). The slug is the last
-  // segment of the path; load once per mount.
-  const shareOptions = useMemo(() => {
+  // Load per-slug share options (#159 white-label, #160 password).
+  const slug = useMemo(() => {
     if (typeof window === 'undefined') return null
     const m = /^\/(d|embed)\/([A-Za-z0-9]{12})$/.exec(window.location.pathname)
-    if (!m) return null
-    return loadShareOptions(m[2])
+    return m?.[2] ?? null
   }, [])
+  const shareOptions = useMemo(() => (slug ? loadShareOptions(slug) : null), [slug])
   const whiteLabel = shareOptions?.whiteLabel ?? null
+
+  // Password gate (#160). When the local share options carry a hash and the
+  // visitor hasn't unlocked yet, intercept the render with a small prompt.
+  // The hash check stays in-browser — no round-trip — so this only blocks
+  // casual snooping, not a determined attacker.
+  const [unlocked, setUnlocked] = useState(!shareOptions?.passwordHash)
+  if (shareOptions?.passwordHash && !unlocked) {
+    return (
+      <PasswordGate
+        slug={slug ?? ''}
+        expected={shareOptions.passwordHash}
+        onUnlock={() => setUnlocked(true)}
+      />
+    )
+  }
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -150,6 +164,105 @@ export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+interface PasswordGateProps {
+  slug: string
+  expected: string
+  onUnlock: () => void
+}
+
+function PasswordGate({ slug, expected, onUnlock }: PasswordGateProps): JSX.Element {
+  const [value, setValue] = useState('')
+  const [error, setError] = useState(false)
+
+  function submit(e: FormEvent<HTMLFormElement>): void {
+    e.preventDefault()
+    if (hashPassword(slug, value) === expected) {
+      onUnlock()
+    } else {
+      setError(true)
+    }
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'grid',
+        placeItems: 'center',
+        background: 'var(--bg)',
+        padding: 24,
+      }}
+    >
+      <form
+        onSubmit={submit}
+        style={{
+          width: '100%',
+          maxWidth: 360,
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          padding: 28,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
+        <div
+          className="font-mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: 'var(--muted)',
+          }}
+        >
+          Dashboard protegido
+        </div>
+        <h2 className="font-display" style={{ fontSize: 22, margin: 0, color: 'var(--ink)' }}>
+          Introduce la contraseña
+        </h2>
+        <input
+          autoFocus
+          type="password"
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value)
+            setError(false)
+          }}
+          placeholder="Contraseña"
+          style={{
+            background: 'var(--bg)',
+            border: `1px solid ${error ? 'var(--coral, #F87171)' : 'var(--border-strong)'}`,
+            color: 'var(--ink)',
+            padding: '10px 12px',
+            fontSize: 14,
+            fontFamily: 'inherit',
+          }}
+        />
+        {error && (
+          <span style={{ fontSize: 12, color: 'var(--coral, #F87171)' }}>
+            Contraseña incorrecta.
+          </span>
+        )}
+        <button
+          type="submit"
+          style={{
+            background: 'var(--ink)',
+            color: 'var(--bg)',
+            border: 'none',
+            padding: '10px 16px',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          Abrir dashboard
+        </button>
+      </form>
     </div>
   )
 }

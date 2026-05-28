@@ -1,0 +1,27 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "src/lib/insights/index.ts",
+    "src/lib/story/composer.ts",
+    "src/lib/story/types.ts",
+    "src/lib/domains/index.ts",
+    "src/lib/snapshots.ts",
+    "src/lib/filters.ts",
+    "src/lib/pii.ts",
+    "src/lib/shareOptions.ts",
+    "src/lib/annotations.ts",
+    "src/lib/lastShape.ts",
+    "src/lib/ogImage.ts"
+  ],
+  "out": "docs/api",
+  "name": "Excel to Sky — Public API",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "readme": "none",
+  "skipErrorChecking": true,
+  "githubPages": false,
+  "navigationLinks": {
+    "Source": "https://github.com/FuujiiN83/Excel-to-sky"
+  }
+}

@@ -8,6 +8,7 @@ import { detectPII, describeHit, redactDataset } from '../lib/pii'
 import {
   DEFAULT_SHARE_OPTIONS,
   expiryDateString,
+  hashPassword,
   saveShareOptions,
   type ShareTtl,
 } from '../lib/shareOptions'
@@ -27,6 +28,7 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
   const [redact, setRedact] = useState(false)
   const [ttlDays, setTtlDays] = useState<ShareTtl>(DEFAULT_SHARE_OPTIONS.ttlDays)
   const [whiteLabel, setWhiteLabel] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
   const configured = isSupabaseConfigured()
 
   // Scan once per dataset identity (#194). detectPII walks every text/category
@@ -83,6 +85,7 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
         readOnly: true,
         whiteLabel: whiteLabel.trim() || null,
         encodeFilters: false,
+        passwordHash: password.trim() ? hashPassword(slug, password.trim()) : null,
       })
       setLink(`${window.location.origin}/d/${slug}`)
     } catch (err) {
@@ -229,6 +232,37 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
             <span style={{ fontSize: 11, color: 'var(--muted)' }}>
               Caduca el {expiryDateString(new Date().toISOString(), ttlDays)}. Recordatorio para ti
               — el backend retira los enlaces automáticamente a los 90 días.
+            </span>
+          </label>
+          <label
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              fontSize: 13,
+              color: 'var(--ink)',
+            }}
+          >
+            <span>Contraseña (opcional)</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              maxLength={60}
+              autoComplete="new-password"
+              placeholder="Deja vacío para enlace abierto"
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border-strong)',
+                color: 'var(--ink)',
+                padding: '6px 10px',
+                fontSize: 12,
+                fontFamily: 'inherit',
+              }}
+            />
+            <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+              Hash salado en este navegador (no se envía al servidor). Bloquea curiosos casuales —
+              no es protección criptográfica.
             </span>
           </label>
           <label

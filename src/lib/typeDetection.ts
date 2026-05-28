@@ -478,6 +478,76 @@ registerSubtypeDetector({
   },
 })
 
+// ---------- Detector: ISO 3166 country code (#31) ----------
+// alpha-2 (ES, FR, DE…) or alpha-3 (ESP, FRA, DEU…). Accepts case variants.
+// Common alpha-2 codes only — exhaustive enumeration would inflate the
+// bundle. A 90% hit rate from the 2-/3-letter regex is enough; false
+// positives at 2 letters would be flagged by other detectors anyway.
+const COUNTRY_ALPHA2 = new Set(
+  'AF AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BA BW BR BN BG BF BI CV KH CM CA KY CF TD CL CN CO KM CG CD CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW SH KN LC PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU VE VN VG VI WF EH YE ZM ZW'.split(
+    ' ',
+  ),
+)
+registerSubtypeDetector({
+  name: 'country-iso',
+  appliesTo: ['text', 'category'],
+  test: (v) => {
+    const s = v.trim().toUpperCase()
+    if (s.length === 2) return COUNTRY_ALPHA2.has(s)
+    // Alpha-3 is harder to enumerate without bloating; require the column to
+    // be all 3-letter uppercase strings as a heuristic.
+    return /^[A-Z]{3}$/.test(s)
+  },
+})
+
+// ---------- Detector: ISO 639 language code (#32) ----------
+// 2-letter alpha-2 codes (en, es, fr, de…). 3-letter alpha-3 is also valid
+// but rarer in datasets; we require lowercase to avoid colliding with
+// country alpha-2 (which is uppercase by convention).
+const LANG_ALPHA2 = new Set(
+  'aa ab ae af ak am an ar as av ay az ba be bg bh bi bm bn bo br bs ca ce ch co cr cs cu cv cy da de dv dz ee el en eo es et eu fa ff fi fj fo fr fy ga gd gl gn gu gv ha he hi ho hr ht hu hy hz ia id ie ig ii ik io is it iu ja jv ka kg ki kj kk kl km kn ko kr ks ku kv kw ky la lb lg li ln lo lt lu lv mg mh mi mk ml mn mr ms mt my na nb nd ne ng nl nn no nr nv ny oc oj om or os pa pi pl ps pt qu rm rn ro ru rw sa sc sd se sg si sk sl sm sn so sq sr ss st su sv sw ta te tg th ti tk tl tn to tr ts tt tw ty ug uk ur uz ve vi vo wa wo xh yi yo za zh zu'.split(
+    ' ',
+  ),
+)
+registerSubtypeDetector({
+  name: 'language-iso',
+  appliesTo: ['text', 'category'],
+  test: (v) => {
+    const s = v.trim()
+    if (s.length !== 2) return false
+    return s === s.toLowerCase() && LANG_ALPHA2.has(s)
+  },
+})
+
+// ---------- Detector: IBAN (#38) ----------
+// ISO 13616 — country prefix + 2 check digits + up to 30 alphanumeric.
+// Mod-97 checksum: move first 4 chars to the end, convert letters to digits
+// (A=10, B=11…), and the resulting big integer must be congruent to 1 mod 97.
+// BigInt isn't necessary if we mod incrementally as we walk the string.
+const IBAN_RE = /^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/
+function ibanChecksumOk(iban: string): boolean {
+  const rearranged = iban.slice(4) + iban.slice(0, 4)
+  let mod = 0
+  for (const ch of rearranged) {
+    const code = ch.charCodeAt(0)
+    const digit = code >= 65 ? code - 55 : code - 48 // A=10…Z=35, 0..9
+    const digitStr = digit.toString()
+    for (const d of digitStr) {
+      mod = (mod * 10 + (d.charCodeAt(0) - 48)) % 97
+    }
+  }
+  return mod === 1
+}
+registerSubtypeDetector({
+  name: 'iban',
+  appliesTo: ['text', 'category'],
+  test: (v) => {
+    const s = v.trim().replace(/\s+/g, '').toUpperCase()
+    if (!IBAN_RE.test(s)) return false
+    return ibanChecksumOk(s)
+  },
+})
+
 /**
  * Infer a specialized subtype for a column once its base type is known.
  * Returns undefined when no detector reaches SUBTYPE_THRESHOLD coverage.
