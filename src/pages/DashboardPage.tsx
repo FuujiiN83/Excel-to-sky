@@ -527,15 +527,25 @@ function DashboardBody(props: DashboardPageProps): JSX.Element {
                 padding: 22,
                 gap: 18,
                 minHeight: 200,
-                transition: 'box-shadow .2s ease, background .2s ease',
+                transition:
+                  'transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease, background .28s ease',
+                transform: 'scale(1)',
+                transformOrigin: 'center',
+                willChange: 'transform',
                 position: 'relative',
                 overflow: 'hidden',
+                zIndex: 1,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = '0 0 0 1px var(--border-strong)'
-                e.currentTarget.style.background = 'rgba(255,255,255,0.025)'
+                e.currentTarget.style.transform = 'scale(3)'
+                e.currentTarget.style.zIndex = '50'
+                e.currentTarget.style.boxShadow =
+                  '0 0 0 1px var(--border-strong), 0 24px 60px rgba(0,0,0,0.55)'
+                e.currentTarget.style.background = 'var(--surface)'
               }}
               onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+                e.currentTarget.style.zIndex = '1'
                 e.currentTarget.style.boxShadow = '0 0 0 1px var(--border)'
                 e.currentTarget.style.background = 'var(--surface)'
               }}
