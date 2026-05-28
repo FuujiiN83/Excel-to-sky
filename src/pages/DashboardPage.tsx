@@ -1,9 +1,10 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { recordDatasetShape } from '../lib/lastShape'
 import { DataTable } from '../components/DataTable'
 import { detectDomain } from '../lib/domains'
 import type { Accent, Column, Dataset } from '../types/dataset'
 import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
+import type { ColumnAnalysis } from '../lib/stats'
 import { StatCard, MiniSpark } from '../components/StatCard'
 import { ChartMap, hasGeoCoords } from '../components/ChartMap'
 import { AnimatedNumber } from '../components/AnimatedNumber'
@@ -79,6 +80,9 @@ function DashboardBody(props: DashboardPageProps): JSX.Element {
   }
   const { settings } = useSettings()
   const pickAccent = (col: Column): Accent => accentForPalette(settings.palette, naturalAccent(col))
+  // Which column card is hovered, so it can reveal an expanded panel with
+  // extra stats that don't fit in the compact card.
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null)
 
   // Group columns by type. Cached by dataset identity so we don't re-walk all
   // columns on every render (e.g. when an unrelated prop changes upstream).
@@ -438,6 +442,7 @@ function DashboardBody(props: DashboardPageProps): JSX.Element {
       <div className="grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
         {analyses.map(({ col, analysis }) => {
           const accent = pickAccent(col)
+          const hovered = hoveredKey === col.key
           const isNum = col.type === 'number' || col.type === 'currency'
           const isDate = col.type === 'date'
           const isCat =
@@ -522,33 +527,21 @@ function DashboardBody(props: DashboardPageProps): JSX.Element {
               className="bg-surface flex flex-col text-left"
               style={{
                 border: 'none',
-                boxShadow: '0 0 0 1px var(--border)',
+                boxShadow: hovered ? '0 0 0 1px var(--border-strong)' : '0 0 0 1px var(--border)',
                 borderRadius: 0,
                 padding: 22,
                 gap: 18,
                 minHeight: 200,
                 transition:
-                  'transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease, background .28s ease',
-                transform: 'scale(1)',
-                transformOrigin: 'center',
-                willChange: 'transform',
+                  'transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, background .25s ease',
+                transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
+                background: hovered ? 'rgba(255,255,255,0.025)' : 'var(--surface)',
                 position: 'relative',
-                overflow: 'hidden',
-                zIndex: 1,
+                overflow: 'visible',
+                zIndex: hovered ? 50 : 1,
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(3)'
-                e.currentTarget.style.zIndex = '50'
-                e.currentTarget.style.boxShadow =
-                  '0 0 0 1px var(--border-strong), 0 24px 60px rgba(0,0,0,0.55)'
-                e.currentTarget.style.background = 'var(--surface)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)'
-                e.currentTarget.style.zIndex = '1'
-                e.currentTarget.style.boxShadow = '0 0 0 1px var(--border)'
-                e.currentTarget.style.background = 'var(--surface)'
-              }}
+              onMouseEnter={() => setHoveredKey(col.key)}
+              onMouseLeave={() => setHoveredKey((k) => (k === col.key ? null : k))}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center" style={{ gap: 10 }}>
@@ -616,6 +609,16 @@ function DashboardBody(props: DashboardPageProps): JSX.Element {
                 <span>Ver detalle</span>
                 <span style={{ color: `var(--${accent})`, fontSize: 14 }}>→</span>
               </div>
+              <CardExpand
+                hovered={hovered}
+                accent={accent}
+                col={col}
+                analysis={analysis}
+                isNum={isNum}
+                isDate={isDate}
+                isCat={isCat}
+                onValueClicked={onValueClicked}
+              />
             </button>
           )
         })}
@@ -858,6 +861,136 @@ function EmptyPreview({ text }: { text: string }): JSX.Element {
       }}
     >
       {text}
+    </div>
+  )
+}
+
+interface CardExpandProps {
+  hovered: boolean
+  accent: Accent
+  col: Column
+  analysis: ColumnAnalysis
+  isNum: boolean
+  isDate: boolean
+  isCat: boolean
+  onValueClicked: (col: Column, value: string) => void
+}
+
+// Hover-reveal panel that drops below a column card showing richer stats than
+// the compact card has room for. Stays mounted (toggled via opacity/transform)
+// so it can animate both in and out.
+function CardExpand({
+  hovered,
+  accent,
+  col,
+  analysis,
+  isNum,
+  isDate,
+  isCat,
+  onValueClicked,
+}: CardExpandProps): JSX.Element {
+  const round1 = (n: number | undefined): number => Math.round((n ?? 0) * 10) / 10
+
+  let body: JSX.Element | null = null
+
+  if (isNum) {
+    body = (
+      <>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18 }}>
+          <MiniStat label="mín" value={fmtUnit(analysis.min ?? 0, col.unit)} />
+          <MiniStat label="máx" value={fmtUnit(analysis.max ?? 0, col.unit)} />
+          <MiniStat label="media" value={fmtUnit(round1(analysis.mean), col.unit)} />
+          <MiniStat label="mediana" value={fmtUnit(round1(analysis.median), col.unit)} />
+          <MiniStat label="suma" value={fmtUnit(round1(analysis.sum), col.unit)} />
+          <MiniStat label="registros" value={String(analysis.count)} />
+        </div>
+        {analysis.histogram && analysis.histogram.length > 0 ? (
+          <LabeledBars
+            items={analysis.histogram.slice(0, 8).map((b) => ({
+              label: `${fmtNumber(b.lo)}–${fmtNumber(b.hi)}`,
+              count: b.count,
+            }))}
+            accent={accent}
+            totalForPercent={analysis.count}
+          />
+        ) : null}
+      </>
+    )
+  } else if (isDate) {
+    body = (
+      <>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18 }}>
+          <MiniStat label="desde" value={fmtDate(analysis.earliest)} />
+          <MiniStat label="hasta" value={fmtDate(analysis.latest)} />
+          <MiniStat label="registros" value={String(analysis.count)} />
+          <MiniStat label="días distintos" value={String(analysis.distinct ?? 0)} />
+        </div>
+        {analysis.timeline && analysis.timeline.length > 0 ? (
+          <MiniSpark values={analysis.timeline.map((t) => t.count)} accent={accent} height={56} />
+        ) : null}
+      </>
+    )
+  } else if (isCat) {
+    const top = analysis.top ?? []
+    const allUnique = analysis.distinct != null && analysis.distinct === analysis.count
+    body = (
+      <>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18 }}>
+          <MiniStat label="únicos" value={String(analysis.distinct ?? 0)} />
+          <MiniStat label="moda" value={allUnique ? '—' : String(analysis.mode ?? '—')} truncate />
+          <MiniStat label="frecuencia moda" value={String(analysis.modeCount ?? 0)} />
+          {analysis.least ? (
+            <MiniStat label="menos frecuente" value={String(analysis.least)} truncate />
+          ) : null}
+        </div>
+        {!allUnique && top.length > 0 ? (
+          <LabeledBars
+            items={top.slice(0, 8).map((t) => ({ label: String(t.key), count: t.count }))}
+            accent={accent}
+            totalForPercent={analysis.count}
+            onItemClick={(label) => onValueClicked(col, label)}
+          />
+        ) : (
+          <EmptyPreview text={`Todos los ${analysis.count} valores son distintos`} />
+        )}
+      </>
+    )
+  }
+
+  return (
+    <div
+      aria-hidden={!hovered}
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: '100%',
+        background: 'var(--surface)',
+        boxShadow: '0 0 0 1px var(--border-strong), 0 24px 60px rgba(0,0,0,0.55)',
+        padding: '16px 22px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        transformOrigin: 'top',
+        transform: hovered ? 'translateY(0)' : 'translateY(-8px)',
+        opacity: hovered ? 1 : 0,
+        pointerEvents: hovered ? 'auto' : 'none',
+        transition: 'opacity .2s ease, transform .2s ease',
+        zIndex: 5,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          fontWeight: 600,
+          color: 'var(--muted)',
+        }}
+      >
+        Más detalle
+      </div>
+      {body}
     </div>
   )
 }
