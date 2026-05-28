@@ -15,6 +15,7 @@ interface DashboardPageProps {
   onColumnClick: (column: Column) => void
   onCompare: () => void
   onShare: () => void
+  onStory?: () => void
   isPublic?: boolean
 }
 
@@ -33,7 +34,7 @@ function naturalAccent(col: Column): Accent {
 }
 
 export function DashboardPage(props: DashboardPageProps): JSX.Element {
-  const { dataset, onColumnClick, onCompare, onShare, isPublic } = props
+  const { dataset, onColumnClick, onCompare, onShare, onStory, isPublic } = props
   const { settings } = useSettings()
   const pickAccent = (col: Column): Accent => accentForPalette(settings.palette, naturalAccent(col))
 
@@ -177,6 +178,20 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
             >
               Comparar columnas
             </button>
+            {onStory && (
+              <button
+                onClick={onStory}
+                className="bg-surface border border-border"
+                style={{
+                  color: 'var(--ink-2)',
+                  padding: '10px 20px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                Leer como historia
+              </button>
+            )}
             <ExportMenu dataset={dataset} />
             <button
               onClick={onShare}

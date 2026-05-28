@@ -25,6 +25,15 @@ import { gini } from './gini'
 import { benford } from './benford'
 import { chiSquareIndependence } from './chiSquareIndependence'
 import { mannKendall } from './mannKendall'
+import { anova } from './anova'
+import { ksTwoSample } from './ksTwoSample'
+import { pettittChangepoint } from './pettittChangepoint'
+import { booleanImbalance } from './booleanImbalance'
+import { whitespaceString } from './whitespaceString'
+import { mixedTypeColumn } from './mixedTypeColumn'
+import { ambiguousDateLocale } from './ambiguousDateLocale'
+import { autocorrelation } from './autocorrelation'
+import { simpsonsParadox } from './simpsonsParadox'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -52,4 +61,13 @@ export const HEURISTICS: Heuristic[] = [
   benford,
   chiSquareIndependence,
   mannKendall,
+  anova,
+  ksTwoSample,
+  pettittChangepoint,
+  booleanImbalance,
+  whitespaceString,
+  mixedTypeColumn,
+  ambiguousDateLocale,
+  autocorrelation,
+  simpsonsParadox,
 ]
