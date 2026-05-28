@@ -142,6 +142,31 @@ button {
   a[href]::after {
     content: '';
   }
+
+  /* Story renderer flattens into a long-form article (#141). Hide the side
+   * rail and the sticky header; un-pin every scene; insert a soft page
+   * break between scenes. Reading-time chips fade out so the print is
+   * uncluttered. */
+  .ets-story-rail,
+  .ets-story-header {
+    display: none !important;
+  }
+  .ets-story-scene {
+    min-height: 0 !important;
+    padding: 24px 0 !important;
+    opacity: 1 !important;
+    transform: none !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .ets-story-scene + .ets-story-scene {
+    border-top: 1px solid #333;
+    margin-top: 16px;
+  }
+  .ets-story-main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
 }
 
 /* Large-text mode (#172). Scales the whole viewport up via `zoom`, which is

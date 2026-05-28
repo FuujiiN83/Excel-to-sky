@@ -50,6 +50,7 @@ const BugReportPage = lazy(() =>
 const SettingsPage = lazy(() =>
   import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 )
+const StoryPage = lazy(() => import('./pages/StoryPage').then((m) => ({ default: m.StoryPage })))
 const InsightsWorkbench = lazy(() =>
   import('./dev/InsightsWorkbench').then((m) => ({ default: m.InsightsWorkbench })),
 )
@@ -96,6 +97,7 @@ type RouteName =
   | 'report'
   | 'settings'
   | 'dev_insights'
+  | 'story'
 
 interface Route {
   name: RouteName
@@ -338,6 +340,7 @@ export default function App(): JSX.Element {
                   onColumnClick={(c) => nav('detail', { columnKey: c.key })}
                   onCompare={() => nav('compare')}
                   onShare={settings.localOnly ? () => {} : () => nav('share')}
+                  onStory={() => nav('story')}
                 />
               )}
               {route.name === 'detail' && route.columnKey && (
@@ -351,6 +354,9 @@ export default function App(): JSX.Element {
               )}
               {route.name === 'compare' && (
                 <ComparePage dataset={dataset} onBack={() => nav('dashboard')} />
+              )}
+              {route.name === 'story' && (
+                <StoryPage dataset={dataset} onExit={() => nav('dashboard')} />
               )}
               {route.name === 'share' && !settings.localOnly && (
                 <SharePage
