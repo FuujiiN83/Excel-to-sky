@@ -192,6 +192,59 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
         title: `${lbl(data.metricColumn)} muestra tendencia ${data.direction === 'rising' ? 'al alza' : data.direction === 'falling' ? 'a la baja' : 'plana'} en el tiempo (τ=${data.tau.toFixed(2)})`,
         body: `Test de Mann-Kendall no paramétrico sobre ${data.n} puntos. Robusto frente a outliers y ruido.`,
       }
+    case 'anova':
+      return {
+        title: `${lbl(data.metricColumn)} difiere significativamente entre los ${data.groups} grupos de ${lbl(data.groupColumn)} (F=${data.f.toFixed(2)})`,
+        body: `ANOVA: η²=${data.etaSquared.toFixed(2)} explica la varianza total. p ≈ ${data.pValue.toFixed(3)} con ${data.dfBetween}/${data.dfWithin} grados de libertad.`,
+      }
+    case 'ks_two_sample':
+      return {
+        title: `Las distribuciones de ${lbl(data.metricColumn)} en "${data.groupA}" y "${data.groupB}" difieren (KS D=${data.d.toFixed(2)})`,
+        body: `Test no paramétrico de Kolmogorov-Smirnov sobre n=${data.nA}/${data.nB}. Detecta diferencias en forma además de medias.`,
+      }
+    case 'pettitt_changepoint':
+      return {
+        title: `${lbl(data.metricColumn)}: punto de cambio detectado en el registro ${data.index} (p≈${data.pValue.toFixed(3)})`,
+        body: `Media antes ${fmt(data.meanBefore)}, después ${fmt(data.meanAfter)}. Test de Pettitt no paramétrico para un único cambio.`,
+        suggestion: 'Segmentar análisis',
+      }
+    case 'boolean_imbalance':
+      return {
+        title: `${lbl(data.column)} está desbalanceada: ${pct(data.baseRate)} es ${data.baseRate > 0.5 ? 'verdadero' : 'falso'}`,
+        body: `${data.trueCount} verdaderos vs ${data.falseCount} falsos sobre ${data.total}. La columna aporta poca información si la clase minoritaria es muy escasa.`,
+      }
+    case 'whitespace_string':
+      return {
+        title: `${lbl(data.column)}: ${data.count} celda${data.count === 1 ? '' : 's'} con solo espacios en blanco (${pct(data.pct)})`,
+        body: 'Visualmente parecen vacías pero técnicamente tienen contenido. Probablemente quieras normalizarlas a null.',
+        suggestion: 'Limpiar espacios',
+      }
+    case 'mixed_type_column':
+      return {
+        title: `${lbl(data.column)}: ${pct(data.mismatchPct)} de las celdas no encaja con el tipo "${data.declaredType}"`,
+        body: `${data.mismatchCount} celdas con formato distinto al dominante. Posibles errores de carga o columnas mezcladas.`,
+        suggestion: 'Auditar tipos',
+      }
+    case 'ambiguous_date_locale':
+      return {
+        title: `${lbl(data.column)}: ${data.bothCount} fecha${data.bothCount === 1 ? '' : 's'} interpretables como DD/MM y MM/DD a la vez`,
+        body: `Sobre ${data.total} fechas. Decide explícitamente el formato (p.ej. forzar dd/mm/yyyy) o se asignará el día/mes al azar.`,
+        suggestion: 'Forzar formato',
+      }
+    case 'autocorrelation':
+      return {
+        title: `${lbl(data.metricColumn)} muestra autocorrelación de lag-${data.lag} (r=${data.r.toFixed(2)})`,
+        body: `Los valores próximos en el tiempo están relacionados sobre ${data.n} puntos. Indica memoria/inercia en la serie.`,
+      }
+    case 'simpsons_paradox':
+      return {
+        title: `Paradoja de Simpson: la tendencia global de ${lbl(data.yColumn)} vs ${lbl(data.xColumn)} se invierte dentro de ${lbl(data.groupColumn)}`,
+        body: `Global: pendiente ${data.globalSlope.toFixed(2)}. Por grupo: ${data.groupSlopes
+          .slice(0, 3)
+          .map((g) => `${g.group}=${g.slope.toFixed(2)}`)
+          .join(', ')}.`,
+        suggestion: 'Analizar por grupo',
+      }
   }
 }
 
