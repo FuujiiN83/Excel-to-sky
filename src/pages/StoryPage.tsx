@@ -4,6 +4,7 @@ import type { Dataset } from '../types/dataset'
 import { analyzeDataset } from '../lib/insights'
 import { buildComposeInput, compose } from '../lib/story/composer'
 import { useSettings } from '../lib/SettingsContext'
+import { SceneChart } from '../components/SceneChart'
 
 /**
  * Scrollytelling renderer for a composed Story (sub-project #4).
@@ -82,15 +83,17 @@ export function StoryPage(props: StoryPageProps): JSX.Element {
     )
   }
 
-  return <StoryView story={composed} onExit={props.onExit} />
+  return <StoryView story={composed} dataset={props.dataset} onExit={props.onExit} />
 }
 
 interface StoryViewProps {
   story: Story
+  /** Optional — when present, every scene's chart hint mounts a real chart. */
+  dataset?: Dataset
   onExit?: () => void
 }
 
-function StoryView({ story, onExit }: StoryViewProps): JSX.Element {
+function StoryView({ story, dataset, onExit }: StoryViewProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const [narrating, setNarrating] = useState(false)
@@ -213,7 +216,13 @@ function StoryView({ story, onExit }: StoryViewProps): JSX.Element {
       />
       <main id="story-content" className="ets-story-main">
         {story.scenes.map((scene, i) => (
-          <SceneBlock key={scene.id} scene={scene} index={i} isActive={i === activeIndex} />
+          <SceneBlock
+            key={scene.id}
+            scene={scene}
+            index={i}
+            isActive={i === activeIndex}
+            dataset={dataset}
+          />
         ))}
       </main>
     </div>
@@ -418,9 +427,10 @@ interface SceneBlockProps {
   scene: Scene
   index: number
   isActive: boolean
+  dataset?: Dataset
 }
 
-function SceneBlock({ scene, index, isActive }: SceneBlockProps): JSX.Element {
+function SceneBlock({ scene, index, isActive, dataset }: SceneBlockProps): JSX.Element {
   return (
     <section
       data-scene-index={index}
@@ -503,11 +513,12 @@ function SceneBlock({ scene, index, isActive }: SceneBlockProps): JSX.Element {
       </p>
       {scene.charts.length > 0 && (
         <div
+          className={isActive ? 'ets-chart-morph' : undefined}
           style={{
             marginTop: 32,
             padding: 20,
-            border: '1px dashed var(--border)',
-            background: 'rgba(255,255,255,0.015)',
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
           }}
         >
           <div
@@ -517,14 +528,18 @@ function SceneBlock({ scene, index, isActive }: SceneBlockProps): JSX.Element {
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: 'var(--muted)',
-              marginBottom: 8,
+              marginBottom: 12,
             }}
           >
-            Gráfico sugerido — {scene.charts[0].kind}
+            {scene.charts[0].kind} · {scene.charts[0].columns.join(' × ') || '—'}
           </div>
-          <div style={{ fontSize: 13, color: 'var(--ink-2)' }}>
-            {scene.charts[0].columns.join(' × ') || 'sin columnas asignadas'}
-          </div>
+          {dataset ? (
+            <SceneChart dataset={dataset} hint={scene.charts[0]} />
+          ) : (
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+              Sin dataset asociado — adjunta uno para ver el gráfico.
+            </div>
+          )}
         </div>
       )}
     </section>
