@@ -27,6 +27,25 @@ button {
   cursor: pointer;
 }
 
+/* Keyboard navigation focus ring (#166). Every interactive control gets a
+ * 2px ring matching the sky accent so Tab/Shift-Tab is always visible. We
+ * use :focus-visible so mouse clicks don't trigger the ring on buttons —
+ * keyboard users still see it on Tab. Skip-link rule lives in tokens.css. */
+:where(
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role='button'],
+  [role='link'],
+  [tabindex]
+):focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+  border-radius: 0;
+}
+
 /* Smooth route transitions (#253). Each `main` element keyed by route
  * fades + slides up briefly when React mounts it. Skipping the animation
  * for users with prefers-reduced-motion respects accessibility. */
