@@ -15,13 +15,36 @@ body {
 body {
   font-family: var(--font-ui);
   background: var(--bg);
-  background-image: var(--bg-mesh);
-  background-attachment: fixed;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'ss01', 'cv11';
   min-height: 100vh;
+}
+
+/* Aurora: the colored mesh lives on a fixed, oversized layer behind all
+ * content so it can drift via a cheap GPU-composited transform. Animating
+ * `background-position` on radial gradients positioned with `at X% Y%`
+ * does not move the blobs the way we want — transforming the carrier layer
+ * does. Oversized inset (-20%) guarantees no edge is ever exposed by drift. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--bg-mesh);
+  will-change: transform;
+  animation: ets-aurora 26s ease-in-out infinite alternate;
+}
+
+@keyframes ets-aurora {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2%, -2%, 0) scale(1.08);
+  }
 }
 button {
   cursor: pointer;
@@ -435,5 +458,9 @@ textarea:focus-visible,
   .ee-hero-dashboard {
     opacity: 1;
     filter: none;
+  }
+  body::before {
+    animation: none;
+    transform: none;
   }
 }
