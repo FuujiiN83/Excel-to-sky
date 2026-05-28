@@ -21,39 +21,87 @@ const ACTIONABILITY: Record<FindingType, number> = {
   schema_summary: 0.2,
   temporal_coverage: 0.2,
   volume_context: 0.1,
+  iqr_outlier: 0.85,
+  mad_outlier: 0.85,
+  rank_correlation: 0.75,
+  effect_size: 0.85,
+  pareto: 0.7,
+  gini: 0.6,
+  benford: 0.6,
+  chi_square_independence: 0.7,
+  mann_kendall_trend: 0.75,
 }
 
 export function computeSignificance(f: Finding): number {
   switch (f.data.kind) {
-    case 'numeric_outlier': return Math.min(1, Math.abs(f.data.zScore) / 6)
-    case 'numeric_correlation': return Math.min(1, Math.abs(f.data.r))
-    case 'category_concentration': return f.data.coveragePct
-    case 'group_disparity': return Math.min(1, Math.log(Math.max(1.0001, f.data.ratio)) / Math.log(20))
-    case 'missing_data': return f.data.nullPct
+    case 'numeric_outlier':
+      return Math.min(1, Math.abs(f.data.zScore) / 6)
+    case 'numeric_correlation':
+      return Math.min(1, Math.abs(f.data.r))
+    case 'category_concentration':
+      return f.data.coveragePct
+    case 'group_disparity':
+      return Math.min(1, Math.log(Math.max(1.0001, f.data.ratio)) / Math.log(20))
+    case 'missing_data':
+      return f.data.nullPct
     case 'duplicate_lookalike': {
       const totalVariants = f.data.groups.reduce((s, g) => s + g.variants.length, 0)
       return Math.min(1, totalVariants / 20)
     }
     case 'distribution_shape':
-      return (f.data.shape === 'bimodal' || f.data.shape === 'right_skewed' || f.data.shape === 'left_skewed' || f.data.shape === 'sparse')
-        ? 0.6 : 0.2
-    case 'time_density_gap': return Math.min(1, f.data.gapDays / Math.max(1, f.data.expectedDensity))
+      return f.data.shape === 'bimodal' ||
+        f.data.shape === 'right_skewed' ||
+        f.data.shape === 'left_skewed' ||
+        f.data.shape === 'sparse'
+        ? 0.6
+        : 0.2
+    case 'time_density_gap':
+      return Math.min(1, f.data.gapDays / Math.max(1, f.data.expectedDensity))
     case 'conditional_outlier': {
       const local = f.data.value - f.data.localMean
       const denom = Math.abs(f.data.globalMean) || 1
       return Math.min(1, Math.abs(local / denom) / 6)
     }
-    case 'text_outlier': return f.data.reason === 'special_chars' ? 0.5 : 0.4
-    case 'cardinality_anomaly': return 0.7
+    case 'text_outlier':
+      return f.data.reason === 'special_chars' ? 0.5 : 0.4
+    case 'cardinality_anomaly':
+      return 0.7
     case 'time_by_group': {
       if (f.data.series.length === 0) return 0
       const avg = f.data.series.reduce((s, x) => s + Math.abs(x.deltaPct), 0) / f.data.series.length
       return Math.min(1, avg / 100)
     }
-    case 'quality_score': return 1 - f.data.score
-    case 'schema_summary': return 0.3
-    case 'temporal_coverage': return 0.3
-    case 'volume_context': return 0.2
+    case 'quality_score':
+      return 1 - f.data.score
+    case 'schema_summary':
+      return 0.3
+    case 'temporal_coverage':
+      return 0.3
+    case 'volume_context':
+      return 0.2
+    case 'iqr_outlier': {
+      const half = f.data.iqr || 1
+      const beyond = Math.max(0, Math.abs(f.data.value - (f.data.q1 + f.data.q3) / 2) - 1.5 * half)
+      return Math.min(1, beyond / (3 * half))
+    }
+    case 'mad_outlier':
+      return Math.min(1, Math.abs(f.data.modifiedZ) / 6)
+    case 'rank_correlation':
+      return Math.min(1, Math.abs(f.data.coefficient))
+    case 'effect_size':
+      return Math.min(1, Math.abs(f.data.d) / 1.5)
+    case 'pareto':
+      return Math.min(1, Math.max(0, (f.data.share80 - 0.5) * 2))
+    case 'gini':
+      return Math.min(1, f.data.gini)
+    case 'benford': {
+      // χ²(8 df) at p=0.05 ≈ 15.5. Scale so values above ~25 saturate.
+      return Math.min(1, f.data.chiSquared / 25)
+    }
+    case 'chi_square_independence':
+      return Math.min(1, f.data.cramersV)
+    case 'mann_kendall_trend':
+      return Math.min(1, Math.abs(f.data.tau))
   }
 }
 
@@ -68,10 +116,7 @@ export function scoreOne(f: Finding, rowCount: number, diversityPenalty: number)
   const sig = computeSignificance(f)
   const cov = computeCoverage(f, rowCount)
   const act = ACTIONABILITY[f.type]
-  const raw =
-    WEIGHTS.significance * sig +
-    WEIGHTS.coverage * cov +
-    WEIGHTS.actionability * act
+  const raw = WEIGHTS.significance * sig + WEIGHTS.coverage * cov + WEIGHTS.actionability * act
   const penalized = raw * (1 - WEIGHTS.diversityPenalty * diversityPenalty)
   const score = penalized / MAX_RAW
   return clamp(0, 1, score)

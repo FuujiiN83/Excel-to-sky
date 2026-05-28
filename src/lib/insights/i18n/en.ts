@@ -80,15 +80,20 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
         })`,
         body: `"${data.value.slice(0, 60)}${data.value.length > 60 ? '…' : ''}" — possible data-entry error.`,
       }
-    case 'numeric_correlation':
+    case 'numeric_correlation': {
+      const ci =
+        data.ciLow !== undefined && data.ciHigh !== undefined
+          ? ` (95% CI: ${data.ciLow.toFixed(2)} to ${data.ciHigh.toFixed(2)})`
+          : ''
       return {
-        title: `${lbl(data.columnA)} and ${lbl(data.columnB)} move ${data.r > 0 ? 'together' : 'in opposite directions'} (r = ${data.r.toFixed(2)})`,
+        title: `${lbl(data.columnA)} and ${lbl(data.columnB)} move ${data.r > 0 ? 'together' : 'in opposite directions'} (r = ${data.r.toFixed(2)}${ci})`,
         body:
           data.r > 0
             ? 'When one goes up, so does the other. Strong correlation.'
             : 'When one goes up, the other goes down. Strong inverse correlation.',
         suggestion: 'Cross in a scatter plot',
       }
+    }
     case 'group_disparity':
       return {
         title: `${lbl(data.topGroup)} has ${data.ratio.toFixed(1)}× more ${lbl(data.metricColumn)} than ${lbl(data.bottomGroup)}`,
@@ -133,6 +138,59 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
       return {
         title: `${fmt(data.rows)} rows × ${data.columns} columns`,
         body: `${fmt(data.cells)} cells total.`,
+      }
+    case 'iqr_outlier':
+      return {
+        title: `${lbl(data.column)}: ${fmt(data.value)} sits outside the interquartile range`,
+        body: `Q1=${fmt(data.q1)}, Q3=${fmt(data.q3)} (IQR ${fmt(data.iqr)}). Value falls ${data.side === 'above' ? 'above' : 'below'} the 1.5 × IQR fence.`,
+        suggestion: 'Inspect record',
+      }
+    case 'mad_outlier':
+      return {
+        title: `${lbl(data.column)}: ${fmt(data.value)} is atypical (modified z ${data.modifiedZ.toFixed(1)})`,
+        body: `Median ${fmt(data.median)}, MAD ${fmt(data.mad)}. Robust detector — the outlier itself does not skew the threshold.`,
+        suggestion: 'Compare with z-score',
+      }
+    case 'rank_correlation': {
+      const method = data.method === 'spearman' ? 'Spearman ρ' : 'Kendall τ'
+      return {
+        title: `${lbl(data.columnA)} and ${lbl(data.columnB)} are rank-correlated (${method} = ${data.coefficient.toFixed(2)})`,
+        body: `Captures monotonic — not necessarily linear — relationships across ${data.n} pairs. Useful when the link between columns curves.`,
+      }
+    }
+    case 'effect_size': {
+      const mag = data.magnitude
+      return {
+        title: `${lbl(data.metricColumn)} between "${data.groupA}" and "${data.groupB}" has a ${mag} effect (d=${data.d.toFixed(2)})`,
+        body: `Means ${fmt(data.meanA)} vs ${fmt(data.meanB)} (n=${data.nA}/${data.nB}). Effect size discounts sample noise.`,
+      }
+    }
+    case 'pareto':
+      return {
+        title: `${lbl(data.column)} follows a Pareto pattern: top 20% holds ${pct(data.share80)}`,
+        body: `${data.topCount} of ${data.totalCount} records account for ${pct(data.topShare)} of the total.`,
+        suggestion: 'Prioritise the head',
+      }
+    case 'gini':
+      return {
+        title: `${lbl(data.column)}: Gini index ${data.gini.toFixed(2)}`,
+        body: `Top quintile holds ${pct(data.topQuintileShare)} across ${data.n} records. 0 = perfect equality, 1 = maximum inequality.`,
+      }
+    case 'benford':
+      return {
+        title: `${lbl(data.column)}: first-digit distribution drifts from Benford (χ²=${data.chiSquared.toFixed(1)})`,
+        body: `Across ${data.n} values. Largest per-digit deviation: ${pct(data.maxDeviation)}. Can signal fabrication or aggressive rounding.`,
+        suggestion: 'Audit records',
+      }
+    case 'chi_square_independence':
+      return {
+        title: `${lbl(data.columnA)} and ${lbl(data.columnB)} are not independent (Cramér's V ${data.cramersV.toFixed(2)})`,
+        body: `χ²=${data.chiSquared.toFixed(1)} with ${data.degreesOfFreedom} degrees of freedom across ${data.n} records.`,
+      }
+    case 'mann_kendall_trend':
+      return {
+        title: `${lbl(data.metricColumn)} trends ${data.direction === 'rising' ? 'up' : data.direction === 'falling' ? 'down' : 'flat'} over time (τ=${data.tau.toFixed(2)})`,
+        body: `Non-parametric Mann-Kendall test over ${data.n} points. Robust to outliers and noise.`,
       }
   }
 }

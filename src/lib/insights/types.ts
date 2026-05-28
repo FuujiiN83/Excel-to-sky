@@ -18,26 +18,202 @@ export type FindingType =
   | 'schema_summary'
   | 'temporal_coverage'
   | 'volume_context'
+  | 'iqr_outlier'
+  | 'mad_outlier'
+  | 'rank_correlation'
+  | 'effect_size'
+  | 'pareto'
+  | 'gini'
+  | 'benford'
+  | 'chi_square_independence'
+  | 'mann_kendall_trend'
 
 export type Severity = 'critical' | 'important' | 'note' | 'info'
 
 export type FindingData =
-  | { kind: 'numeric_outlier'; column: string; value: number; record: number; zScore: number; mean: number; stdDev: number }
-  | { kind: 'category_concentration'; column: string; top: { value: string; count: number; pct: number }[]; coveragePct: number }
-  | { kind: 'cardinality_anomaly'; column: string; distinct: number; total: number; reason: 'all_same' | 'all_unique' }
+  | {
+      kind: 'numeric_outlier'
+      column: string
+      value: number
+      record: number
+      zScore: number
+      mean: number
+      stdDev: number
+    }
+  | {
+      kind: 'category_concentration'
+      column: string
+      top: { value: string; count: number; pct: number }[]
+      coveragePct: number
+    }
+  | {
+      kind: 'cardinality_anomaly'
+      column: string
+      distinct: number
+      total: number
+      reason: 'all_same' | 'all_unique'
+    }
   | { kind: 'missing_data'; column: string; nullCount: number; nullPct: number }
-  | { kind: 'distribution_shape'; column: string; shape: 'normal' | 'bimodal' | 'right_skewed' | 'left_skewed' | 'uniform' | 'sparse'; histogram: number[] }
-  | { kind: 'time_density_gap'; column: string; gapStart: string; gapEnd: string; gapDays: number; expectedDensity: number }
-  | { kind: 'duplicate_lookalike'; column: string; groups: { canonical: string; variants: string[]; totalCount: number }[] }
-  | { kind: 'text_outlier'; column: string; value: string; record: number; reason: 'too_long' | 'too_short' | 'special_chars' }
-  | { kind: 'numeric_correlation'; columnA: string; columnB: string; r: number; n: number; sample: { a: number; b: number }[] }
-  | { kind: 'group_disparity'; groupColumn: string; metricColumn: string; aggregation: 'mean' | 'sum'; topGroup: string; topValue: number; bottomGroup: string; bottomValue: number; ratio: number }
-  | { kind: 'time_by_group'; timeColumn: string; groupColumn: string; metricColumn: string; series: { group: string; trend: 'rising' | 'falling' | 'flat'; deltaPct: number }[] }
-  | { kind: 'conditional_outlier'; column: string; groupColumn: string; group: string; value: number; record: number; localMean: number; globalMean: number }
-  | { kind: 'quality_score'; score: number; cellsTotal: number; cellsValid: number; duplicateRows: number; issues: { type: string; count: number }[] }
+  | {
+      kind: 'distribution_shape'
+      column: string
+      shape: 'normal' | 'bimodal' | 'right_skewed' | 'left_skewed' | 'uniform' | 'sparse'
+      histogram: number[]
+    }
+  | {
+      kind: 'time_density_gap'
+      column: string
+      gapStart: string
+      gapEnd: string
+      gapDays: number
+      expectedDensity: number
+    }
+  | {
+      kind: 'duplicate_lookalike'
+      column: string
+      groups: { canonical: string; variants: string[]; totalCount: number }[]
+    }
+  | {
+      kind: 'text_outlier'
+      column: string
+      value: string
+      record: number
+      reason: 'too_long' | 'too_short' | 'special_chars'
+    }
+  | {
+      kind: 'numeric_correlation'
+      columnA: string
+      columnB: string
+      r: number
+      n: number
+      sample: { a: number; b: number }[]
+      /** Fisher-transform 95% confidence interval for r (#94). */
+      ciLow?: number
+      ciHigh?: number
+    }
+  | {
+      kind: 'group_disparity'
+      groupColumn: string
+      metricColumn: string
+      aggregation: 'mean' | 'sum'
+      topGroup: string
+      topValue: number
+      bottomGroup: string
+      bottomValue: number
+      ratio: number
+    }
+  | {
+      kind: 'time_by_group'
+      timeColumn: string
+      groupColumn: string
+      metricColumn: string
+      series: { group: string; trend: 'rising' | 'falling' | 'flat'; deltaPct: number }[]
+    }
+  | {
+      kind: 'conditional_outlier'
+      column: string
+      groupColumn: string
+      group: string
+      value: number
+      record: number
+      localMean: number
+      globalMean: number
+    }
+  | {
+      kind: 'quality_score'
+      score: number
+      cellsTotal: number
+      cellsValid: number
+      duplicateRows: number
+      issues: { type: string; count: number }[]
+    }
   | { kind: 'schema_summary'; total: number; byType: Record<string, number> }
-  | { kind: 'temporal_coverage'; column: string; from: string; to: string; days: number; densityPerDay: number }
+  | {
+      kind: 'temporal_coverage'
+      column: string
+      from: string
+      to: string
+      days: number
+      densityPerDay: number
+    }
   | { kind: 'volume_context'; rows: number; columns: number; cells: number }
+  | {
+      kind: 'iqr_outlier'
+      column: string
+      value: number
+      record: number
+      q1: number
+      q3: number
+      iqr: number
+      side: 'below' | 'above'
+    }
+  | {
+      kind: 'mad_outlier'
+      column: string
+      value: number
+      record: number
+      median: number
+      mad: number
+      modifiedZ: number
+    }
+  | {
+      kind: 'rank_correlation'
+      columnA: string
+      columnB: string
+      method: 'spearman' | 'kendall'
+      coefficient: number
+      n: number
+    }
+  | {
+      kind: 'effect_size'
+      groupColumn: string
+      metricColumn: string
+      groupA: string
+      groupB: string
+      meanA: number
+      meanB: number
+      d: number
+      magnitude: 'small' | 'medium' | 'large'
+      nA: number
+      nB: number
+    }
+  | {
+      kind: 'pareto'
+      column: string
+      topShare: number
+      topCount: number
+      totalCount: number
+      /** Cumulative share captured by the top 20% of records. */
+      share80: number
+    }
+  | { kind: 'gini'; column: string; gini: number; topQuintileShare: number; n: number }
+  | {
+      kind: 'benford'
+      column: string
+      chiSquared: number
+      maxDeviation: number
+      observed: number[]
+      expected: number[]
+      n: number
+    }
+  | {
+      kind: 'chi_square_independence'
+      columnA: string
+      columnB: string
+      chiSquared: number
+      degreesOfFreedom: number
+      cramersV: number
+      n: number
+    }
+  | {
+      kind: 'mann_kendall_trend'
+      timeColumn: string
+      metricColumn: string
+      s: number
+      tau: number
+      direction: 'rising' | 'falling' | 'flat'
+      n: number
+    }
 
 export interface Finding {
   id: string
@@ -85,6 +261,4 @@ export interface WorkerRequest {
 }
 
 /** Internal: payload received from worker. */
-export type WorkerResponse =
-  | { ok: true; report: InsightReport }
-  | { ok: false; error: string }
+export type WorkerResponse = { ok: true; report: InsightReport } | { ok: false; error: string }
