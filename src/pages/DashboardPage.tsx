@@ -11,6 +11,9 @@ import { ExportMenu } from '../components/ExportMenu'
 import { SubtypeBadge } from '../components/SubtypeBadge'
 import { useSettings } from '../lib/SettingsContext'
 import { accentForPalette } from '../lib/palette'
+import { FilterProvider, useDashboardFilters } from '../lib/filterContext'
+import { equalsFilter } from '../lib/filters'
+import { FilterBreadcrumbs } from '../components/FilterBreadcrumbs'
 
 interface DashboardPageProps {
   dataset: Dataset
@@ -37,7 +40,31 @@ function naturalAccent(col: Column): Accent {
 }
 
 export function DashboardPage(props: DashboardPageProps): JSX.Element {
+  // FilterProvider wraps the body so column-card chart clicks, table cell
+  // clicks and the breadcrumb chain all share one source of truth. We key
+  // it by dataset.id so loading a different dataset resets the chain.
+  return (
+    <FilterProvider key={props.dataset.id}>
+      <DashboardBody {...props} />
+    </FilterProvider>
+  )
+}
+
+function DashboardBody(props: DashboardPageProps): JSX.Element {
   const { dataset, onColumnClick, onCompare, onShare, onStory, onSnapshots, isPublic } = props
+  const { filters, add, remove, clear, undo, redo, canUndo, canRedo, apply } = useDashboardFilters()
+  // Cross-filtering applies the active filter chain to the dataset before any
+  // downstream component touches it. Analyses, sparklines, geo strip and the
+  // virtualised table all read from the narrowed copy (#143).
+  const filtered = useMemo(() => apply(dataset).dataset, [apply, dataset])
+  const columnLabelByKey = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const c of dataset.columns) m.set(c.key, c.label)
+    return m
+  }, [dataset])
+  function onValueClicked(col: Column, value: string): void {
+    add(equalsFilter(col.key, value, columnLabelByKey.get(col.key) ?? col.key))
+  }
   const { settings } = useSettings()
   const pickAccent = (col: Column): Accent => accentForPalette(settings.palette, naturalAccent(col))
 
@@ -72,8 +99,8 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
   )
 
   const analyses = useMemo(
-    () => dataset.columns.map((c) => ({ col: c, analysis: analyzeColumn(dataset, c.key) })),
-    [dataset],
+    () => filtered.columns.map((c) => ({ col: c, analysis: analyzeColumn(filtered, c.key) })),
+    [filtered],
   )
 
   // Detect the domain pack matching this dataset (sub-project #2 wire-up).
@@ -85,18 +112,18 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
   const sparkSeriesByKey = useMemo(() => {
     const map = new Map<string, number[]>()
     const MAX = 200
-    const stride = Math.max(1, Math.ceil(dataset.rows.length / MAX))
-    for (const col of dataset.columns) {
+    const stride = Math.max(1, Math.ceil(filtered.rows.length / MAX))
+    for (const col of filtered.columns) {
       if (col.type !== 'number' && col.type !== 'currency') continue
       const series: number[] = []
-      for (let i = 0; i < dataset.rows.length; i += stride) {
-        const v = Number(dataset.rows[i][col.key])
+      for (let i = 0; i < filtered.rows.length; i += stride) {
+        const v = Number(filtered.rows[i][col.key])
         if (Number.isFinite(v)) series.push(v)
       }
       if (series.length >= 2) map.set(col.key, series)
     }
     return map
-  }, [dataset])
+  }, [filtered])
 
   // Index analyses by column key so per-column lookups inside the JSX become
   // O(1) instead of an Array.find walk over every column on every render.
@@ -107,14 +134,14 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
   }, [analyses])
 
   const geoCol = useMemo(() => {
-    for (const c of dataset.columns) {
+    for (const c of filtered.columns) {
       if (c.type !== 'category' && c.type !== 'geo' && c.type !== 'text') continue
       const a = analysisByKey.get(c.key)
       if (!a?.top || a.top.length === 0) continue
       if (a.top.every((t) => hasGeoCoords(t.key))) return c
     }
     return null
-  }, [dataset, analysisByKey])
+  }, [filtered, analysisByKey])
 
   const geoAnalysis = geoCol ? (analysisByKey.get(geoCol.key) ?? null) : null
 
@@ -248,6 +275,54 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
         )}
       </div>
 
+      <FilterBreadcrumbs filters={filters} onRemove={remove} onClear={clear} />
+      {(canUndo || canRedo) && filters.length === 0 && (
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            alignItems: 'center',
+            marginBottom: 14,
+            fontSize: 11,
+            color: 'var(--muted)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={undo}
+            disabled={!canUndo}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--border-strong)',
+              color: canUndo ? 'var(--ink-2)' : 'var(--muted)',
+              padding: '3px 10px',
+              fontSize: 11,
+              cursor: canUndo ? 'pointer' : 'default',
+              fontFamily: 'inherit',
+            }}
+          >
+            ← Deshacer
+          </button>
+          <button
+            type="button"
+            onClick={redo}
+            disabled={!canRedo}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--border-strong)',
+              color: canRedo ? 'var(--ink-2)' : 'var(--muted)',
+              padding: '3px 10px',
+              fontSize: 11,
+              cursor: canRedo ? 'pointer' : 'default',
+              fontFamily: 'inherit',
+            }}
+          >
+            Rehacer →
+          </button>
+          <span>⌘Z / ⌘⇧Z</span>
+        </div>
+      )}
+
       {/* Headline stats */}
       <div
         className="grid"
@@ -259,13 +334,17 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
       >
         <StatCard
           label="Filas"
-          value={<AnimatedNumber value={dataset.rows.length} />}
+          value={<AnimatedNumber value={filtered.rows.length} />}
           accent="sky"
-          caption="todas válidas, 0 vacías"
+          caption={
+            filters.length > 0
+              ? `${filtered.rows.length} / ${dataset.rows.length} (filtrado)`
+              : 'todas válidas, 0 vacías'
+          }
         />
         <StatCard
           label="Columnas"
-          value={<AnimatedNumber value={dataset.columns.length} />}
+          value={<AnimatedNumber value={filtered.columns.length} />}
           accent="plum"
           caption={`${numCols.length} num · ${catCols.length} cat · ${dateCols.length} fecha`}
         />
@@ -351,6 +430,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
                 items={top.slice(0, 3).map((t) => ({ label: String(t.key), count: t.count }))}
                 accent={accent}
                 totalForPercent={analysis.count}
+                onItemClick={(label) => onValueClicked(col, label)}
               />
             ) : (
               <EmptyPreview text="Sin datos" />
@@ -483,7 +563,7 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
             ⌘K para buscar · click en una celda para filtrar por ese valor
           </span>
         </div>
-        <DataTable dataset={dataset} />
+        <DataTable dataset={filtered} />
       </section>
 
       {/* Geo strip */}
@@ -597,17 +677,42 @@ interface LabeledBarsProps {
   items: { label: string; count: number }[]
   accent: Accent
   totalForPercent: number
+  onItemClick?: (label: string) => void
 }
 
-function LabeledBars({ items, accent, totalForPercent }: LabeledBarsProps): JSX.Element {
+function LabeledBars({
+  items,
+  accent,
+  totalForPercent,
+  onItemClick,
+}: LabeledBarsProps): JSX.Element {
   const max = Math.max(...items.map((i) => i.count), 1)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {items.map((it, i) => {
         const pct = Math.max(2, (it.count / max) * 100)
         const share = totalForPercent > 0 ? Math.round((it.count / totalForPercent) * 100) : 0
+        const clickable = !!onItemClick
         return (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11 }}>
+          <div
+            key={i}
+            onClick={
+              clickable
+                ? (e) => {
+                    e.stopPropagation()
+                    onItemClick(it.label)
+                  }
+                : undefined
+            }
+            title={clickable ? `Filtrar por ${it.label}` : undefined}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              fontSize: 11,
+              cursor: clickable ? 'pointer' : 'default',
+            }}
+          >
             <div
               style={{
                 flex: '0 0 90px',
