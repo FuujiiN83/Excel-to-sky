@@ -11,6 +11,9 @@ const SUBTYPE_LABEL: Record<ColumnSubtype, string> = {
   'postal-code': 'CP',
   uuid: 'UUID',
   'dni-nie': 'DNI/NIE',
+  'country-iso': 'País ISO',
+  'language-iso': 'Idioma ISO',
+  iban: 'IBAN',
 }
 
 interface SubtypeBadgeProps {

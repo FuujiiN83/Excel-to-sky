@@ -19,6 +19,9 @@ export type ColumnSubtype =
   | 'postal-code' // #29 — ES/US/UK/FR/DE postal code
   | 'uuid' // #30 — RFC 4122 UUID
   | 'dni-nie' // #37 — Spanish DNI / NIE
+  | 'country-iso' // #31 — ISO 3166 country code (alpha-2 or alpha-3)
+  | 'language-iso' // #32 — ISO 639 language code
+  | 'iban' // #38 — Spanish IBAN (and any ISO-13616 variant by extension)
 
 export type Accent = 'sky' | 'mint' | 'coral' | 'plum' | 'amber' | 'rose' | 'lime'
 
