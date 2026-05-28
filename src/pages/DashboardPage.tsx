@@ -811,10 +811,12 @@ function LabeledBars({
               }}
             >
               <div
+                className="ets-bar-grow"
                 style={{
                   width: `${pct}%`,
                   height: '100%',
-                  background: `var(--${accent})`,
+                  background: `linear-gradient(90deg, var(--${accent}-soft), var(--${accent}))`,
+                  boxShadow: `0 0 8px var(--${accent}-soft)`,
                   opacity: 0.55 + 0.45 * (it.count / max),
                 }}
               />

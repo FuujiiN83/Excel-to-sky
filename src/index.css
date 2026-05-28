@@ -336,6 +336,28 @@ textarea:focus-visible,
   }
 }
 
+/* Data bars grow in from the left on first paint (#visual-amplify). The
+ * fill div keeps its computed `width: pct%`; only the X scale animates, so
+ * the final length is exact. transform-origin left makes it grow rightward. */
+@keyframes ets-bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.ets-bar-grow {
+  transform-origin: left center;
+  animation: ets-bar-grow 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ets-bar-grow {
+    animation: none;
+    transform: none;
+  }
+}
+
 /* Subtle animated entrance for top-level pages */
 @keyframes ee-fade-up {
   from {
