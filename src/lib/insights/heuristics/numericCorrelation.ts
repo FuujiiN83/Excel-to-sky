@@ -35,12 +35,24 @@ export const numericCorrelation: Heuristic = {
         if (Math.abs(r) < R_THRESHOLD) continue
 
         const sample = pairs.length <= SAMPLE_CAP ? pairs : evenlySample(pairs, SAMPLE_CAP)
-        out.push(makeFinding({
-          type: 'numeric_correlation',
-          data: { kind: 'numeric_correlation', columnA: a.key, columnB: b.key, r, n: pairs.length, sample },
-          columns: [a.key, b.key],
-          columnLabels: labels,
-        }))
+        const ci = pearsonConfidenceInterval(r, pairs.length)
+        out.push(
+          makeFinding({
+            type: 'numeric_correlation',
+            data: {
+              kind: 'numeric_correlation',
+              columnA: a.key,
+              columnB: b.key,
+              r,
+              n: pairs.length,
+              sample,
+              ciLow: ci?.low,
+              ciHigh: ci?.high,
+            },
+            columns: [a.key, b.key],
+            columnLabels: labels,
+          }),
+        )
       }
     }
     return out
@@ -50,18 +62,28 @@ export const numericCorrelation: Heuristic = {
 function toNum(raw: unknown): number | null {
   if (raw == null || raw === '') return null
   if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null
-  const s = String(raw).trim().replace(/[€$£¥\s]/g, '').replace(/(?<=\d)\.(?=\d{3})/g, '').replace(',', '.')
+  const s = String(raw)
+    .trim()
+    .replace(/[€$£¥\s]/g, '')
+    .replace(/(?<=\d)\.(?=\d{3})/g, '')
+    .replace(',', '.')
   const n = Number(s)
   return Number.isFinite(n) ? n : null
 }
 
 function pearson(pairs: { a: number; b: number }[]): number {
   const n = pairs.length
-  let sumA = 0, sumB = 0
-  for (const p of pairs) { sumA += p.a; sumB += p.b }
+  let sumA = 0,
+    sumB = 0
+  for (const p of pairs) {
+    sumA += p.a
+    sumB += p.b
+  }
   const meanA = sumA / n
   const meanB = sumB / n
-  let num = 0, dA = 0, dB = 0
+  let num = 0,
+    dA = 0,
+    dB = 0
   for (const p of pairs) {
     const da = p.a - meanA
     const db = p.b - meanB
@@ -71,6 +93,24 @@ function pearson(pairs: { a: number; b: number }[]): number {
   }
   const denom = Math.sqrt(dA * dB)
   return denom === 0 ? 0 : num / denom
+}
+
+/**
+ * Fisher z-transform 95% confidence interval for a Pearson r. Returns null
+ * for sample sizes that make the SE undefined (n ≤ 3) or for r values pinned
+ * at ±1 (the z-transform diverges). The interval lets readers eyeball how
+ * reliable the correlation actually is (#94).
+ */
+function pearsonConfidenceInterval(r: number, n: number): { low: number; high: number } | null {
+  if (n <= 3 || Math.abs(r) >= 1) return null
+  const z = 0.5 * Math.log((1 + r) / (1 - r))
+  const se = 1 / Math.sqrt(n - 3)
+  const zLow = z - 1.96 * se
+  const zHigh = z + 1.96 * se
+  return {
+    low: (Math.exp(2 * zLow) - 1) / (Math.exp(2 * zLow) + 1),
+    high: (Math.exp(2 * zHigh) - 1) / (Math.exp(2 * zHigh) + 1),
+  }
 }
 
 function evenlySample<T>(arr: T[], cap: number): T[] {

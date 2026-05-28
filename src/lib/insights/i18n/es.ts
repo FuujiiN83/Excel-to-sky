@@ -1,7 +1,11 @@
 // src/lib/insights/i18n/es.ts
 import type { FindingData } from '../types'
 
-export interface RenderedText { title: string; body: string; suggestion?: string }
+export interface RenderedText {
+  title: string
+  body: string
+  suggestion?: string
+}
 
 function pct(n: number): string {
   return `${Math.round(n * 100)}%`
@@ -24,7 +28,10 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
     case 'category_concentration':
       return {
         title: `${lbl(data.column)}: los ${data.top.length} valores principales acumulan ${pct(data.coveragePct)}`,
-        body: `${data.top.slice(0, 3).map((t) => `${t.value} (${pct(t.pct)})`).join(', ')}. Distribución concentrada.`,
+        body: `${data.top
+          .slice(0, 3)
+          .map((t) => `${t.value} (${pct(t.pct)})`)
+          .join(', ')}. Distribución concentrada.`,
         suggestion: 'Agrupar por estos valores',
       }
     case 'cardinality_anomaly':
@@ -55,7 +62,16 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
     case 'duplicate_lookalike':
       return {
         title: `${lbl(data.column)}: ${data.groups.length} grupo${data.groups.length === 1 ? '' : 's'} con variantes que parecen el mismo valor`,
-        body: data.groups.slice(0, 2).map((g) => `"${g.canonical}" ↔ ${g.variants.slice(0, 3).map((v) => `"${v}"`).join(', ')}`).join('. '),
+        body: data.groups
+          .slice(0, 2)
+          .map(
+            (g) =>
+              `"${g.canonical}" ↔ ${g.variants
+                .slice(0, 3)
+                .map((v) => `"${v}"`)
+                .join(', ')}`,
+          )
+          .join('. '),
         suggestion: 'Normalizar variantes',
       }
     case 'text_outlier':
@@ -63,14 +79,20 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
         title: `${lbl(data.column)}: valor anómalo (${data.reason === 'too_long' ? 'demasiado largo' : data.reason === 'too_short' ? 'demasiado corto' : 'caracteres raros'})`,
         body: `"${data.value.slice(0, 60)}${data.value.length > 60 ? '…' : ''}" — posible error de carga.`,
       }
-    case 'numeric_correlation':
+    case 'numeric_correlation': {
+      const ci =
+        data.ciLow !== undefined && data.ciHigh !== undefined
+          ? ` (IC 95%: ${data.ciLow.toFixed(2)} a ${data.ciHigh.toFixed(2)})`
+          : ''
       return {
-        title: `${lbl(data.columnA)} y ${lbl(data.columnB)} se mueven ${data.r > 0 ? 'a la par' : 'en sentido opuesto'} (r = ${data.r.toFixed(2)})`,
-        body: data.r > 0
-          ? 'A más en una columna, más en la otra. Correlación fuerte.'
-          : 'A más en una columna, menos en la otra. Correlación fuerte e inversa.',
+        title: `${lbl(data.columnA)} y ${lbl(data.columnB)} se mueven ${data.r > 0 ? 'a la par' : 'en sentido opuesto'} (r = ${data.r.toFixed(2)}${ci})`,
+        body:
+          data.r > 0
+            ? 'A más en una columna, más en la otra. Correlación fuerte.'
+            : 'A más en una columna, menos en la otra. Correlación fuerte e inversa.',
         suggestion: 'Cruzar en scatter plot',
       }
+    }
     case 'group_disparity':
       return {
         title: `${lbl(data.topGroup)} tiene ${data.ratio.toFixed(1)}× más ${lbl(data.metricColumn)} que ${lbl(data.bottomGroup)}`,
@@ -80,7 +102,13 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
     case 'time_by_group':
       return {
         title: `${lbl(data.metricColumn)} por ${lbl(data.groupColumn)} tiene tendencias divergentes`,
-        body: data.series.slice(0, 3).map((s) => `${s.group}: ${s.trend === 'rising' ? '+' : s.trend === 'falling' ? '−' : '±'}${Math.abs(s.deltaPct).toFixed(0)}%`).join(', '),
+        body: data.series
+          .slice(0, 3)
+          .map(
+            (s) =>
+              `${s.group}: ${s.trend === 'rising' ? '+' : s.trend === 'falling' ? '−' : '±'}${Math.abs(s.deltaPct).toFixed(0)}%`,
+          )
+          .join(', '),
       }
     case 'conditional_outlier':
       return {
@@ -95,7 +123,10 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
     case 'schema_summary':
       return {
         title: `${data.total} columnas detectadas`,
-        body: Object.entries(data.byType).filter(([, n]) => n > 0).map(([t, n]) => `${n} ${t}`).join(' · '),
+        body: Object.entries(data.byType)
+          .filter(([, n]) => n > 0)
+          .map(([t, n]) => `${n} ${t}`)
+          .join(' · '),
       }
     case 'temporal_coverage':
       return {
@@ -107,29 +138,95 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
         title: `${fmt(data.rows)} filas × ${data.columns} columnas`,
         body: `${fmt(data.cells)} celdas en total.`,
       }
+    case 'iqr_outlier':
+      return {
+        title: `${lbl(data.column)}: ${fmt(data.value)} cae fuera del rango intercuartílico`,
+        body: `Q1=${fmt(data.q1)}, Q3=${fmt(data.q3)} (IQR ${fmt(data.iqr)}). El valor está ${data.side === 'above' ? 'por encima' : 'por debajo'} del umbral 1,5 × IQR.`,
+        suggestion: 'Revisar registro',
+      }
+    case 'mad_outlier':
+      return {
+        title: `${lbl(data.column)}: ${fmt(data.value)} es atípico (z modificado ${data.modifiedZ.toFixed(1)})`,
+        body: `Mediana ${fmt(data.median)}, MAD ${fmt(data.mad)}. Detector robusto: ignora la influencia del propio outlier.`,
+        suggestion: 'Comparar con z-score',
+      }
+    case 'rank_correlation': {
+      const method = data.method === 'spearman' ? 'Spearman ρ' : 'Kendall τ'
+      return {
+        title: `${lbl(data.columnA)} y ${lbl(data.columnB)} están correlacionadas por rangos (${method} = ${data.coefficient.toFixed(2)})`,
+        body: `Captura relaciones monótonas no necesariamente lineales sobre ${data.n} pares. Útil cuando la relación entre las columnas es curva.`,
+      }
+    }
+    case 'effect_size': {
+      const labelMagnitude =
+        data.magnitude === 'large' ? 'grande' : data.magnitude === 'medium' ? 'medio' : 'pequeño'
+      return {
+        title: `${lbl(data.metricColumn)} entre "${data.groupA}" y "${data.groupB}" tiene un efecto ${labelMagnitude} (d=${data.d.toFixed(2)})`,
+        body: `Medias ${fmt(data.meanA)} vs ${fmt(data.meanB)} (n=${data.nA}/${data.nB}). El tamaño del efecto descuenta el ruido de la muestra.`,
+      }
+    }
+    case 'pareto':
+      return {
+        title: `${lbl(data.column)} sigue un patrón Pareto: el 20% superior concentra ${pct(data.share80)}`,
+        body: `${data.topCount} de ${data.totalCount} registros acumulan ${pct(data.topShare)} del total.`,
+        suggestion: 'Priorizar la cola superior',
+      }
+    case 'gini':
+      return {
+        title: `${lbl(data.column)}: índice Gini ${data.gini.toFixed(2)}`,
+        body: `Quintil más alto se lleva ${pct(data.topQuintileShare)} del total sobre ${data.n} registros. 0 = perfecta igualdad, 1 = máxima desigualdad.`,
+      }
+    case 'benford':
+      return {
+        title: `${lbl(data.column)}: la distribución de primeros dígitos se aleja de Benford (χ²=${data.chiSquared.toFixed(1)})`,
+        body: `Sobre ${data.n} valores. Desviación máxima en un dígito: ${pct(data.maxDeviation)}. Puede indicar fabricación o redondeo extremo.`,
+        suggestion: 'Auditar registros',
+      }
+    case 'chi_square_independence':
+      return {
+        title: `${lbl(data.columnA)} y ${lbl(data.columnB)} no son independientes (V de Cramér ${data.cramersV.toFixed(2)})`,
+        body: `χ²=${data.chiSquared.toFixed(1)} con ${data.degreesOfFreedom} grados de libertad sobre ${data.n} registros.`,
+      }
+    case 'mann_kendall_trend':
+      return {
+        title: `${lbl(data.metricColumn)} muestra tendencia ${data.direction === 'rising' ? 'al alza' : data.direction === 'falling' ? 'a la baja' : 'plana'} en el tiempo (τ=${data.tau.toFixed(2)})`,
+        body: `Test de Mann-Kendall no paramétrico sobre ${data.n} puntos. Robusto frente a outliers y ruido.`,
+      }
   }
 }
 
 function describeShape(s: string): string {
   switch (s) {
-    case 'normal': return 'aproximadamente normal'
-    case 'bimodal': return 'bimodal (dos picos)'
-    case 'right_skewed': return 'sesgada a la derecha (cola larga arriba)'
-    case 'left_skewed': return 'sesgada a la izquierda (cola larga abajo)'
-    case 'uniform': return 'uniforme'
-    case 'sparse': return 'dispersa (pocos valores únicos)'
+    case 'normal':
+      return 'aproximadamente normal'
+    case 'bimodal':
+      return 'bimodal (dos picos)'
+    case 'right_skewed':
+      return 'sesgada a la derecha (cola larga arriba)'
+    case 'left_skewed':
+      return 'sesgada a la izquierda (cola larga abajo)'
+    case 'uniform':
+      return 'uniforme'
+    case 'sparse':
+      return 'dispersa (pocos valores únicos)'
   }
   return s
 }
 
 function shapeInsight(s: string): string {
   switch (s) {
-    case 'normal': return 'Los datos se concentran alrededor de la media. Mean ≈ median.'
-    case 'bimodal': return 'Probablemente hay dos poblaciones distintas mezcladas. Considera segmentar.'
-    case 'right_skewed': return 'Pocos valores muy altos arrastran la media. Mediana es más representativa.'
-    case 'left_skewed': return 'Pocos valores muy bajos arrastran la media. Mediana es más representativa.'
-    case 'uniform': return 'Los valores se reparten sin un centro claro. Quizá categórica disfrazada de numérica.'
-    case 'sparse': return 'Pocos valores únicos. Quizá deberías tratarla como categoría.'
+    case 'normal':
+      return 'Los datos se concentran alrededor de la media. Mean ≈ median.'
+    case 'bimodal':
+      return 'Probablemente hay dos poblaciones distintas mezcladas. Considera segmentar.'
+    case 'right_skewed':
+      return 'Pocos valores muy altos arrastran la media. Mediana es más representativa.'
+    case 'left_skewed':
+      return 'Pocos valores muy bajos arrastran la media. Mediana es más representativa.'
+    case 'uniform':
+      return 'Los valores se reparten sin un centro claro. Quizá categórica disfrazada de numérica.'
+    case 'sparse':
+      return 'Pocos valores únicos. Quizá deberías tratarla como categoría.'
   }
   return ''
 }
