@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
+import { recordDatasetShape } from '../lib/lastShape'
 import type { Accent, Column, Dataset } from '../types/dataset'
 import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import { StatCard, MiniSpark } from '../components/StatCard'
@@ -38,6 +39,25 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
 
   // Group columns by type. Cached by dataset identity so we don't re-walk all
   // columns on every render (e.g. when an unrelated prop changes upstream).
+  // Snapshot the dataset shape so the next upload can render an optimistic
+  // skeleton based on what the user typically loads (#186). Best-effort —
+  // localStorage failures don't break the render.
+  useEffect(() => {
+    const numeric = dataset.columns.filter(
+      (c) => c.type === 'number' || c.type === 'currency',
+    ).length
+    const categorical = dataset.columns.filter(
+      (c) => c.type === 'category' || c.type === 'text' || c.type === 'boolean' || c.type === 'geo',
+    ).length
+    const date = dataset.columns.filter((c) => c.type === 'date').length
+    const other = dataset.columns.length - numeric - categorical - date
+    recordDatasetShape({
+      rows: dataset.rows.length,
+      columns: dataset.columns.length,
+      typeMix: { numeric, categorical, date, other: Math.max(0, other) },
+    })
+  }, [dataset])
+
   const { numCols, catCols, dateCols } = useMemo(
     () => ({
       numCols: dataset.columns.filter((c) => c.type === 'number' || c.type === 'currency'),
