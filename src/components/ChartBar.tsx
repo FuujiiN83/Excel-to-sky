@@ -35,6 +35,8 @@ interface ChartBarProps {
    * would otherwise produce a chart with missing bars.
    */
   logScale?: boolean
+  /** Click handler that fires with the clicked bar's label — used for cross-filtering (#143). */
+  onBarClick?: (label: string) => void
   /**
    * Optional context values per bar label. When provided the hover tooltip
    * renders a mini-sparkline of that bar's underlying series (#72).
@@ -86,6 +88,7 @@ export function ChartBar({
   ariaLabel,
   showSort = false,
   logScale = false,
+  onBarClick,
   valuesByLabel,
 }: ChartBarProps): JSX.Element {
   const [sort, setSort] = useState<BarSort>('incoming')
@@ -186,6 +189,7 @@ export function ChartBar({
       {visible.map((b, i) => (
         <div
           key={i}
+          onClick={onBarClick ? () => onBarClick(b.label) : undefined}
           onMouseEnter={(e) =>
             setHover({ label: b.label, value: b.value, x: e.clientX, y: e.clientY })
           }
@@ -193,11 +197,13 @@ export function ChartBar({
             setHover({ label: b.label, value: b.value, x: e.clientX, y: e.clientY })
           }
           onMouseLeave={() => setHover(null)}
+          title={onBarClick ? `Filtrar por ${b.label}` : undefined}
           style={{
             display: 'grid',
             gridTemplateColumns: '120px 1fr 48px',
             gap: 12,
             alignItems: 'center',
+            cursor: onBarClick ? 'pointer' : 'default',
           }}
         >
           <div

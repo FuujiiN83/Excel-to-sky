@@ -1,4 +1,5 @@
 // src/lib/story/types.ts
+import type { DomainMatch } from '../domains'
 import type { Finding } from '../insights/types'
 
 /**
@@ -78,4 +79,6 @@ export interface ComposeInput {
   qualityScore: number
   temporalRange?: { from: string; to: string; days: number }
   duplicateRowCount: number
+  /** Detected domain pack (sub-project #2) — shapes intro + closing copy. */
+  domain?: DomainMatch | null
 }

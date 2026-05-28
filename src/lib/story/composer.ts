@@ -52,6 +52,7 @@ export function buildComposeInput(
   datasetId: string,
   datasetLabel: string,
   columnLabels: Record<string, string>,
+  domain?: import('../domains').DomainMatch | null,
 ): ComposeInput {
   return {
     datasetId,
@@ -63,6 +64,7 @@ export function buildComposeInput(
     qualityScore: report.summary.qualityScore,
     temporalRange: report.summary.temporalRange,
     duplicateRowCount: report.summary.duplicateRowCount,
+    domain: domain ?? null,
   }
 }
 
@@ -146,10 +148,18 @@ function makeIntroScene(input: ComposeInput, locale: 'es' | 'en'): Scene {
     input.duplicateRowCount > 0
       ? ` Detectamos ${input.duplicateRowCount} filas duplicadas, conviene revisarlas.`
       : ''
-  const body =
+  // Lead with the domain when we detected one (sub-project #2 wire-up).
+  const domain = input.domain?.pack
+  const domainPrefix = domain
+    ? locale === 'en'
+      ? `Looks like a ${domain.label.toLowerCase()} dataset. `
+      : `Parece un dataset de ${domain.label.toLowerCase()}. `
+    : ''
+  const baseBody =
     locale === 'en'
       ? `${input.datasetLabel} contains ${fmt(input.rowCount)} rows across ${input.columnCount} columns. Quality estimated at ${qual}%.${range}${dupes}`
       : `${input.datasetLabel} contiene ${fmt(input.rowCount)} filas en ${input.columnCount} columnas. Calidad estimada del ${qual}%.${range}${dupes}`
+  const body = `${domainPrefix}${baseBody}`
   return {
     id: `intro:${input.datasetId}`,
     role: 'intro',
@@ -169,15 +179,23 @@ function makeIntroScene(input: ComposeInput, locale: 'es' | 'en'): Scene {
 function makeClosingScene(input: ComposeInput, scenes: Scene[], locale: 'es' | 'en'): Scene {
   const qual = Math.round(input.qualityScore * 100)
   const counted = scenes.filter((s) => s.role === 'tension').length
-  const suggestions = Array.from(
-    new Set(
-      input.findings
-        .map((f) => f.suggestion)
-        .filter((s): s is string => Boolean(s))
-        .slice(0, 3),
-    ),
-  )
-  const bullets = suggestions.length > 0 ? ` Próximos pasos: ${suggestions.join(' · ')}.` : ''
+  // Prefer the domain pack's hints when we detected one — those are tailored
+  // to the vertical and read as concrete next steps. Fall back to the finding
+  // suggestions when no domain matched.
+  const domainHints = input.domain?.pack.hints.slice(0, 3) ?? []
+  const findingSuggestions =
+    domainHints.length > 0
+      ? []
+      : Array.from(
+          new Set(
+            input.findings
+              .map((f) => f.suggestion)
+              .filter((s): s is string => Boolean(s))
+              .slice(0, 3),
+          ),
+        )
+  const tips = domainHints.length > 0 ? domainHints : findingSuggestions
+  const bullets = tips.length > 0 ? ` Próximos pasos: ${tips.join(' · ')}` : ''
   const body =
     locale === 'en'
       ? `We surfaced ${counted} findings worth your attention. Overall data quality is ${qual}%.${bullets}`
