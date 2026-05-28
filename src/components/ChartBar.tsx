@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Accent } from '../types/dataset'
 import { fmtNumber } from '../lib/stats'
 import { ChartEmptyState } from './ChartEmptyState'
+import { Tooltip, TooltipSpark } from './Tooltip'
 
 export interface Bar {
   label: string
@@ -36,6 +37,11 @@ interface ChartBarProps {
   logScale?: boolean
   /** Click handler that fires with the clicked bar's label — used for cross-filtering (#143). */
   onBarClick?: (label: string) => void
+  /**
+   * Optional context values per bar label. When provided the hover tooltip
+   * renders a mini-sparkline of that bar's underlying series (#72).
+   */
+  valuesByLabel?: ReadonlyMap<string, ReadonlyArray<number>>
 }
 
 const SORT_OPTIONS: ReadonlyArray<{ value: BarSort; label: string }> = [
@@ -83,8 +89,12 @@ export function ChartBar({
   showSort = false,
   logScale = false,
   onBarClick,
+  valuesByLabel,
 }: ChartBarProps): JSX.Element {
   const [sort, setSort] = useState<BarSort>('incoming')
+  const [hover, setHover] = useState<{ label: string; value: number; x: number; y: number } | null>(
+    null,
+  )
   if (!bars || bars.length === 0) return <ChartEmptyState kind="bar" height={height} />
   const sorted = applySort(bars, sort)
   const visible = limit ? sorted.slice(0, limit) : sorted
@@ -180,6 +190,13 @@ export function ChartBar({
         <div
           key={i}
           onClick={onBarClick ? () => onBarClick(b.label) : undefined}
+          onMouseEnter={(e) =>
+            setHover({ label: b.label, value: b.value, x: e.clientX, y: e.clientY })
+          }
+          onMouseMove={(e) =>
+            setHover({ label: b.label, value: b.value, x: e.clientX, y: e.clientY })
+          }
+          onMouseLeave={() => setHover(null)}
           title={onBarClick ? `Filtrar por ${b.label}` : undefined}
           style={{
             display: 'grid',
@@ -234,6 +251,16 @@ export function ChartBar({
           )}
         </div>
       ))}
+      <Tooltip open={hover !== null} x={hover?.x ?? 0} y={hover?.y ?? 0}>
+        {hover && (
+          <TooltipSpark
+            title={hover.label}
+            value={fmtNumber(hover.value)}
+            values={(valuesByLabel?.get(hover.label) ?? [hover.value]) as number[]}
+            accent={`var(--${accent})`}
+          />
+        )}
+      </Tooltip>
     </div>
   )
 }
