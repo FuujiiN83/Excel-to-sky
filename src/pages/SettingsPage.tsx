@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { LegalLayout } from './LegalLayout'
 import { useSettings } from '../lib/SettingsContext'
 import type {
@@ -17,6 +17,7 @@ import { HelpTip } from '../components/HelpTip'
 import { confirm } from '../components/ConfirmModal'
 import { pushToast } from '../lib/toast'
 import { clearAllLocalData } from '../lib/clearAll'
+import { exportDashboardsBundle, importDashboardsBundle } from '../lib/localDb'
 
 const CHARTABLE_TYPES: ReadonlyArray<{ key: ChartableType; label: string; options: ChartShape[] }> =
   [
@@ -41,6 +42,49 @@ interface SettingsPageProps {
 
 export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
   const { settings, ready, update, reset } = useSettings()
+  const importInputRef = useRef<HTMLInputElement | null>(null)
+
+  async function onExportBundle(): Promise<void> {
+    try {
+      const { filename, contents } = await exportDashboardsBundle()
+      const blob = new Blob([contents], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      pushToast('Backup descargado.', 'success', 3000)
+    } catch {
+      pushToast('No se pudo generar el backup.', 'error', 4000)
+    }
+  }
+
+  function onPickImport(): void {
+    importInputRef.current?.click()
+  }
+
+  async function onImportFile(file: File): Promise<void> {
+    try {
+      const text = await file.text()
+      const added = await importDashboardsBundle(text)
+      pushToast(
+        added === 0
+          ? 'Nada que importar — todos los dashboards ya estaban guardados.'
+          : `Importados ${added} dashboard${added === 1 ? '' : 's'}.`,
+        'success',
+        4000,
+      )
+    } catch (err) {
+      pushToast(
+        err instanceof Error ? err.message : 'No se pudo importar el bundle.',
+        'error',
+        5000,
+      )
+    }
+  }
 
   async function onReset(): Promise<void> {
     const ok = await confirm({
@@ -275,6 +319,54 @@ export function SettingsPage({ onNav }: SettingsPageProps): JSX.Element {
               </button>
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>
                 Borra todas las preferencias guardadas en este navegador.
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => void onExportBundle()}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--ink)',
+                  border: '1px solid var(--border-strong)',
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Descargar backup de dashboards
+              </button>
+              <button
+                type="button"
+                onClick={onPickImport}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--ink)',
+                  border: '1px solid var(--border-strong)',
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Importar backup…
+              </button>
+              <input
+                ref={importInputRef}
+                type="file"
+                accept=".json,application/json"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) void onImportFile(file)
+                  e.target.value = ''
+                }}
+              />
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                Bundle JSON con los slugs y delete-tokens de cada dashboard creado.
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
