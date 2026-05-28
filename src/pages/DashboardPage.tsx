@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { recordDatasetShape } from '../lib/lastShape'
+import { DataTable } from '../components/DataTable'
 import type { Accent, Column, Dataset } from '../types/dataset'
 import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import { StatCard, MiniSpark } from '../components/StatCard'
@@ -444,6 +445,24 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
           )
         })}
       </div>
+
+      {/* Virtualised data table (#39-#60 backlog). Lives below the column
+          grid so the dashboard stays the entry point and the table is the
+          drill-down surface. */}
+      <section style={{ marginTop: 40 }}>
+        <div className="flex justify-between items-center" style={{ margin: '4px 4px 14px' }}>
+          <div
+            className="font-display"
+            style={{ fontWeight: 600, fontSize: 20, letterSpacing: '-0.02em' }}
+          >
+            Filas
+          </div>
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+            ⌘K para buscar · click en una celda para filtrar por ese valor
+          </span>
+        </div>
+        <DataTable dataset={dataset} />
+      </section>
 
       {/* Geo strip */}
       {geoCol && geoAnalysis?.top && (
