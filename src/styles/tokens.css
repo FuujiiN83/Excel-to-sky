@@ -1,4 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+/* Subsetted Google Fonts request (#259). We drop weight 300 and 800 across
+ * the board plus the italic 400 we never actually use — the display family
+ * keeps italic 500 because the landing hero relies on it. text=latin keeps
+ * the payload to ASCII + Spanish diacritics instead of the full WGL4 set.
+ *
+ * Audit: `grep -RE "font-weight: ?(300|800)" src` — currently zero matches.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap&text=ABCDEFGHIJKLMNO%C3%91PQRSTUVWXYZabcdefghijklmno%C3%B1pqrstuvwxyz0123456789%C3%81%C3%89%C3%8D%C3%93%C3%9A%C3%A1%C3%A9%C3%AD%C3%B3%C3%BA%C3%9C%C3%BC%C2%BF%C2%A1.,%3A%3B!%3F-%2F()%5B%5D%7B%7D%E2%80%99%E2%80%9C%E2%80%9D%E2%80%94%E2%80%93%2B%3D*%23%40%24%25%5E%26%3C%3E%C2%B7%C3%97');
 
 :root {
   color-scheme: dark;
