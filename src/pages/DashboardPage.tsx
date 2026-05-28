@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { recordDatasetShape } from '../lib/lastShape'
 import { DataTable } from '../components/DataTable'
+import { detectDomain } from '../lib/domains'
 import type { Accent, Column, Dataset } from '../types/dataset'
 import { analyzeColumn, fmtDate, fmtNumber, fmtUnit } from '../lib/stats'
 import { StatCard, MiniSpark } from '../components/StatCard'
@@ -75,6 +76,10 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
     [dataset],
   )
 
+  // Detect the domain pack matching this dataset (sub-project #2 wire-up).
+  // Cached per dataset identity so we don't re-walk packs on unrelated renders.
+  const domain = useMemo(() => detectDomain(dataset), [dataset])
+
   // Row-order numeric values per column, capped to keep the sparkline cheap on
   // very wide datasets. Used by the per-card header sparklines (#71).
   const sparkSeriesByKey = useMemo(() => {
@@ -133,6 +138,23 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
             >
               {dataset.label}
             </span>
+            {domain && (
+              <span
+                title={`Pack detectado: ${domain.pack.description}`}
+                style={{
+                  background: 'var(--sky-soft, rgba(77,158,250,0.14))',
+                  color: 'var(--sky)',
+                  fontWeight: 600,
+                  fontSize: 10,
+                  padding: '2px 8px',
+                  borderRadius: 0,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                {domain.pack.label}
+              </span>
+            )}
             {!isPublic && (
               <span
                 style={{
