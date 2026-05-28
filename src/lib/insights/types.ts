@@ -36,6 +36,11 @@ export type FindingType =
   | 'ambiguous_date_locale'
   | 'autocorrelation'
   | 'simpsons_paradox'
+  | 'kmeans_cluster'
+  | 'pca_dominant'
+  | 'adf_stationarity'
+  | 'stl_seasonality'
+  | 'survival_cohort'
 
 export type Severity = 'critical' | 'important' | 'note' | 'info'
 
@@ -302,6 +307,59 @@ export type FindingData =
       globalSlope: number
       groupSlopes: { group: string; slope: number; n: number }[]
     }
+  | {
+      kind: 'kmeans_cluster'
+      columns: string[]
+      k: number
+      silhouette: number
+      sizes: number[]
+      centroids: number[][]
+    }
+  | {
+      kind: 'pca_dominant'
+      columns: string[]
+      explainedVariance: number[]
+      cumulative: number
+      n: number
+      topComponentLoadings: { column: string; loading: number }[]
+    }
+  | {
+      kind: 'adf_stationarity'
+      timeColumn: string
+      metricColumn: string
+      tStatistic: number
+      pValue: number
+      isStationary: boolean
+      n: number
+    }
+  | {
+      kind: 'stl_seasonality'
+      timeColumn: string
+      metricColumn: string
+      period: number
+      strength: number
+      n: number
+    }
+  | {
+      kind: 'survival_cohort'
+      timeColumn: string
+      groupColumn: string
+      cohorts: { group: string; median: number; n: number }[]
+    }
+
+/**
+ * Optional calculation breadcrumbs surfaced by the explain panel (#108).
+ * Heuristics that fill this give the UI a way to show the reader how the
+ * finding was computed without inspecting source.
+ */
+export interface FindingExplain {
+  /** Short formula or test name (e.g. "Pearson r"). */
+  method: string
+  /** Pre-formatted intermediate values (key → value). */
+  steps: ReadonlyArray<{ label: string; value: string }>
+  /** Optional citation or doc URL. */
+  reference?: string
+}
 
 export interface Finding {
   id: string
@@ -314,6 +372,8 @@ export interface Finding {
   data: FindingData
   suggestion?: string
   recordRefs?: number[]
+  /** Optional breakdown for the per-finding explain panel (#108). */
+  explain?: FindingExplain
 }
 
 export interface DatasetSummary {
@@ -331,6 +391,15 @@ export interface AnalyzeOptions {
   minScore?: number
   signal?: AbortSignal
   locale?: 'es' | 'en'
+  /** Override the default scoring weights (#107). Missing keys keep their defaults. */
+  weights?: Partial<ScoringWeights>
+}
+
+export interface ScoringWeights {
+  significance: number
+  coverage: number
+  actionability: number
+  diversityPenalty: number
 }
 
 export interface InsightReport {

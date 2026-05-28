@@ -34,6 +34,11 @@ import { mixedTypeColumn } from './mixedTypeColumn'
 import { ambiguousDateLocale } from './ambiguousDateLocale'
 import { autocorrelation } from './autocorrelation'
 import { simpsonsParadox } from './simpsonsParadox'
+import { kmeansCluster } from './kmeansCluster'
+import { pcaDominant } from './pcaDominant'
+import { adfStationarity } from './adfStationarity'
+import { stlSeasonality } from './stlSeasonality'
+import { survivalCohort } from './survivalCohort'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -70,4 +75,9 @@ export const HEURISTICS: Heuristic[] = [
   ambiguousDateLocale,
   autocorrelation,
   simpsonsParadox,
+  kmeansCluster,
+  pcaDominant,
+  adfStationarity,
+  stlSeasonality,
+  survivalCohort,
 ]

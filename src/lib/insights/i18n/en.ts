@@ -245,6 +245,48 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
           .join(', ')}.`,
         suggestion: 'Analyse per group',
       }
+    case 'kmeans_cluster': {
+      const cols = data.columns.map(lbl).join(' × ')
+      return {
+        title: `${cols} reveal ${data.k} natural clusters (silhouette ${data.silhouette.toFixed(2)})`,
+        body: `Cluster sizes: ${data.sizes.join(' · ')}. K-means across ${data.columns.length} numeric columns.`,
+        suggestion: 'Cross in scatter plot',
+      }
+    }
+    case 'pca_dominant': {
+      const cols = data.columns.map(lbl).join(', ')
+      const top2 = data.explainedVariance
+        .slice(0, 2)
+        .map((v) => pct(v))
+        .join(' + ')
+      return {
+        title: `Top two principal components explain ${pct(data.cumulative)} of variance`,
+        body: `PCA across ${cols} (n=${data.n}). PC1+PC2 = ${top2}. The first component dominates the dataset structure.`,
+      }
+    }
+    case 'adf_stationarity': {
+      return {
+        title: data.isStationary
+          ? `${lbl(data.metricColumn)} is stationary (ADF, p≈${data.pValue.toFixed(3)})`
+          : `${lbl(data.metricColumn)} is non-stationary — trend or unit root (ADF, p≈${data.pValue.toFixed(3)})`,
+        body: `Augmented Dickey-Fuller t=${data.tStatistic.toFixed(2)} across ${data.n} points.`,
+      }
+    }
+    case 'stl_seasonality':
+      return {
+        title: `${lbl(data.metricColumn)} shows period-${data.period} seasonality (strength ${data.strength.toFixed(2)})`,
+        body: `STL decomposition over ${data.n} points detects a cyclic pattern of length ${data.period}.`,
+      }
+    case 'survival_cohort': {
+      const top = data.cohorts
+        .slice(0, 3)
+        .map((c) => `${c.group}: median ${c.median.toFixed(0)} days`)
+        .join(' · ')
+      return {
+        title: `${lbl(data.groupColumn)}: time-to-event diverges across cohorts`,
+        body: `${top}. Simplified survival analysis (time-to-event per group).`,
+      }
+    }
   }
 }
 
