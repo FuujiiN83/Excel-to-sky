@@ -64,9 +64,28 @@ export function DataTable({
   const [colWidths, setColWidths] = useState<Record<string, number>>({})
   const [focused, setFocused] = useState<{ row: number; col: number }>({ row: 0, col: 0 })
   const [showColPicker, setShowColPicker] = useState(false)
+  // Column ordering (#41) — initialised from the source column order, mutated
+  // by drag-and-drop on the headers. Pinned columns (#50) always render first.
+  const [order, setOrder] = useState<string[]>(() => dataset.columns.map((c) => c.key))
+  const [pinned, setPinned] = useState<Set<string>>(new Set())
+  // Row selection (#56) — opt-in via a toolbar checkbox; when enabled a
+  // leading checkbox column is rendered and bulk actions appear above the
+  // table.
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [savedViewName, setSavedViewName] = useState<string>('')
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const [scrollTop, setScrollTop] = useState(0)
   const [viewportH, setViewportH] = useState(0)
+
+  // When the dataset identity changes (different file), reset ordering /
+  // pinning / selection — those reference column keys that may not exist.
+  useEffect(() => {
+    setOrder(dataset.columns.map((c) => c.key))
+    setPinned(new Set())
+    setSelected(new Set())
+    setSelectionMode(false)
+  }, [dataset.id, dataset.columns])
 
   // Recalculate viewport height on mount + resize so virtualization picks the
   // right window of rows. Falls back to 480px if the ref isn't ready yet.
@@ -92,10 +111,21 @@ export function DataTable({
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const visibleColumns = useMemo(
-    () => dataset.columns.filter((c) => !hiddenCols.has(c.key)),
-    [dataset.columns, hiddenCols],
-  )
+  const visibleColumns = useMemo(() => {
+    // Honour custom order, then float pinned columns to the front.
+    const byKey = new Map(dataset.columns.map((c) => [c.key, c]))
+    const ordered = order
+      .map((k) => byKey.get(k))
+      .filter((c): c is (typeof dataset.columns)[number] => !!c)
+    // Catch any new columns that appeared after a re-upload and weren't in order.
+    for (const c of dataset.columns) {
+      if (!order.includes(c.key)) ordered.push(c)
+    }
+    const live = ordered.filter((c) => !hiddenCols.has(c.key))
+    const pinnedCols = live.filter((c) => pinned.has(c.key))
+    const rest = live.filter((c) => !pinned.has(c.key))
+    return [...pinnedCols, ...rest]
+  }, [dataset.columns, hiddenCols, order, pinned])
 
   // Cache per-column null count for the header tag (#59).
   const nullCounts = useMemo(() => {
@@ -296,6 +326,44 @@ export function DataTable({
           setGlobalFilter('')
         }}
         hasFilters={globalFilter.length > 0 || Object.values(colFilters).some((v) => v.length > 0)}
+        selectionMode={selectionMode}
+        onToggleSelectionMode={() => {
+          setSelectionMode((m) => !m)
+          setSelected(new Set())
+        }}
+        selectedCount={selected.size}
+        onExportSelected={() => exportSelectedRowsAsCsv(dataset, visibleColumns, selected)}
+        onClearSelection={() => setSelected(new Set())}
+        savedViews={loadSavedViews(dataset.id)}
+        savedViewName={savedViewName}
+        onSaveCurrentView={(name) => {
+          const view = {
+            name,
+            order,
+            hiddenCols: Array.from(hiddenCols),
+            pinned: Array.from(pinned),
+            sorts,
+            colFilters,
+            globalFilter,
+          }
+          writeSavedView(dataset.id, view)
+          setSavedViewName(name)
+        }}
+        onLoadView={(name) => {
+          const v = readSavedView(dataset.id, name)
+          if (!v) return
+          setOrder(v.order)
+          setHiddenCols(new Set(v.hiddenCols))
+          setPinned(new Set(v.pinned))
+          setSorts(v.sorts)
+          setColFilters(v.colFilters)
+          setGlobalFilter(v.globalFilter)
+          setSavedViewName(name)
+        }}
+        onDeleteView={(name) => {
+          removeSavedView(dataset.id, name)
+          if (savedViewName === name) setSavedViewName('')
+        }}
       />
       {chipValues.length > 0 && chipColumn && (
         <QuickFilterChips
@@ -339,11 +407,42 @@ export function DataTable({
             }}
           >
             <tr>
+              {selectionMode && (
+                <th
+                  scope="col"
+                  style={{
+                    width: 36,
+                    background: 'var(--surface)',
+                    borderBottom: '1px solid var(--border-strong)',
+                    borderRight: '1px solid var(--border)',
+                    padding: '8px 10px',
+                    textAlign: 'center',
+                    position: 'sticky',
+                    top: 0,
+                    left: 0,
+                    zIndex: 4,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    aria-label="Seleccionar todas"
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        // Select every currently-filtered row.
+                        setSelected(new Set(visibleRows))
+                      } else {
+                        setSelected(new Set())
+                      }
+                    }}
+                  />
+                </th>
+              )}
               {showRowNum && (
                 <th
                   scope="col"
                   style={{
-                    ...stickyFirstCol(true),
+                    ...stickyFirstCol(!selectionMode),
+                    left: selectionMode ? 36 : 0,
                     width: ROWNUM_COL_WIDTH,
                     background: 'var(--surface)',
                     borderBottom: '1px solid var(--border-strong)',
@@ -355,6 +454,9 @@ export function DataTable({
                     fontFamily: 'var(--font-mono, monospace)',
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 4,
                   }}
                 >
                   #
@@ -362,16 +464,38 @@ export function DataTable({
               )}
               {visibleColumns.map((col, i) => {
                 const isFirst = !showRowNum && i === 0
+                const isPinned = pinned.has(col.key)
                 const sort = sorts.find((s) => s.column === col.key)
                 return (
                   <th
                     key={col.key}
                     scope="col"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', col.key)
+                      e.dataTransfer.effectAllowed = 'move'
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      e.dataTransfer.dropEffect = 'move'
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      const src = e.dataTransfer.getData('text/plain')
+                      if (!src || src === col.key) return
+                      setOrder((prev) => {
+                        const out = prev.filter((k) => k !== src)
+                        const idx = out.indexOf(col.key)
+                        if (idx < 0) return [...out, src]
+                        out.splice(idx, 0, src)
+                        return out
+                      })
+                    }}
                     aria-sort={sort ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
                     style={{
-                      ...stickyFirstCol(isFirst),
+                      ...stickyFirstCol(isFirst || isPinned),
                       width: widthOf(col),
-                      background: 'var(--surface)',
+                      background: isPinned ? 'rgba(77,158,250,0.04)' : 'var(--surface)',
                       borderBottom: '1px solid var(--border-strong)',
                       borderRight: '1px solid var(--border)',
                       padding: '8px 10px',
@@ -379,34 +503,68 @@ export function DataTable({
                       verticalAlign: 'top',
                       position: 'sticky',
                       top: 0,
-                      zIndex: isFirst ? 4 : 3,
+                      zIndex: isFirst || isPinned ? 4 : 3,
                     }}
                   >
-                    <button
-                      type="button"
-                      onClick={(e) => toggleSort(col.key, e.shiftKey)}
-                      title={`Ordenar por ${col.label}${sort ? ` (${sort.dir})` : ''}. Shift-click para multi-orden.`}
+                    <div
                       style={{
-                        background: 'transparent',
-                        border: 'none',
-                        padding: 0,
-                        color: 'var(--ink)',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        display: 'inline-flex',
+                        display: 'flex',
                         alignItems: 'center',
+                        justifyContent: 'space-between',
                         gap: 4,
                       }}
                     >
-                      {col.label}
-                      {sort && (
-                        <span style={{ color: 'var(--sky)', fontSize: 10 }}>
-                          {sort.dir === 'asc' ? '▲' : '▼'}
-                        </span>
-                      )}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={(e) => toggleSort(col.key, e.shiftKey)}
+                        title={`Ordenar por ${col.label}${sort ? ` (${sort.dir})` : ''}. Shift-click para multi-orden.`}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          padding: 0,
+                          color: 'var(--ink)',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        {col.label}
+                        {sort && (
+                          <span style={{ color: 'var(--sky)', fontSize: 10 }}>
+                            {sort.dir === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPinned((prev) => {
+                            const next = new Set(prev)
+                            if (next.has(col.key)) next.delete(col.key)
+                            else next.add(col.key)
+                            return next
+                          })
+                        }
+                        title={isPinned ? 'Quitar pin' : 'Fijar a la izquierda'}
+                        aria-pressed={isPinned}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: isPinned ? 'var(--sky)' : 'var(--muted)',
+                          padding: 0,
+                          fontSize: 11,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {isPinned ? '📌' : '📍'}
+                      </button>
+                    </div>
                     <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>
                       {col.type}
                       {(nullCounts.get(col.key) ?? 0) > 0 && (
@@ -444,21 +602,61 @@ export function DataTable({
                 full virtual list. The middle slice is the actual rendered window. */}
             {offsetY > 0 && (
               <tr aria-hidden style={{ height: offsetY }}>
-                <td colSpan={visibleColumns.length + (showRowNum ? 1 : 0)} />
+                <td
+                  colSpan={visibleColumns.length + (showRowNum ? 1 : 0) + (selectionMode ? 1 : 0)}
+                />
               </tr>
             )}
             {slice.map((rowIdx, sliceI) => {
               const isFocused = focused.row === sliceI + startIdx
+              const isSelected = selected.has(rowIdx)
               return (
                 <tr
                   key={rowIdx}
-                  style={{ background: isFocused ? 'rgba(77,158,250,0.06)' : undefined }}
+                  style={{
+                    background: isSelected
+                      ? 'rgba(125,227,200,0.08)'
+                      : isFocused
+                        ? 'rgba(77,158,250,0.06)'
+                        : undefined,
+                  }}
                 >
+                  {selectionMode && (
+                    <td
+                      style={{
+                        width: 36,
+                        height: ROW_HEIGHT,
+                        background: 'var(--surface)',
+                        borderBottom: '1px solid var(--border)',
+                        borderRight: '1px solid var(--border)',
+                        padding: '0 10px',
+                        textAlign: 'center',
+                        position: 'sticky',
+                        left: 0,
+                        zIndex: 1,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          setSelected((prev) => {
+                            const next = new Set(prev)
+                            if (e.target.checked) next.add(rowIdx)
+                            else next.delete(rowIdx)
+                            return next
+                          })
+                        }}
+                        aria-label={`Seleccionar fila ${rowIdx + 1}`}
+                      />
+                    </td>
+                  )}
                   {showRowNum && (
                     <td
                       scope="row"
                       style={{
-                        ...stickyFirstCol(true),
+                        ...stickyFirstCol(!selectionMode),
+                        left: selectionMode ? 36 : 0,
                         width: ROWNUM_COL_WIDTH,
                         height: ROW_HEIGHT,
                         background: isFocused ? 'rgba(77,158,250,0.06)' : 'var(--surface)',
@@ -514,7 +712,9 @@ export function DataTable({
             })}
             {totalRows > endIdx && (
               <tr aria-hidden style={{ height: (totalRows - endIdx) * ROW_HEIGHT }}>
-                <td colSpan={visibleColumns.length + (showRowNum ? 1 : 0)} />
+                <td
+                  colSpan={visibleColumns.length + (showRowNum ? 1 : 0) + (selectionMode ? 1 : 0)}
+                />
               </tr>
             )}
           </tbody>
@@ -551,6 +751,16 @@ interface ToolbarProps {
   sourceRows: number
   onClearFilters: () => void
   hasFilters: boolean
+  selectionMode: boolean
+  onToggleSelectionMode: () => void
+  selectedCount: number
+  onExportSelected: () => void
+  onClearSelection: () => void
+  savedViews: SavedTableView[]
+  savedViewName: string
+  onSaveCurrentView: (name: string) => void
+  onLoadView: (name: string) => void
+  onDeleteView: (name: string) => void
 }
 
 function Toolbar(props: ToolbarProps): JSX.Element {
@@ -685,6 +895,67 @@ function Toolbar(props: ToolbarProps): JSX.Element {
           Limpiar filtros
         </button>
       )}
+      <label
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 12,
+          color: 'var(--ink-2)',
+          cursor: 'pointer',
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={props.selectionMode}
+          onChange={props.onToggleSelectionMode}
+        />
+        Seleccionar filas
+      </label>
+      {props.selectionMode && props.selectedCount > 0 && (
+        <>
+          <span style={{ fontSize: 12, color: 'var(--ink)' }}>
+            {props.selectedCount} seleccionada{props.selectedCount === 1 ? '' : 's'}
+          </span>
+          <button
+            type="button"
+            onClick={props.onExportSelected}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--border-strong)',
+              color: 'var(--ink-2)',
+              padding: '4px 10px',
+              fontSize: 12,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Exportar CSV
+          </button>
+          <button
+            type="button"
+            onClick={props.onClearSelection}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--muted)',
+              padding: '4px 8px',
+              fontSize: 12,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Borrar selección
+          </button>
+        </>
+      )}
+      <SavedViewMenu
+        views={props.savedViews}
+        activeName={props.savedViewName}
+        onSave={props.onSaveCurrentView}
+        onLoad={props.onLoadView}
+        onDelete={props.onDeleteView}
+      />
     </div>
   )
 }
@@ -769,4 +1040,221 @@ function ResizeHandle({ onStart }: ResizeHandleProps): JSX.Element {
       }}
     />
   )
+}
+
+// ---------- Saved views (#43) ----------
+
+interface SavedTableView {
+  name: string
+  order: string[]
+  hiddenCols: string[]
+  pinned: string[]
+  sorts: SortKey[]
+  colFilters: Record<string, string>
+  globalFilter: string
+}
+
+const VIEW_STORAGE_PREFIX = 'ets-table-views-v1'
+
+function viewKey(datasetId: string): string {
+  return `${VIEW_STORAGE_PREFIX}:${datasetId}`
+}
+
+function loadSavedViews(datasetId: string): SavedTableView[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem(viewKey(datasetId))
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(
+      (v): v is SavedTableView => typeof (v as SavedTableView)?.name === 'string',
+    )
+  } catch {
+    return []
+  }
+}
+
+function writeSavedView(datasetId: string, view: SavedTableView): void {
+  if (typeof window === 'undefined') return
+  try {
+    const all = loadSavedViews(datasetId).filter((v) => v.name !== view.name)
+    all.push(view)
+    window.localStorage.setItem(viewKey(datasetId), JSON.stringify(all))
+  } catch {
+    // ignore
+  }
+}
+
+function readSavedView(datasetId: string, name: string): SavedTableView | null {
+  return loadSavedViews(datasetId).find((v) => v.name === name) ?? null
+}
+
+function removeSavedView(datasetId: string, name: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    const all = loadSavedViews(datasetId).filter((v) => v.name !== name)
+    window.localStorage.setItem(viewKey(datasetId), JSON.stringify(all))
+  } catch {
+    // ignore
+  }
+}
+
+interface SavedViewMenuProps {
+  views: SavedTableView[]
+  activeName: string
+  onSave: (name: string) => void
+  onLoad: (name: string) => void
+  onDelete: (name: string) => void
+}
+
+function SavedViewMenu({
+  views,
+  activeName,
+  onSave,
+  onLoad,
+  onDelete,
+}: SavedViewMenuProps): JSX.Element {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          background: 'transparent',
+          border: '1px solid var(--border-strong)',
+          color: 'var(--ink-2)',
+          padding: '4px 10px',
+          fontSize: 12,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}
+      >
+        Vistas{activeName ? ` · ${activeName}` : ''} ▾
+      </button>
+      {open && (
+        <div
+          role="menu"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            zIndex: 60,
+            minWidth: 220,
+            background: 'var(--surface)',
+            border: '1px solid var(--border-strong)',
+            padding: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+          }}
+        >
+          {views.map((v) => (
+            <div
+              key={v.name}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  onLoad(v.name)
+                  setOpen(false)
+                }}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--ink)',
+                  fontSize: 12,
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {v.name}
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(v.name)}
+                title="Eliminar"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--coral, #F87171)',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  padding: '0 4px',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          {views.length === 0 && (
+            <span style={{ fontSize: 11, color: 'var(--muted)' }}>Sin vistas guardadas</span>
+          )}
+          <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '4px 0' }} />
+          <button
+            type="button"
+            onClick={() => {
+              const name = window.prompt('Nombre de la vista:')?.trim()
+              if (name) {
+                onSave(name)
+                setOpen(false)
+              }
+            }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--sky)',
+              fontSize: 12,
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: 'inherit',
+            }}
+          >
+            + Guardar vista actual
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------- Selected-rows CSV export (#56) ----------
+
+function exportSelectedRowsAsCsv(
+  dataset: Dataset,
+  visibleColumns: ReadonlyArray<Dataset['columns'][number]>,
+  selected: Set<number>,
+): void {
+  if (selected.size === 0) return
+  const escape = (v: CellValue): string => {
+    if (v == null) return ''
+    const s = String(v)
+    return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  const header = visibleColumns.map((c) => escape(c.label)).join(',')
+  const rows: string[] = [header]
+  for (const idx of Array.from(selected).sort((a, b) => a - b)) {
+    const row = dataset.rows[idx]
+    if (!row) continue
+    rows.push(visibleColumns.map((c) => escape(row[c.key] ?? null)).join(','))
+  }
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `seleccion-${dataset.id}-${selected.size}-filas.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
