@@ -27,6 +27,15 @@ export type FindingType =
   | 'benford'
   | 'chi_square_independence'
   | 'mann_kendall_trend'
+  | 'anova'
+  | 'ks_two_sample'
+  | 'pettitt_changepoint'
+  | 'boolean_imbalance'
+  | 'whitespace_string'
+  | 'mixed_type_column'
+  | 'ambiguous_date_locale'
+  | 'autocorrelation'
+  | 'simpsons_paradox'
 
 export type Severity = 'critical' | 'important' | 'note' | 'info'
 
@@ -213,6 +222,85 @@ export type FindingData =
       tau: number
       direction: 'rising' | 'falling' | 'flat'
       n: number
+    }
+  | {
+      kind: 'anova'
+      groupColumn: string
+      metricColumn: string
+      f: number
+      dfBetween: number
+      dfWithin: number
+      groups: number
+      pValue: number
+      etaSquared: number
+    }
+  | {
+      kind: 'ks_two_sample'
+      groupColumn: string
+      metricColumn: string
+      groupA: string
+      groupB: string
+      d: number
+      nA: number
+      nB: number
+      pValue: number
+    }
+  | {
+      kind: 'pettitt_changepoint'
+      timeColumn: string
+      metricColumn: string
+      index: number
+      timestamp: number
+      ks: number
+      pValue: number
+      meanBefore: number
+      meanAfter: number
+    }
+  | {
+      kind: 'boolean_imbalance'
+      column: string
+      trueCount: number
+      falseCount: number
+      total: number
+      baseRate: number
+    }
+  | {
+      kind: 'whitespace_string'
+      column: string
+      count: number
+      pct: number
+      sample: string[]
+    }
+  | {
+      kind: 'mixed_type_column'
+      column: string
+      declaredType: string
+      mismatchCount: number
+      mismatchPct: number
+      sample: { record: number; value: string }[]
+    }
+  | {
+      kind: 'ambiguous_date_locale'
+      column: string
+      bothCount: number
+      total: number
+      sample: string[]
+    }
+  | {
+      kind: 'autocorrelation'
+      timeColumn: string
+      metricColumn: string
+      lag: number
+      r: number
+      n: number
+    }
+  | {
+      kind: 'simpsons_paradox'
+      groupColumn: string
+      xColumn: string
+      yColumn: string
+      globalSlope: number
+      groupSlopes: { group: string; slope: number; n: number }[]
     }
 
 export interface Finding {
