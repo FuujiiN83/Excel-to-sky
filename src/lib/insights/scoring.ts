@@ -30,6 +30,15 @@ const ACTIONABILITY: Record<FindingType, number> = {
   benford: 0.6,
   chi_square_independence: 0.7,
   mann_kendall_trend: 0.75,
+  anova: 0.8,
+  ks_two_sample: 0.7,
+  pettitt_changepoint: 0.85,
+  boolean_imbalance: 0.5,
+  whitespace_string: 0.6,
+  mixed_type_column: 0.8,
+  ambiguous_date_locale: 0.8,
+  autocorrelation: 0.6,
+  simpsons_paradox: 0.95,
 }
 
 export function computeSignificance(f: Finding): number {
@@ -102,6 +111,24 @@ export function computeSignificance(f: Finding): number {
       return Math.min(1, f.data.cramersV)
     case 'mann_kendall_trend':
       return Math.min(1, Math.abs(f.data.tau))
+    case 'anova':
+      return Math.min(1, f.data.etaSquared * 2)
+    case 'ks_two_sample':
+      return Math.min(1, f.data.d * 1.5)
+    case 'pettitt_changepoint':
+      return Math.min(1, Math.max(0, 1 - f.data.pValue))
+    case 'boolean_imbalance':
+      return Math.min(1, Math.abs(f.data.baseRate - 0.5) * 2)
+    case 'whitespace_string':
+      return Math.min(1, f.data.pct * 2)
+    case 'mixed_type_column':
+      return Math.min(1, f.data.mismatchPct * 4)
+    case 'ambiguous_date_locale':
+      return Math.min(1, (f.data.bothCount / Math.max(1, f.data.total)) * 2)
+    case 'autocorrelation':
+      return Math.min(1, Math.abs(f.data.r))
+    case 'simpsons_paradox':
+      return 1
   }
 }
 

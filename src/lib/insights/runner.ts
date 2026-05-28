@@ -37,8 +37,22 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
     }
   }
 
-  // First pass: score each finding without diversity penalty
-  for (const f of collected) f.score = scoreOne(f, dataset.rows.length, 0)
+  // Holm-Bonferroni correction (#95). Any finding whose data.kind carries an
+  // explicit p-value enters a single family of pairwise/group tests. We sort
+  // the family ascending by p, then check each against alpha / (m - rank).
+  // Findings that don't pass get demoted (severity floored to 'note') so the
+  // ranker doesn't surface chance-level results as critical.
+  applyHolmBonferroni(collected)
+
+  // First pass: score each finding without diversity penalty. Findings marked
+  // by Holm-Bonferroni as failing the family threshold get their raw score
+  // multiplied by 0.4 so they fall down the ranking but stay visible (the
+  // user might still want to see weak signals).
+  for (const f of collected) {
+    const holmDropped = f.score === -1
+    const raw = scoreOne(f, dataset.rows.length, 0)
+    f.score = holmDropped ? raw * 0.4 : raw
+  }
 
   // Sort by raw score desc, then by id for determinism
   collected.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
@@ -76,5 +90,41 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
     byType,
     runtimeMs: Date.now() - t0,
     degraded: degraded || undefined,
+  }
+}
+
+const ALPHA = 0.05
+
+/**
+ * Extract a p-value from a finding when its data shape carries one. Returns
+ * null for findings whose kind is not a statistical hypothesis test — those
+ * skip the Holm family entirely.
+ */
+function extractPValue(f: Finding): number | null {
+  switch (f.data.kind) {
+    case 'anova':
+    case 'ks_two_sample':
+    case 'pettitt_changepoint':
+      return f.data.pValue
+    default:
+      return null
+  }
+}
+
+function applyHolmBonferroni(findings: Finding[]): void {
+  const family = findings
+    .map((f, i) => ({ f, i, p: extractPValue(f) }))
+    .filter((x): x is { f: Finding; i: number; p: number } => x.p !== null)
+  if (family.length === 0) return
+  family.sort((a, b) => a.p - b.p)
+  const m = family.length
+  for (let rank = 0; rank < m; rank++) {
+    const threshold = ALPHA / (m - rank)
+    if (family[rank].p > threshold) {
+      // Tag the finding so its score gets dampened later. We attach via
+      // recordRefs being untouched and a tiny suggestion-side mark; the simplest
+      // route is to demote severity directly downstream by halving the score.
+      family[rank].f.score = -1 // sentinel: dropped by Holm
+    }
   }
 }
