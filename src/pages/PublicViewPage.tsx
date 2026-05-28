@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import type { Column, Dataset } from '../types/dataset'
 import { DashboardPage } from './DashboardPage'
+import { installOGImage } from '../lib/ogImage'
 
 interface PublicViewPageProps {
   dataset: Dataset
@@ -9,6 +11,14 @@ interface PublicViewPageProps {
 
 export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
   const { dataset, onColumnClick, onExit } = props
+
+  // Stamp a canvas-rendered 1200×630 OG card into the live document meta
+  // tags (#155). Doesn't help server-side crawlers — they read the static
+  // /og-default.svg — but it lets browser-side "share to X" buttons pick up
+  // a dataset-specific image when the user is already viewing the page.
+  useEffect(() => {
+    void installOGImage(dataset)
+  }, [dataset])
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -30,8 +40,7 @@ export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
               style={{
                 width: 24,
                 height: 24,
-                background:
-                  'linear-gradient(155deg, #2E6BFF 0%, #8B5CF6 60%, #FF7159 100%)',
+                background: 'linear-gradient(155deg, #2E6BFF 0%, #8B5CF6 60%, #FF7159 100%)',
               }}
             />
             <span
@@ -60,7 +69,6 @@ export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
               ← Volver al editor
             </button>
             <button
-              
               style={{
                 background: 'var(--ink)',
                 color: 'var(--bg)',

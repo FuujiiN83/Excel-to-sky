@@ -220,7 +220,7 @@ export default function App(): JSX.Element {
   if (isEmbed) {
     return (
       <div style={{ minHeight: '100vh' }}>
-        <main id="main-content">
+        <main id="main-content" key={route.name} className="ets-route-enter">
           <Suspense fallback={<RouteFallback />}>
             <PublicViewPage dataset={dataset} onColumnClick={() => {}} onExit={() => {}} />
           </Suspense>
@@ -243,7 +243,7 @@ export default function App(): JSX.Element {
         <a href="#main-content" className="ets-skip-link">
           Saltar al contenido
         </a>
-        <div id="main-content">
+        <div id="main-content" key={route.name} className="ets-route-enter">
           <Suspense fallback={<RouteFallback />}>
             {route.name === 'landing' && <LandingPage onNav={(n) => nav(n as RouteName)} />}
             {route.name === 'faq' && <FaqPage onNav={(n) => nav(n as RouteName)} />}
@@ -272,7 +272,7 @@ export default function App(): JSX.Element {
       {isUpload ? (
         <>
           <TopBar current={null} onNav={() => {}} dataset={null} hideNav />
-          <main id="main-content">
+          <main id="main-content" key={route.name} className="ets-route-enter">
             <Suspense fallback={<RouteFallback />}>
               <UploadPage
                 onParsed={async (ds) => {
@@ -313,7 +313,7 @@ export default function App(): JSX.Element {
           </main>
         </>
       ) : isPublic ? (
-        <main id="main-content">
+        <main id="main-content" key={route.name} className="ets-route-enter">
           <Suspense fallback={<RouteFallback />}>
             <PublicViewPage
               dataset={dataset}
@@ -330,7 +330,7 @@ export default function App(): JSX.Element {
             dataset={dataset}
             onShare={settings.localOnly ? undefined : () => nav('share')}
           />
-          <main id="main-content">
+          <main id="main-content" key={route.name} className="ets-route-enter">
             <Suspense fallback={<RouteFallback />}>
               {route.name === 'dashboard' && (
                 <DashboardPage

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Excel to Sky">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07080B" />
+      <stop offset="100%" stop-color="#11141A" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4D9EFA" />
+      <stop offset="100%" stop-color="#7DE3C8" />
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0 H 0 V 48" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1" />
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#grid)" />
+
+  <!-- Top hairline + label -->
+  <rect x="80" y="80" width="48" height="1" fill="#4D9EFA" />
+  <text x="140" y="86" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="14" fill="#9CA3AF" letter-spacing="3">
+    EXCEL / SKY
+  </text>
+
+  <!-- Wordmark -->
+  <text x="80" y="260" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="120" font-weight="700" fill="#F4F6FB" letter-spacing="-3">
+    Tus hojas
+  </text>
+  <text x="80" y="380" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="120" font-weight="700" fill="#F4F6FB" letter-spacing="-3">
+    de cálculo,
+  </text>
+  <text x="80" y="500" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="120" font-weight="500" font-style="italic" fill="url(#accent)" letter-spacing="-3">
+    en otra liga.
+  </text>
+
+  <!-- Bottom strip -->
+  <text x="80" y="580" font-family="ui-monospace, monospace" font-size="18" fill="#6B7280" letter-spacing="2">
+    100% LOCAL  ·  SIN CUENTA  ·  EXCELTOSKY.COM
+  </text>
+</svg>

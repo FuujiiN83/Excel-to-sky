@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import QRCode from 'qrcode'
 import { createSharedDashboard } from '../lib/shareApi'
 import { saveLocalDashboard } from '../lib/localDb'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { pushToast } from '../lib/toast'
+import { detectPII, describeHit, redactDataset } from '../lib/pii'
 import type { Dataset } from '../types/dataset'
 
 interface SharePageProps {
@@ -17,7 +18,13 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
   const [link, setLink] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
+  const [redact, setRedact] = useState(false)
   const configured = isSupabaseConfigured()
+
+  // Scan once per dataset identity (#194). detectPII walks every text/category
+  // column so we don't want to redo it on every render.
+  const piiReport = useMemo(() => detectPII(dataset), [dataset])
+  const piiLabel = (key: string): string => dataset.columns.find((c) => c.key === key)?.label ?? key
 
   // Regenerate the QR every time the link changes (#164). Uses the local
   // qrcode lib so no API call is made.
@@ -56,7 +63,11 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
     setBusy(true)
     setError(null)
     try {
-      const { slug, deleteToken } = await createSharedDashboard(dataset)
+      // Auto-redact mode (#195): swap PII-flagged cells for opaque tokens
+      // before publishing. The local dashboard is untouched; only the copy
+      // that lands on Supabase is sanitised.
+      const payload = redact && piiReport.hits.length > 0 ? redactDataset(dataset) : dataset
+      const { slug, deleteToken } = await createSharedDashboard(payload)
       await saveLocalDashboard({ slug, name: dataset.label, deleteToken, owner: 'created' })
       setLink(`${window.location.origin}/d/${slug}`)
     } catch (err) {
@@ -80,13 +91,86 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
         </p>
       )}
 
+      {configured && !link && piiReport.hits.length > 0 && (
+        <div
+          style={{
+            marginTop: 24,
+            padding: 16,
+            border: '1px solid var(--coral, #F87171)',
+            background: 'rgba(248,113,113,0.06)',
+          }}
+          role="alert"
+        >
+          <div
+            style={{
+              fontSize: 10,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: 'var(--coral, #F87171)',
+              fontFamily: 'var(--font-mono, monospace)',
+            }}
+          >
+            Detectamos posible información personal
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.55, marginTop: 8 }}>
+            Antes de publicar este dashboard, revisa las columnas que parecen contener PII. Una vez
+            en el link público, cualquiera que lo abra verá estos valores.
+          </p>
+          <ul
+            style={{
+              listStyle: 'none',
+              padding: 0,
+              margin: '12px 0 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+            }}
+          >
+            {piiReport.hits.map((hit) => (
+              <li key={hit.column} style={{ fontSize: 12, color: 'var(--ink-2)' }}>
+                · {describeHit(hit, piiLabel(hit.column))}{' '}
+                <span
+                  className="font-mono"
+                  style={{ color: 'var(--muted)', fontSize: 11, marginLeft: 6 }}
+                >
+                  → ejemplo redactado: {hit.preview[0] ?? '—'}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <label
+            style={{
+              marginTop: 14,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              fontSize: 13,
+              color: 'var(--ink)',
+              cursor: 'pointer',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={redact}
+              onChange={(e) => setRedact(e.target.checked)}
+              style={{ accentColor: 'var(--sky)' }}
+            />
+            Redactar automáticamente antes de publicar (sustituir por tokens opacos)
+          </label>
+        </div>
+      )}
+
       {configured && !link && (
         <button
           onClick={handleShare}
           disabled={busy}
           className="mt-6 rounded bg-ink text-bg px-6 py-3 disabled:opacity-50"
         >
-          {busy ? 'Generando link…' : 'Crear link público'}
+          {busy
+            ? 'Generando link…'
+            : redact && piiReport.hits.length > 0
+              ? 'Crear link público (redactado)'
+              : 'Crear link público'}
         </button>
       )}
 

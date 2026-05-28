@@ -21,4 +21,12 @@ export default defineConfig({
   server: {
     // Vite already supports SPA fallback on dev. For preview/production, nginx handles it.
   },
+  build: {
+    // Sourcemap audit (#237). Hidden source maps land in dist/assets/*.js.map
+    // so the bundle stays auditable in error-tracking tools (Sentry, etc.)
+    // without leaking the //# sourceMappingURL comment to end-user bundles.
+    // Switch to true if you want the comment back (browser devtools become
+    // mappable out of the box).
+    sourcemap: 'hidden',
+  },
 })

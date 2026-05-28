@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { parseExcelFileWithMeta, fileSizeTier, WARN_FILE_BYTES } from '../lib/parser'
 import { friendlifyError, type FriendlyError } from '../lib/friendlyError'
 import { pushToast } from '../lib/toast'
 import type { Dataset } from '../types/dataset'
+import { readDatasetShape } from '../lib/lastShape'
+import { LastShapePreview } from './LastShapePreview'
 
 interface UploadDropzoneProps {
   onParsed: (dataset: Dataset) => void
@@ -19,6 +21,10 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
   const [busy, setBusy] = useState(false)
   const [hover, setHover] = useState(false)
   const [error, setError] = useState<FriendlyError | null>(null)
+  // Cached shape of the user's last dataset, used during busy state to render
+  // an optimistic skeleton preview (#186). Read once on mount; localStorage
+  // is module-stable so we don't need to react to changes mid-session.
+  const lastShape = useMemo(() => readDatasetShape(), [])
   // 0-1 progress reported by the worker (#11). Null while idle.
   const [progress, setProgress] = useState<{ ratio: number; label: string } | null>(null)
   // When set, the user is sitting on the sheet picker after a multi-sheet parse.
@@ -258,6 +264,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
             </p>
           </div>
         )}
+        {busy && lastShape && !picker && <LastShapePreview shape={lastShape} />}
         {!picker && !busy && (
           <p
             style={{
