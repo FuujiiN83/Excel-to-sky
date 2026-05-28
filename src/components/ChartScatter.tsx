@@ -1,4 +1,5 @@
 import type { Accent } from '../types/dataset'
+import { ChartEmptyState } from './ChartEmptyState'
 
 export interface ScatterPoint {
   x: number
@@ -82,8 +83,8 @@ export function ChartScatter({
   ariaLabel,
   regression = false,
   annotations,
-}: ChartScatterProps): JSX.Element | null {
-  if (!points || points.length === 0) return null
+}: ChartScatterProps): JSX.Element {
+  if (!points || points.length === 0) return <ChartEmptyState kind="scatter" height={height} />
   const xs = points.map((p) => p.x)
   const ys = points.map((p) => p.y)
   const xMin = Math.min(...xs)

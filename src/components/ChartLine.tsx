@@ -1,4 +1,5 @@
 import type { Accent } from '../types/dataset'
+import { ChartEmptyState } from './ChartEmptyState'
 
 export interface LinePoint {
   x: number | string
@@ -78,8 +79,8 @@ export function ChartLine({
   trendline = false,
   logScale = false,
   annotations,
-}: ChartLineProps): JSX.Element | null {
-  if (!points || points.length === 0) return null
+}: ChartLineProps): JSX.Element {
+  if (!points || points.length === 0) return <ChartEmptyState kind="line" height={height} />
   const ys = points.map((p) => p.y)
   // Log scale needs every value > 0. Silently fall back to linear when the
   // series contains zeros or negatives so the chart never blows up.

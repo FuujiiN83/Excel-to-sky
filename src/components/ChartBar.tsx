@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Accent } from '../types/dataset'
 import { fmtNumber } from '../lib/stats'
+import { ChartEmptyState } from './ChartEmptyState'
 
 export interface Bar {
   label: string
@@ -81,6 +82,7 @@ export function ChartBar({
   logScale = false,
 }: ChartBarProps): JSX.Element {
   const [sort, setSort] = useState<BarSort>('incoming')
+  if (!bars || bars.length === 0) return <ChartEmptyState kind="bar" height={height} />
   const sorted = applySort(bars, sort)
   const visible = limit ? sorted.slice(0, limit) : sorted
   const stroke = `var(--${accent})`
