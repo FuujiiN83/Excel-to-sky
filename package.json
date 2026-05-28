@@ -16,6 +16,9 @@
     "format:check": "prettier --check .",
     "bundle:check": "node scripts/check-bundle-size.mjs --max-route=160",
     "changelog": "node scripts/generate-changelog.mjs",
+    "docs:api": "typedoc",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build -o storybook-static",
     "prepare": "husky"
   },
   "dependencies": {
