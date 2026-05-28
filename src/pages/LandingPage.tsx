@@ -1,4 +1,5 @@
 import { Footer } from '../components/Footer'
+import { HeroDemoVideo } from '../components/HeroDemoVideo'
 
 interface LandingPageProps {
   onNav: (route: string) => void
@@ -239,7 +240,7 @@ export function LandingPage({ onNav }: LandingPageProps): JSX.Element {
           }}
         >
           <BackgroundGrid />
-          <AnimatedHeroDemo />
+          <HeroDemoVideo fallback={<AnimatedHeroDemo />} />
           <CornerTicks position="tr" />
           <CornerTicks position="br" />
         </div>

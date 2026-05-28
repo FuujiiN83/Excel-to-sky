@@ -1,7 +1,7 @@
 import { openDB, type IDBPDatabase } from 'idb'
 import type { ColumnType } from '../types/dataset'
 
-export type Theme = 'dark' | 'light' | 'high-contrast'
+export type Theme = 'dark' | 'light' | 'system' | 'high-contrast'
 export type NumberLocale = 'es-ES' | 'en-US' | 'de-DE' | 'fr-FR' | 'pt-PT'
 export type DateFormat = 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd'
 export type UiLocale = 'es' | 'en'
@@ -93,7 +93,7 @@ function mergeDefaults(stored: unknown): Settings {
 }
 
 function validTheme(v: unknown): Theme | undefined {
-  return v === 'dark' || v === 'light' || v === 'high-contrast' ? v : undefined
+  return v === 'dark' || v === 'light' || v === 'system' || v === 'high-contrast' ? v : undefined
 }
 function validUiLocale(v: unknown): UiLocale | undefined {
   return v === 'es' || v === 'en' ? v : undefined

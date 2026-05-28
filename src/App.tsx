@@ -5,6 +5,7 @@ import { CookieBanner } from './components/CookieBanner'
 import { NetworkErrorBanner } from './components/NetworkErrorBanner'
 import { ShortcutCheatsheet } from './components/ShortcutCheatsheet'
 import { ChangelogModal } from './components/ChangelogModal'
+import { GuidedTour } from './components/GuidedTour'
 import { Toaster } from './components/Toaster'
 import { confirm, ConfirmModalHost } from './components/ConfirmModal'
 import { Skeleton } from './components/Skeleton'
@@ -396,6 +397,7 @@ export default function App(): JSX.Element {
       <NetworkErrorBanner />
       <ShortcutCheatsheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <ChangelogModal />
+      {isUpload && <GuidedTour />}
       <Toaster />
       <ConfirmModalHost />
     </div>
