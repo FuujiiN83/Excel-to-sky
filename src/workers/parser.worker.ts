@@ -3,7 +3,13 @@ import { inferColumnTypeDetailed, detectSubtype } from '../lib/typeDetection'
 import type { Dataset, Column, CellValue, ColumnType } from '../types/dataset'
 
 export interface ParseRequest {
-  fileBuffer: ArrayBuffer
+  /** Raw bytes — set for binary formats (xlsx/ods) and small CSVs. */
+  fileBuffer?: ArrayBuffer
+  /**
+   * Already-decoded text — set when the caller streamed a large CSV directly
+   * (#10), bypassing the buffer copy. Either fileBuffer or fileText is set.
+   */
+  fileText?: string
   fileName: string
   /** Zero-based index into workbook.SheetNames. Defaults to 0 if omitted. */
   sheetIndex?: number
@@ -259,7 +265,7 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   // Reset the per-parse counter so a previous job's fixes don't leak into
   // the next one when the worker is re-used.
   mojibakeFixCount = 0
-  const { fileBuffer, fileName, sheetIndex: requestedIndex = 0 } = event.data
+  const { fileBuffer, fileText, fileName, sheetIndex: requestedIndex = 0 } = event.data
   postProgress('read', 0, 'Leyendo archivo…')
 
   // CSV / TSV / TXT files get a pre-decode pass so we can recover from
@@ -270,12 +276,20 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
 
   let wb: XLSX.WorkBook
   try {
-    if (isCsvLike) {
+    if (fileText !== undefined) {
+      // Streamed CSV path (#10): the main thread already decoded the file via
+      // a ReadableStream so the worker never holds both raw bytes and string.
+      const delim = detectCsvDelimiter(fileText)
+      wb = XLSX.read(fileText, { type: 'string', cellDates: true, FS: delim })
+    } else if (isCsvLike && fileBuffer) {
       const text = decodeCsvBuffer(fileBuffer)
       const delim = detectCsvDelimiter(text)
       wb = XLSX.read(text, { type: 'string', cellDates: true, FS: delim })
-    } else {
+    } else if (fileBuffer) {
       wb = XLSX.read(fileBuffer, { type: 'array', cellDates: true, codepage: 65001 })
+    } else {
+      post({ ok: false, phase: 'read', error: 'El parser no recibió ni bytes ni texto.' })
+      return
     }
   } catch (err) {
     post({
