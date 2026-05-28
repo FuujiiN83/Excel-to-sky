@@ -16,6 +16,15 @@ import { qualityScore } from './qualityScore'
 import { schemaSummary } from './schemaSummary'
 import { temporalCoverage } from './temporalCoverage'
 import { volumeContext } from './volumeContext'
+import { iqrOutlier } from './iqrOutlier'
+import { madOutlier } from './madOutlier'
+import { rankCorrelation } from './rankCorrelation'
+import { effectSize } from './effectSize'
+import { pareto } from './pareto'
+import { gini } from './gini'
+import { benford } from './benford'
+import { chiSquareIndependence } from './chiSquareIndependence'
+import { mannKendall } from './mannKendall'
 
 export const HEURISTICS: Heuristic[] = [
   numericOutlier,
@@ -34,4 +43,13 @@ export const HEURISTICS: Heuristic[] = [
   schemaSummary,
   temporalCoverage,
   volumeContext,
+  iqrOutlier,
+  madOutlier,
+  rankCorrelation,
+  effectSize,
+  pareto,
+  gini,
+  benford,
+  chiSquareIndependence,
+  mannKendall,
 ]
