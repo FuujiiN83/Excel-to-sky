@@ -16,6 +16,7 @@ interface DashboardPageProps {
   onCompare: () => void
   onShare: () => void
   onStory?: () => void
+  onSnapshots?: () => void
   isPublic?: boolean
 }
 
@@ -34,7 +35,7 @@ function naturalAccent(col: Column): Accent {
 }
 
 export function DashboardPage(props: DashboardPageProps): JSX.Element {
-  const { dataset, onColumnClick, onCompare, onShare, onStory, isPublic } = props
+  const { dataset, onColumnClick, onCompare, onShare, onStory, onSnapshots, isPublic } = props
   const { settings } = useSettings()
   const pickAccent = (col: Column): Accent => accentForPalette(settings.palette, naturalAccent(col))
 
@@ -190,6 +191,20 @@ export function DashboardPage(props: DashboardPageProps): JSX.Element {
                 }}
               >
                 Leer como historia
+              </button>
+            )}
+            {onSnapshots && (
+              <button
+                onClick={onSnapshots}
+                className="bg-surface border border-border"
+                style={{
+                  color: 'var(--ink-2)',
+                  padding: '10px 20px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                Snapshots
               </button>
             )}
             <ExportMenu dataset={dataset} />
