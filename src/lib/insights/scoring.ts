@@ -1,8 +1,21 @@
 // src/lib/insights/scoring.ts
-import type { Finding, FindingType, Severity } from './types'
+import type { Finding, FindingType, ScoringWeights, Severity } from './types'
 
-const WEIGHTS = { significance: 0.4, coverage: 0.25, actionability: 0.2, diversityPenalty: 0.15 }
-const MAX_RAW = WEIGHTS.significance + WEIGHTS.coverage + WEIGHTS.actionability // 0.85
+/**
+ * Default scoring weights. Callers may override the full set or any subset
+ * via AnalyzeOptions.weights (#107) — useful for the dev workbench and for
+ * future per-user preferences.
+ */
+export const DEFAULT_WEIGHTS: ScoringWeights = {
+  significance: 0.4,
+  coverage: 0.25,
+  actionability: 0.2,
+  diversityPenalty: 0.15,
+}
+
+export function resolveWeights(override?: Partial<ScoringWeights>): ScoringWeights {
+  return { ...DEFAULT_WEIGHTS, ...(override ?? {}) }
+}
 
 const ACTIONABILITY: Record<FindingType, number> = {
   numeric_outlier: 0.9,
@@ -39,6 +52,11 @@ const ACTIONABILITY: Record<FindingType, number> = {
   ambiguous_date_locale: 0.8,
   autocorrelation: 0.6,
   simpsons_paradox: 0.95,
+  kmeans_cluster: 0.8,
+  pca_dominant: 0.6,
+  adf_stationarity: 0.7,
+  stl_seasonality: 0.7,
+  survival_cohort: 0.75,
 }
 
 export function computeSignificance(f: Finding): number {
@@ -129,6 +147,16 @@ export function computeSignificance(f: Finding): number {
       return Math.min(1, Math.abs(f.data.r))
     case 'simpsons_paradox':
       return 1
+    case 'kmeans_cluster':
+      return Math.min(1, f.data.silhouette)
+    case 'pca_dominant':
+      return Math.min(1, f.data.cumulative)
+    case 'adf_stationarity':
+      return f.data.isStationary ? 0.3 : 0.85
+    case 'stl_seasonality':
+      return Math.min(1, f.data.strength)
+    case 'survival_cohort':
+      return 0.7
   }
 }
 
@@ -139,13 +167,19 @@ export function computeCoverage(f: Finding, rowCount: number): number {
   return Math.max(0.1, Math.min(1, refs / rowCount))
 }
 
-export function scoreOne(f: Finding, rowCount: number, diversityPenalty: number): number {
+export function scoreOne(
+  f: Finding,
+  rowCount: number,
+  diversityPenalty: number,
+  weights: ScoringWeights = DEFAULT_WEIGHTS,
+): number {
   const sig = computeSignificance(f)
   const cov = computeCoverage(f, rowCount)
   const act = ACTIONABILITY[f.type]
-  const raw = WEIGHTS.significance * sig + WEIGHTS.coverage * cov + WEIGHTS.actionability * act
-  const penalized = raw * (1 - WEIGHTS.diversityPenalty * diversityPenalty)
-  const score = penalized / MAX_RAW
+  const maxRaw = weights.significance + weights.coverage + weights.actionability || 1
+  const raw = weights.significance * sig + weights.coverage * cov + weights.actionability * act
+  const penalized = raw * (1 - weights.diversityPenalty * diversityPenalty)
+  const score = penalized / maxRaw
   return clamp(0, 1, score)
 }
 

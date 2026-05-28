@@ -4,6 +4,7 @@ import { SAMPLE_DATASETS } from '../samples'
 import { analyzeDataset, type InsightReport } from '../lib/insights'
 import { insightsToMarkdown } from '../lib/insights/markdown'
 import { pushToast } from '../lib/toast'
+import { ExplainPanel } from '../components/ExplainPanel'
 import type { Dataset } from '../types/dataset'
 
 export function InsightsWorkbench(): JSX.Element {
@@ -148,6 +149,7 @@ export function InsightsWorkbench(): JSX.Element {
                     → {f.suggestion}
                   </div>
                 )}
+                <ExplainPanel finding={f} />
               </div>
             ))}
           </Section>

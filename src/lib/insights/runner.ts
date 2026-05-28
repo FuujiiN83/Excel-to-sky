@@ -4,7 +4,7 @@ import type { AnalyzeOptions, Finding, FindingType, InsightReport } from './type
 import { buildContext } from './context'
 import { buildSummary } from './summary'
 import { HEURISTICS } from './heuristics/index'
-import { deriveSeverity, diversityPenaltyFor, scoreOne } from './scoring'
+import { deriveSeverity, diversityPenaltyFor, resolveWeights, scoreOne } from './scoring'
 import { setInsightsLocale } from './i18n'
 
 const DEFAULTS = { maxFindings: 25, minScore: 0.15 } as const
@@ -16,6 +16,7 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
   // Apply the caller-requested locale before any heuristic renders text.
   // Default ('es') matches historical behaviour.
   setInsightsLocale(options.locale === 'en' ? 'en' : 'es')
+  const weights = resolveWeights(options.weights)
   const ctx = buildContext(dataset)
   const summary = buildSummary(dataset, ctx)
 
@@ -50,7 +51,7 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
   // user might still want to see weak signals).
   for (const f of collected) {
     const holmDropped = f.score === -1
-    const raw = scoreOne(f, dataset.rows.length, 0)
+    const raw = scoreOne(f, dataset.rows.length, 0, weights)
     f.score = holmDropped ? raw * 0.4 : raw
   }
 
@@ -63,7 +64,7 @@ export function run(dataset: Dataset, options: Omit<AnalyzeOptions, 'signal'> = 
     const count = (typeCounter.get(f.type) ?? 0) + 1
     typeCounter.set(f.type, count)
     const penalty = diversityPenaltyFor(count)
-    f.score = scoreOne(f, dataset.rows.length, penalty)
+    f.score = scoreOne(f, dataset.rows.length, penalty, weights)
     f.severity = deriveSeverity(f.score)
   }
 

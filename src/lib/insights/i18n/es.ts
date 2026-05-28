@@ -245,6 +245,48 @@ export function render(data: FindingData, columnLabels: Record<string, string>):
           .join(', ')}.`,
         suggestion: 'Analizar por grupo',
       }
+    case 'kmeans_cluster': {
+      const cols = data.columns.map(lbl).join(' × ')
+      return {
+        title: `${cols} muestran ${data.k} grupos naturales (silueta ${data.silhouette.toFixed(2)})`,
+        body: `Tamaños de cluster: ${data.sizes.join(' · ')}. K-means sobre ${data.columns.length} columnas numéricas.`,
+        suggestion: 'Cruzar en scatter plot',
+      }
+    }
+    case 'pca_dominant': {
+      const cols = data.columns.map(lbl).join(', ')
+      const top2 = data.explainedVariance
+        .slice(0, 2)
+        .map((v) => pct(v))
+        .join(' + ')
+      return {
+        title: `Los dos componentes principales explican ${pct(data.cumulative)} de la varianza`,
+        body: `PCA sobre ${cols} (n=${data.n}). PC1+PC2 = ${top2}. El primer componente domina la estructura del dataset.`,
+      }
+    }
+    case 'adf_stationarity': {
+      return {
+        title: data.isStationary
+          ? `${lbl(data.metricColumn)} es estacionaria (ADF, p≈${data.pValue.toFixed(3)})`
+          : `${lbl(data.metricColumn)} no es estacionaria — hay tendencia o raíz unitaria (ADF, p≈${data.pValue.toFixed(3)})`,
+        body: `Test de Dickey-Fuller aumentado con t=${data.tStatistic.toFixed(2)} sobre ${data.n} puntos.`,
+      }
+    }
+    case 'stl_seasonality':
+      return {
+        title: `${lbl(data.metricColumn)} muestra estacionalidad de periodo ${data.period} (fuerza ${data.strength.toFixed(2)})`,
+        body: `Descomposición STL sobre ${data.n} puntos detecta un patrón cíclico de longitud ${data.period}.`,
+      }
+    case 'survival_cohort': {
+      const top = data.cohorts
+        .slice(0, 3)
+        .map((c) => `${c.group}: mediana ${c.median.toFixed(0)} días`)
+        .join(' · ')
+      return {
+        title: `${lbl(data.groupColumn)}: tiempos hasta evento divergentes por cohorte`,
+        body: `${top}. Análisis de supervivencia simplificado (tiempo hasta evento por grupo).`,
+      }
+    }
   }
 }
 
