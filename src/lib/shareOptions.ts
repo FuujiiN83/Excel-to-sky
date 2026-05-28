@@ -22,6 +22,12 @@ export interface ShareOptions {
   whiteLabel: string | null
   /** Whether to encode the current filter state in the share URL (#163). */
   encodeFilters: boolean
+  /**
+   * Optional password hash (#160). Salted FNV-1a — not cryptographically
+   * secure, but enough to gate casual access on a public link. The salt is
+   * the slug itself so a stolen hash isn't reusable across shares.
+   */
+  passwordHash: string | null
 }
 
 export const DEFAULT_SHARE_OPTIONS: ShareOptions = {
@@ -29,6 +35,18 @@ export const DEFAULT_SHARE_OPTIONS: ShareOptions = {
   readOnly: true,
   whiteLabel: null,
   encodeFilters: false,
+  passwordHash: null,
+}
+
+/** Salted hash. Visit-time password is checked against this value. */
+export function hashPassword(slug: string, password: string): string {
+  const input = `${slug}::${password}`
+  let h = 0x811c9dc5
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i)
+    h = Math.imul(h, 0x01000193) >>> 0
+  }
+  return h.toString(16).padStart(8, '0')
 }
 
 const STORAGE_PREFIX = 'ets-share-opts-v1'
@@ -52,6 +70,7 @@ export function loadShareOptions(slug: string): ShareOptions {
         typeof parsed.encodeFilters === 'boolean'
           ? parsed.encodeFilters
           : DEFAULT_SHARE_OPTIONS.encodeFilters,
+      passwordHash: typeof parsed.passwordHash === 'string' ? parsed.passwordHash : null,
     }
   } catch {
     return DEFAULT_SHARE_OPTIONS
