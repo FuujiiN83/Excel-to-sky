@@ -5,6 +5,12 @@ import { saveLocalDashboard } from '../lib/localDb'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { pushToast } from '../lib/toast'
 import { detectPII, describeHit, redactDataset } from '../lib/pii'
+import {
+  DEFAULT_SHARE_OPTIONS,
+  expiryDateString,
+  saveShareOptions,
+  type ShareTtl,
+} from '../lib/shareOptions'
 import type { Dataset } from '../types/dataset'
 
 interface SharePageProps {
@@ -19,6 +25,8 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
   const [error, setError] = useState<string | null>(null)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [redact, setRedact] = useState(false)
+  const [ttlDays, setTtlDays] = useState<ShareTtl>(DEFAULT_SHARE_OPTIONS.ttlDays)
+  const [whiteLabel, setWhiteLabel] = useState<string>('')
   const configured = isSupabaseConfigured()
 
   // Scan once per dataset identity (#194). detectPII walks every text/category
@@ -69,6 +77,13 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
       const payload = redact && piiReport.hits.length > 0 ? redactDataset(dataset) : dataset
       const { slug, deleteToken } = await createSharedDashboard(payload)
       await saveLocalDashboard({ slug, name: dataset.label, deleteToken, owner: 'created' })
+      // Persist per-slug share options locally (#159 white-label, #161 TTL).
+      saveShareOptions(slug, {
+        ttlDays,
+        readOnly: true,
+        whiteLabel: whiteLabel.trim() || null,
+        encodeFilters: false,
+      })
       setLink(`${window.location.origin}/d/${slug}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear el link.')
@@ -158,6 +173,91 @@ export function SharePage({ dataset, onBack, onOpenPublic }: SharePageProps): JS
             Redactar automáticamente antes de publicar (sustituir por tokens opacos)
           </label>
         </div>
+      )}
+
+      {configured && !link && (
+        <section
+          style={{
+            marginTop: 24,
+            padding: 16,
+            border: '1px solid var(--border)',
+            background: 'rgba(255,255,255,0.015)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: 'var(--muted)',
+              fontFamily: 'var(--font-mono, monospace)',
+            }}
+          >
+            Opciones del enlace
+          </div>
+          <label
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              fontSize: 13,
+              color: 'var(--ink)',
+            }}
+          >
+            <span>Caducidad</span>
+            <select
+              value={ttlDays}
+              onChange={(e) => setTtlDays(Number(e.target.value) as ShareTtl)}
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border-strong)',
+                color: 'var(--ink)',
+                padding: '6px 10px',
+                fontSize: 12,
+                fontFamily: 'inherit',
+                width: 240,
+              }}
+            >
+              <option value={7}>7 días</option>
+              <option value={30}>30 días</option>
+              <option value={90}>90 días (por defecto)</option>
+              <option value={365}>365 días</option>
+            </select>
+            <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+              Caduca el {expiryDateString(new Date().toISOString(), ttlDays)}. Recordatorio para ti
+              — el backend retira los enlaces automáticamente a los 90 días.
+            </span>
+          </label>
+          <label
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              fontSize: 13,
+              color: 'var(--ink)',
+            }}
+          >
+            <span>White-label (opcional)</span>
+            <input
+              type="text"
+              value={whiteLabel}
+              onChange={(e) => setWhiteLabel(e.target.value)}
+              maxLength={60}
+              placeholder="Tu marca o iniciales — reemplaza el pie de página"
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border-strong)',
+                color: 'var(--ink)',
+                padding: '6px 10px',
+                fontSize: 12,
+                fontFamily: 'inherit',
+              }}
+            />
+          </label>
+        </section>
       )}
 
       {configured && !link && (

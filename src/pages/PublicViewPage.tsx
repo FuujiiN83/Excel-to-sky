@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { Column, Dataset } from '../types/dataset'
 import { DashboardPage } from './DashboardPage'
 import { installOGImage } from '../lib/ogImage'
+import { loadShareOptions } from '../lib/shareOptions'
 
 interface PublicViewPageProps {
   dataset: Dataset
@@ -19,6 +20,16 @@ export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
   useEffect(() => {
     void installOGImage(dataset)
   }, [dataset])
+
+  // Load per-slug share options (#159 white-label). The slug is the last
+  // segment of the path; load once per mount.
+  const shareOptions = useMemo(() => {
+    if (typeof window === 'undefined') return null
+    const m = /^\/(d|embed)\/([A-Za-z0-9]{12})$/.exec(window.location.pathname)
+    if (!m) return null
+    return loadShareOptions(m[2])
+  }, [])
+  const whiteLabel = shareOptions?.whiteLabel ?? null
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -122,11 +133,22 @@ export function PublicViewPage(props: PublicViewPageProps): JSX.Element {
           fontSize: 12,
         }}
       >
-        Hecho con{' '}
-        <span className="text-ink-2" style={{ fontWeight: 600 }}>
-          Excel to Sky
-        </span>{' '}
-        · convierte tus hojas de cálculo en dashboards
+        {whiteLabel ? (
+          <>
+            Compartido por{' '}
+            <span className="text-ink-2" style={{ fontWeight: 600 }}>
+              {whiteLabel}
+            </span>
+          </>
+        ) : (
+          <>
+            Hecho con{' '}
+            <span className="text-ink-2" style={{ fontWeight: 600 }}>
+              Excel to Sky
+            </span>{' '}
+            · convierte tus hojas de cálculo en dashboards
+          </>
+        )}
       </div>
     </div>
   )
