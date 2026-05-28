@@ -8,13 +8,37 @@ import type {
 import { logError } from './errorLog'
 import { pushToast } from './toast'
 
-/** Hard limit — files above this are rejected upfront. */
+/** Hard limit for binary formats (xlsx/ods) — they need the full buffer. */
 export const MAX_FILE_BYTES = 20 * 1024 * 1024
+/**
+ * Hard limit for CSV / TSV / TXT — these go through the streaming reader
+ * (#10) so we can accept much bigger files without doubling memory.
+ */
+export const MAX_CSV_BYTES = 100 * 1024 * 1024
 /** Soft warning — files between this and MAX_FILE_BYTES parse but the UI warns. */
 export const WARN_FILE_BYTES = 10 * 1024 * 1024
+/**
+ * CSV files above this size are streamed via file.stream() + TextDecoderStream
+ * instead of being read whole via file.arrayBuffer(). The threshold is low
+ * enough to cover the bulk of "large" exports without paying the streaming
+ * setup cost for the trivially small ones.
+ */
+const STREAM_THRESHOLD = 5 * 1024 * 1024
 
-export function fileSizeTier(sizeBytes: number): 'ok' | 'warn' | 'reject' {
-  if (sizeBytes > MAX_FILE_BYTES) return 'reject'
+const CSV_EXTENSIONS = ['.csv', '.tsv', '.txt'] as const
+
+function isCsvLikeName(fileName: string): boolean {
+  const lower = fileName.toLowerCase()
+  return CSV_EXTENSIONS.some((ext) => lower.endsWith(ext))
+}
+
+function maxBytesFor(fileName: string): number {
+  return isCsvLikeName(fileName) ? MAX_CSV_BYTES : MAX_FILE_BYTES
+}
+
+export function fileSizeTier(sizeBytes: number, fileName = ''): 'ok' | 'warn' | 'reject' {
+  const limit = maxBytesFor(fileName)
+  if (sizeBytes > limit) return 'reject'
   if (sizeBytes > WARN_FILE_BYTES) return 'warn'
   return 'ok'
 }
@@ -78,8 +102,13 @@ export interface ParseExcelOptions {
   onProgress?: (event: { phase: ParsePhase; ratio: number; label: string }) => void
 }
 
+interface WorkerPayload {
+  fileBuffer?: ArrayBuffer
+  fileText?: string
+}
+
 function runParseWorker(
-  buffer: ArrayBuffer,
+  payload: WorkerPayload,
   fileName: string,
   sheetIndex: number | undefined,
   onProgress?: ParseExcelOptions['onProgress'],
@@ -129,8 +158,73 @@ function runParseWorker(
         ),
       )
     }
-    worker.postMessage({ fileBuffer: buffer, fileName, sheetIndex }, [buffer])
+    if (payload.fileBuffer) {
+      worker.postMessage({ fileBuffer: payload.fileBuffer, fileName, sheetIndex }, [
+        payload.fileBuffer,
+      ])
+    } else {
+      worker.postMessage({ fileText: payload.fileText, fileName, sheetIndex })
+    }
   })
+}
+
+/**
+ * Stream a File into a decoded string via TextDecoderStream (#10). This
+ * avoids the file.arrayBuffer() spike — the JS heap only ever holds the
+ * decoded text, not the raw bytes plus the decoded text. Progress events
+ * are emitted as bytes flow through so the upload bar advances smoothly.
+ *
+ * Falls back to the buffer path on browsers that don't expose file.stream
+ * or TextDecoderStream (older Safari / very old Firefox).
+ */
+async function streamFileToText(
+  file: File,
+  onProgress?: ParseExcelOptions['onProgress'],
+): Promise<string> {
+  const supportsStream =
+    typeof (file as File & { stream?: unknown }).stream === 'function' &&
+    typeof TextDecoderStream !== 'undefined'
+  if (!supportsStream) {
+    const buf = await file.arrayBuffer()
+    // Strip a UTF-8 BOM and try UTF-8 → fall back to Latin-1.
+    const view = new Uint8Array(buf)
+    const startsWithBom =
+      view.length >= 3 && view[0] === 0xef && view[1] === 0xbb && view[2] === 0xbf
+    const slice = startsWithBom ? view.subarray(3) : view
+    try {
+      return new TextDecoder('utf-8', { fatal: true }).decode(slice)
+    } catch {
+      return new TextDecoder('windows-1252').decode(slice)
+    }
+  }
+
+  const total = file.size
+  const reader = file.stream().pipeThrough(new TextDecoderStream('utf-8')).getReader()
+  const parts: string[] = []
+  let bytesSeen = 0
+  let lastEmit = 0
+  // Estimate bytes by re-encoding each chunk back to UTF-8 size. Cheaper than
+  // an extra TransformStream and accurate enough for the progress bar.
+  const utf8Bytes = (s: string): number => new Blob([s]).size
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    if (!value) continue
+    parts.push(value)
+    bytesSeen += utf8Bytes(value)
+    const now = Date.now()
+    if (now - lastEmit > 60 && total > 0) {
+      lastEmit = now
+      onProgress?.({
+        phase: 'read',
+        ratio: Math.min(1, bytesSeen / total),
+        label: `Leyendo archivo… ${(bytesSeen / 1024 / 1024).toFixed(1)} MB`,
+      })
+    }
+  }
+  onProgress?.({ phase: 'read', ratio: 1, label: 'Lectura completada' })
+  return parts.join('')
 }
 
 function surfaceMojibakeWarning(count: number): void {
@@ -179,9 +273,10 @@ export async function parseExcelFileWithMeta(
   file: File,
   opts: ParseExcelOptions = {},
 ): Promise<ParseResult> {
-  if (file.size > MAX_FILE_BYTES) {
+  const limit = maxBytesFor(file.name)
+  if (file.size > limit) {
     const e = new ParseError(
-      `El archivo supera ${Math.round(MAX_FILE_BYTES / 1024 / 1024)} MB (${(file.size / 1024 / 1024).toFixed(1)} MB). Reduce filas o conviértelo a CSV.`,
+      `El archivo supera ${Math.round(limit / 1024 / 1024)} MB (${(file.size / 1024 / 1024).toFixed(1)} MB). Reduce filas o conviértelo a CSV.`,
       { phase: 'read' },
     )
     void logError({
@@ -193,6 +288,28 @@ export async function parseExcelFileWithMeta(
     throw e
   }
 
+  // Large CSV files take the streaming path (#10): we decode the file via
+  // TextDecoderStream into a string and hand it to the worker, bypassing the
+  // file.arrayBuffer() spike that would otherwise materialise the whole file
+  // in memory twice (raw bytes + decoded text + worker copy).
+  const useStream = isCsvLikeName(file.name) && file.size >= STREAM_THRESHOLD
+  if (useStream) {
+    try {
+      const text = await streamFileToText(file, opts.onProgress)
+      return await runParseWorker({ fileText: text }, file.name, opts.sheetIndex, opts.onProgress)
+    } catch (err) {
+      if (err instanceof ParseError) {
+        void logError({
+          level: 'error',
+          context: 'parser',
+          message: err.message,
+          meta: { phase: err.phase, fileName: file.name, stream: true },
+        })
+      }
+      throw err
+    }
+  }
+
   // ArrayBuffer is transferred to the worker on postMessage, so we read the
   // file once and clone the buffer per attempt.
   const sourceBuffer = await file.arrayBuffer()
@@ -200,7 +317,12 @@ export async function parseExcelFileWithMeta(
   for (let attempt = 0; attempt < 2; attempt++) {
     const fresh = sourceBuffer.slice(0)
     try {
-      return await runParseWorker(fresh, file.name, opts.sheetIndex, opts.onProgress)
+      return await runParseWorker(
+        { fileBuffer: fresh },
+        file.name,
+        opts.sheetIndex,
+        opts.onProgress,
+      )
     } catch (err) {
       if (err instanceof WorkerCrash && attempt === 0) {
         void logError({

@@ -36,7 +36,7 @@ export function UploadDropzone({ onParsed }: UploadDropzoneProps): JSX.Element {
     setBusy(true)
     setError(null)
     setProgress({ ratio: 0, label: 'Cargando archivo…' })
-    if (fileSizeTier(file.size) === 'warn' && sheetIndex === 0) {
+    if (fileSizeTier(file.size, file.name) === 'warn' && sheetIndex === 0) {
       pushToast(
         `Archivo grande (${(file.size / 1024 / 1024).toFixed(1)} MB > ${Math.round(WARN_FILE_BYTES / 1024 / 1024)} MB). El parseo puede tardar unos segundos.`,
         'info',
